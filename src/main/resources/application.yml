@@ -35,7 +35,7 @@ spring:
     host: smtp.qq.com
     port: 587
     # 发送方邮箱账号
-    username: 903635811@qq.com
+    username: 57954282@qq.com
     # 邮箱授权码（不是邮箱密码）
     password: okfrcokdlwlbbbac
     properties:
@@ -70,9 +70,9 @@ notification:
     enabled: true
     pass: okfrcokdlwlbbbac
     # 发送方邮箱，需要修改为你的邮箱
-    from: 903635811@qq.com
+    from: 57954282@qq.com
     # 默认接收方邮箱，多个用逗号分隔
-    to: 57954282@qq.com
+    to: 903635811@qq.com
   # 微信配置（支持Server酱）
   wechat:
     enabled: true
@@ -83,8 +83,3 @@ notification:
     corp-secret: YOUR_CORP_SECRET
     agent-id: YOUR_AGENT_ID
 
-# 基金监控配置
-fund:
-  monitor:
-    # 监控的基金列表（基金代码:基金名称）
-    codes: 006195:国金量化多因子,002170:东吴移动互联

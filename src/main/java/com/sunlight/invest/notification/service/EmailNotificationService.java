@@ -37,7 +37,7 @@ public class EmailNotificationService {
     @Value("${spring.mail.username:}")
     private String fromEmail;
 
-    public static String receiveEmail = "57954282@qq.com";
+    public static String receiveEmail = "903635811@qq.com";
 
     /**
      * 发送简单文本邮件

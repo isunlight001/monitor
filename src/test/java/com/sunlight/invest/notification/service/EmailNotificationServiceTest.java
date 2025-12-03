@@ -51,17 +51,17 @@ class EmailNotificationServiceTest {
         // 设置默认配置（使用lenient模式避免UnnecessaryStubbing错误）
         lenient().when(notificationProperties.getMail()).thenReturn(mailConfig);
         lenient().when(mailConfig.isEnabled()).thenReturn(true);
-        lenient().when(mailConfig.getFrom()).thenReturn("903635811@qq.com");
-        lenient().when(mailConfig.getTo()).thenReturn("57954282@qq.com");
+        lenient().when(mailConfig.getFrom()).thenReturn("57954282@qq.com");
+        lenient().when(mailConfig.getTo()).thenReturn("903635811@qq.com");
         
         // 设置fromEmail字段
-        ReflectionTestUtils.setField(emailNotificationService, "fromEmail", "903635811@qq.com");
+        ReflectionTestUtils.setField(emailNotificationService, "fromEmail", "57954282@qq.com");
     }
 
     @Test
     void testSendSimpleEmail_Success() {
         // 准备测试数据
-        String to = "57954282@qq.com";
+        String to = "903635811@qq.com";
         String subject = "测试邮件";
         String content = "这是测试内容";
 
@@ -76,7 +76,7 @@ class EmailNotificationServiceTest {
         assertEquals(to, sentMessage.getTo()[0]);
         assertEquals(subject, sentMessage.getSubject());
         assertEquals(content, sentMessage.getText());
-        assertEquals("903635811@qq.com", sentMessage.getFrom());
+        assertEquals("57954282@qq.com", sentMessage.getFrom());
     }
 
     @Test
@@ -93,7 +93,7 @@ class EmailNotificationServiceTest {
         verify(mailSender).send(messageCaptor.capture());
 
         SimpleMailMessage sentMessage = messageCaptor.getValue();
-        assertEquals("57954282@qq.com", sentMessage.getTo()[0]);
+        assertEquals("903635811@qq.com", sentMessage.getTo()[0]);
     }
 
     @Test
@@ -139,14 +139,14 @@ class EmailNotificationServiceTest {
         when(mailConfig.getFrom()).thenReturn("");
 
         // 执行测试
-        emailNotificationService.sendSimpleEmail("903635811@qq.com", "主题", "内容");
+        emailNotificationService.sendSimpleEmail("57954282@qq.com", "主题", "内容");
 
         // 验证使用了fromEmail
         ArgumentCaptor<SimpleMailMessage> messageCaptor = ArgumentCaptor.forClass(SimpleMailMessage.class);
         verify(mailSender).send(messageCaptor.capture());
 
         SimpleMailMessage sentMessage = messageCaptor.getValue();
-        assertEquals("903635811@qq.com", sentMessage.getFrom());
+        assertEquals("57954282@qq.com", sentMessage.getFrom());
     }
 
     @Test
@@ -189,7 +189,7 @@ class EmailNotificationServiceTest {
         verify(mailSender).send(messageCaptor.capture());
 
         SimpleMailMessage sentMessage = messageCaptor.getValue();
-        assertEquals("57954282@qq.com", sentMessage.getTo()[0]);
+        assertEquals("903635811@qq.com", sentMessage.getTo()[0]);
         assertEquals("测试主题", sentMessage.getSubject());
     }
 

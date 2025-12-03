@@ -17,11 +17,11 @@ import org.springframework.test.context.TestPropertySource;
 @SpringBootTest
 @TestPropertySource(properties = {
     "notification.mail.enabled=true",
-    "notification.mail.from=903635811@qq.com",
-    "notification.mail.to=57954282@qq.com",
+    "notification.mail.from=57954282@qq.com",
+    "notification.mail.to=903635811@qq.com",
     "spring.mail.host=smtp.qq.com",
     "spring.mail.port=587",
-    "spring.mail.username=903635811@qq.com",
+    "spring.mail.username=57954282@qq.com",
     "spring.mail.password=okfrcokdlwlbbbac"
 })
 public class EmailNotificationServiceIntegrationTest {
@@ -126,7 +126,7 @@ public class EmailNotificationServiceIntegrationTest {
 
         try {
             // 修改为实际的收件人邮箱
-            String specificRecipient = "57954282@qq.com";
+            String specificRecipient = "903635811@qq.com";
             
             emailNotificationService.sendSimpleEmail(
                 specificRecipient,
