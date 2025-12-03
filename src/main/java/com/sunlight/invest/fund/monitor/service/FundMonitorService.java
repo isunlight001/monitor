@@ -51,7 +51,7 @@ public class FundMonitorService {
 
     private static final BigDecimal THRESHOLD_5_PERCENT = new BigDecimal("5.0");
     private static final BigDecimal THRESHOLD_4_PERCENT = new BigDecimal("4.0");
-    private static final int MONITOR_DAYS = 7; // 增加到7天以满足规则E的需求
+    private static final int MONITOR_DAYS = 5; // 增加到7天以满足规则E的需求
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
 
@@ -100,7 +100,7 @@ public class FundMonitorService {
         }
 
         // 反转列表，使其按日期升序排列
-        java.util.Collections.reverse(navList);
+//        java.util.Collections.reverse(navList);
 
         // 执行五种规则检查
         checkRuleA(navList);

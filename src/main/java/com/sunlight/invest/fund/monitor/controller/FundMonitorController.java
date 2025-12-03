@@ -290,10 +290,34 @@ public class FundMonitorController {
         Map<String, Object> result = new HashMap<>();
 
         try {
-            fundMonitorService.scheduledMonitorTask();
-            result.put("success", true);
-            result.put("message", "预警任务执行完成");
+            // 从数据库获取所有启用的监控基金
+            List<MonitorFund> monitorFunds = monitorFundMapper.selectAllEnabled();
+            
+            int successCount = 0;
+            int failCount = 0;
+            
+            for (MonitorFund monitorFund : monitorFunds) {
+                try {
+                    String fundCode = monitorFund.getFundCode();
+                    String fundName = monitorFund.getFundName();
+                    
+                    // 1. 增量更新基金数据
+                    fundCrawlerService.incrementalUpdate(fundCode, fundName);
+                    
+                    // 2. 执行监控检查
+                    fundMonitorService.monitorFund(fundCode);
+                    
+                    successCount++;
+                } catch (Exception e) {
+                    failCount++;
+                    // 记录单个基金处理失败，但继续处理其他基金
+                }
+            }
 
+            result.put("success", true);
+            result.put("message", String.format("预警任务执行完成，成功: %d, 失败: %d", successCount, failCount));
+            result.put("successCount", successCount);
+            result.put("failCount", failCount);
         } catch (Exception e) {
             result.put("success", false);
             result.put("message", "触发预警任务失败: " + e.getMessage());
