@@ -2,15 +2,12 @@ package com.sunlight.invest.common;
 
 import org.apache.ibatis.executor.statement.StatementHandler;
 import org.apache.ibatis.mapping.BoundSql;
-import org.apache.ibatis.mapping.ParameterMapping;
 import org.apache.ibatis.plugin.*;
 import org.apache.ibatis.session.ResultHandler;
-import org.apache.ibatis.session.RowBounds;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.sql.Statement;
-import java.util.List;
 import java.util.Properties;
 
 /**
@@ -35,7 +32,7 @@ public class SqlCostInterceptor implements Interceptor {
     public Object intercept(Invocation invocation) throws Throwable {
         StatementHandler statementHandler = (StatementHandler) invocation.getTarget();
         long startTime = System.currentTimeMillis();
-        Object result = null;
+        Object result;
         try {
             // 执行SQL
             result = invocation.proceed();
