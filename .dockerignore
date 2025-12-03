@@ -1,0 +1,27 @@
+# 忽略版本控制系统文件
+.git
+.gitignore
+
+# 忽略IDE相关文件
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# 忽略日志文件
+*.log
+
+# 忽略Maven构建输出目录
+target/
+bin/
+
+# 忽略临时文件
+tmp/
+temp/
+
+# 忽略node_modules（如果有的话）
+node_modules/
+
+# 忽略系统文件
+.DS_Store
+Thumbs.db
