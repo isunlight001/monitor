@@ -276,6 +276,14 @@
                 </ul>
             </div>
 
+            <!-- 手工触发预警 -->
+            <div class="form-section">
+                <h3>🚨 手工触发预警</h3>
+                <p>立即对所有启用的监控基金执行数据更新和预警检查</p>
+                <button class="btn btn-danger" onclick="triggerAllMonitorFunds()">立即执行预警</button>
+                <div class="result" id="triggerResult"></div>
+            </div>
+
             <!-- 基金数据抓取 -->
             <div class="form-section">
                 <h3>📥 基金数据抓取</h3>
@@ -643,6 +651,36 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadMonitorFunds();
         });
+
+        // 手工触发所有监控基金的预警任务
+        async function triggerAllMonitorFunds() {
+            if (!confirm('确定要立即执行所有启用基金的预警检查吗？')) {
+                return;
+            }
+
+            const button = event.target;
+            const originalText = button.textContent;
+            button.disabled = true;
+            button.textContent = '执行中...';
+
+            try {
+                const response = await fetch(`${API_BASE}/trigger-all`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showResult('triggerResult', true, result.message);
+                } else {
+                    showResult('triggerResult', false, result.message || '执行失败');
+                }
+            } catch (error) {
+                showResult('triggerResult', false, '请求失败: ' + (error.message || '网络错误'));
+            } finally {
+                button.disabled = false;
+                button.textContent = originalText;
+            }
+        }
     </script>
 </body>
 </html>
