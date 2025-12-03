@@ -62,11 +62,11 @@ public class FundBacktestService {
      * @param fundCode 基金代码
      * @return 基金数据列表
      */
-    public List<com.sunlight.invest.fund.Fund> getFundData(String fundCode) {
+    public List<Fund> getFundData(String fundCode) {
         System.out.println("正在获取基金" + fundCode + "的净值数据...");
         
         // 模拟数据获取，实际应从API获取
-        List<com.sunlight.invest.fund.Fund> fundList = generateMockFundData(fundCode);
+        List<Fund> fundList = generateMockFundData(fundCode);
         
         System.out.println("获取到" + fundList.size() + "条基金数据");
         return fundList;
@@ -79,15 +79,15 @@ public class FundBacktestService {
      * @param fundDataList 基金数据列表
      * @return 回测结果列表
      */
-    public List<BacktestResult> backtest(List<IndexData> indexDataList, List<com.sunlight.invest.fund.Fund> fundDataList) {
+    public List<BacktestResult> backtest(List<IndexData> indexDataList, List<Fund> fundDataList) {
         System.out.println("开始执行回测...");
         
         // 合并数据
         Map<LocalDate, IndexData> indexMap = indexDataList.stream()
                 .collect(Collectors.toMap(IndexData::getTradeDate, data -> data));
         
-        Map<LocalDate, com.sunlight.invest.fund.Fund> fundMap = fundDataList.stream()
-                .collect(Collectors.toMap(com.sunlight.invest.fund.Fund::getTradeDate, fund -> fund));
+        Map<LocalDate, Fund> fundMap = fundDataList.stream()
+                .collect(Collectors.toMap(Fund::getTradeDate, fund -> fund));
         
         // 获取共同的交易日期
         Set<LocalDate> commonDates = new HashSet<>(indexMap.keySet());
@@ -105,7 +105,7 @@ public class FundBacktestService {
         
         for (LocalDate date : backtestDates) {
             IndexData indexData = indexMap.get(date);
-            com.sunlight.invest.fund.Fund fund = fundMap.get(date);
+            Fund fund = fundMap.get(date);
             
             // 获取上证指数涨跌幅
             Double shPercent = indexData.getShPercent();
@@ -215,8 +215,8 @@ public class FundBacktestService {
      * @param fundCode 基金代码
      * @return 模拟的基金数据
      */
-    private List<com.sunlight.invest.fund.Fund> generateMockFundData(String fundCode) {
-        List<com.sunlight.invest.fund.Fund> fundList = new ArrayList<>();
+    private List<Fund> generateMockFundData(String fundCode) {
+        List<Fund> fundList = new ArrayList<>();
         
         // 生成从2000年至今的模拟数据（只生成工作日）
         LocalDate currentDate = START_DATE;
