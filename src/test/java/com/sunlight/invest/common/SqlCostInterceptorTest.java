@@ -1,6 +1,9 @@
 package com.sunlight.invest.common;
 
 import org.junit.jupiter.api.Test;
+
+import java.util.Date;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -35,5 +38,32 @@ class SqlCostInterceptorTest {
         // 测试null SQL
         String formatted5 = interceptor.formatSql(null);
         assertEquals("", formatted5);
+    }
+    
+    @Test
+    void testFormatParameterValue() {
+        SqlCostInterceptor interceptor = new SqlCostInterceptor();
+        
+        // 测试null值
+        String result1 = interceptor.formatParameterValue(null);
+        assertEquals("NULL", result1);
+        
+        // 测试字符串值
+        String result2 = interceptor.formatParameterValue("test");
+        assertEquals("'test'", result2);
+        
+        // 测试包含单引号的字符串
+        String result3 = interceptor.formatParameterValue("test'value");
+        assertEquals("'test''value'", result3);
+        
+        // 测试数字值
+        String result4 = interceptor.formatParameterValue(123);
+        assertEquals("123", result4);
+        
+        // 测试日期值
+        Date date = new Date();
+        String result5 = interceptor.formatParameterValue(date);
+        // 日期格式应该是 'yyyy-MM-dd HH:mm:ss'
+        assertTrue(result5.matches("'\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}'"));
     }
 }
