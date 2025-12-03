@@ -1,6 +1,8 @@
 package com.sunlight.invest.fund.monitor.service;
 
+import com.sunlight.invest.fund.monitor.entity.AlarmRecord;
 import com.sunlight.invest.fund.monitor.entity.FundNav;
+import com.sunlight.invest.fund.monitor.mapper.AlarmRecordMapper;
 import com.sunlight.invest.fund.monitor.mapper.FundNavMapper;
 import com.sunlight.invest.notification.service.EmailNotificationService;
 import org.slf4j.Logger;
@@ -11,7 +13,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -39,9 +40,12 @@ public class FundMonitorService {
     @Autowired
     private EmailNotificationService emailNotificationService;
 
+    @Autowired
+    private AlarmRecordMapper alarmRecordMapper;
+
     private static final BigDecimal THRESHOLD_5_PERCENT = new BigDecimal("5.0");
     private static final BigDecimal THRESHOLD_4_PERCENT = new BigDecimal("4.0");
-    private static final int MONITOR_DAYS = 5; // 增加到7天以满足规则E的需求
+    private static final int MONITOR_DAYS = 7; // 增加到7天以满足规则E的需求
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     /**
@@ -52,13 +56,15 @@ public class FundMonitorService {
     public void monitorFund(String fundCode) {
         log.info("开始监控基金: {}", fundCode);
 
-        // 获取最近5天的数据 降序
+        // 获取最近7天的数据 降序
         List<FundNav> navList = fundNavMapper.selectRecentDays(fundCode, MONITOR_DAYS);
         if (navList == null || navList.isEmpty()) {
             log.warn("基金 {} 没有数据", fundCode);
             return;
         }
 
+        // 反转列表，使其按日期升序排列
+        java.util.Collections.reverse(navList);
 
         // 执行五种规则检查
         checkRuleA(navList);
@@ -140,9 +146,11 @@ public class FundMonitorService {
      * @param navList 基金净值列表，按日期升序排列
      */
     private void checkRuleB(List<FundNav> navList) {
-        if (navList.get(0).getDailyReturn() != null &&
-                navList.get(0).getDailyReturn().abs().compareTo(THRESHOLD_5_PERCENT) >= 0) {
-            sendRuleBAlert(navList.get(0));
+        for (FundNav nav : navList) {
+            if (nav.getDailyReturn() != null &&
+                    nav.getDailyReturn().abs().compareTo(THRESHOLD_5_PERCENT) >= 0) {
+                sendRuleBAlert(nav);
+            }
         }
     }
 
@@ -158,9 +166,9 @@ public class FundMonitorService {
      */
     private void checkRuleC(List<FundNav> navList) {
         // 检查连续2天
-//        for (int i = 0; i < navList.size(); i++) {
-            FundNav current = navList.get(0);
-            FundNav previous = navList.get(1);
+        for (int i = 1; i < navList.size(); i++) {
+            FundNav current = navList.get(i);
+            FundNav previous = navList.get(i - 1);
 
             if (current.getDailyReturn() != null && previous.getDailyReturn() != null) {
                 BigDecimal sum2Days = current.getDailyReturn().add(previous.getDailyReturn());
@@ -168,7 +176,7 @@ public class FundMonitorService {
                     sendRuleCAlert(current, 2, sum2Days);
                 }
             }
-//        }
+        }
     }
 
     /**
@@ -183,10 +191,10 @@ public class FundMonitorService {
      */
     private void checkRuleD(List<FundNav> navList) {
         // 检查连续3天
-//        for (int i = 2; i < navList.size(); i++) {
-            FundNav current = navList.get(0);
-            FundNav previous1 = navList.get(1);
-            FundNav previous2 = navList.get(2);
+        for (int i = 2; i < navList.size(); i++) {
+            FundNav current = navList.get(i);
+            FundNav previous1 = navList.get(i - 1);
+            FundNav previous2 = navList.get(i - 2);
 
             if (current.getDailyReturn() != null &&
                     previous1.getDailyReturn() != null &&
@@ -198,7 +206,7 @@ public class FundMonitorService {
                     sendRuleDAlert(current, 3, sum3Days);
                 }
             }
-//        }
+        }
     }
 
     /**
@@ -213,11 +221,11 @@ public class FundMonitorService {
      */
     private void checkRuleE(List<FundNav> navList) {
         // 检查连续4天
-//        for (int i = 3; i < navList.size(); i++) {
-            FundNav current = navList.get(0);
-            FundNav previous1 = navList.get(1);
-            FundNav previous2 = navList.get(2);
-            FundNav previous3 = navList.get(3);
+        for (int i = 3; i < navList.size(); i++) {
+            FundNav current = navList.get(i);
+            FundNav previous1 = navList.get(i - 1);
+            FundNav previous2 = navList.get(i - 2);
+            FundNav previous3 = navList.get(i - 3);
 
             if (current.getDailyReturn() != null &&
                     previous1.getDailyReturn() != null &&
@@ -230,12 +238,12 @@ public class FundMonitorService {
                 if (sum4Days.abs().compareTo(THRESHOLD_5_PERCENT) >= 0) {
                     sendRuleEAlert(current, 4, sum4Days);
                 }
-//            }
+            }
         }
     }
 
     /**
-     * 发送规则A告警邮件
+     * 发送规则A告警邮件并保存记录
      */
     private void sendRuleAAlert(FundNav nav, int days, BigDecimal cumulativeReturn, boolean isRising) {
         String subject = String.format("【基金预警-规则A】%s 连续%d天%s",
@@ -267,13 +275,26 @@ public class FundMonitorService {
             emailNotificationService.sendEmail(subject, content);
             log.info("规则A告警邮件已发送: fundCode={}, days={}, return={}",
                     nav.getFundCode(), days, cumulativeReturn);
+            
+            // 保存告警记录
+            AlarmRecord alarmRecord = new AlarmRecord();
+            alarmRecord.setFundCode(nav.getFundCode());
+            alarmRecord.setFundName(nav.getFundName());
+            alarmRecord.setRuleCode("A");
+            alarmRecord.setRuleDescription("连续5天或以上上涨/下跌");
+            alarmRecord.setConsecutiveDays(days);
+            alarmRecord.setCumulativeReturn(cumulativeReturn);
+            alarmRecord.setNavDate(nav.getNavDate());
+            alarmRecord.setUnitNav(nav.getUnitNav());
+            alarmRecord.setAlarmContent(content);
+            alarmRecordMapper.insert(alarmRecord);
         } catch (Exception e) {
             log.error("发送规则A告警邮件失败", e);
         }
     }
 
     /**
-     * 发送规则B告警邮件
+     * 发送规则B告警邮件并保存记录
      */
     private void sendRuleBAlert(FundNav nav) {
         String subject = String.format("【基金预警-规则B】%s 单日大幅波动",
@@ -299,13 +320,25 @@ public class FundMonitorService {
             emailNotificationService.sendEmail(subject, content);
             log.info("规则B告警邮件已发送: fundCode={}, return={}",
                     nav.getFundCode(), nav.getDailyReturn());
+            
+            // 保存告警记录
+            AlarmRecord alarmRecord = new AlarmRecord();
+            alarmRecord.setFundCode(nav.getFundCode());
+            alarmRecord.setFundName(nav.getFundName());
+            alarmRecord.setRuleCode("B");
+            alarmRecord.setRuleDescription("单日涨跌幅绝对值≥5%");
+            alarmRecord.setDailyReturn(nav.getDailyReturn());
+            alarmRecord.setNavDate(nav.getNavDate());
+            alarmRecord.setUnitNav(nav.getUnitNav());
+            alarmRecord.setAlarmContent(content);
+            alarmRecordMapper.insert(alarmRecord);
         } catch (Exception e) {
             log.error("发送规则B告警邮件失败", e);
         }
     }
 
     /**
-     * 发送规则C告警邮件
+     * 发送规则C告警邮件并保存记录
      */
     private void sendRuleCAlert(FundNav nav, int days, BigDecimal cumulativeReturn) {
         String subject = String.format("【基金预警-规则C】%s 连续%d天累计波动",
@@ -334,13 +367,26 @@ public class FundMonitorService {
             emailNotificationService.sendEmail(subject, content);
             log.info("规则C告警邮件已发送: fundCode={}, days={}, return={}",
                     nav.getFundCode(), days, cumulativeReturn);
+            
+            // 保存告警记录
+            AlarmRecord alarmRecord = new AlarmRecord();
+            alarmRecord.setFundCode(nav.getFundCode());
+            alarmRecord.setFundName(nav.getFundName());
+            alarmRecord.setRuleCode("C");
+            alarmRecord.setRuleDescription("连续2天累计涨跌幅绝对值≥4%");
+            alarmRecord.setConsecutiveDays(days);
+            alarmRecord.setCumulativeReturn(cumulativeReturn);
+            alarmRecord.setNavDate(nav.getNavDate());
+            alarmRecord.setUnitNav(nav.getUnitNav());
+            alarmRecord.setAlarmContent(content);
+            alarmRecordMapper.insert(alarmRecord);
         } catch (Exception e) {
             log.error("发送规则C告警邮件失败", e);
         }
     }
 
     /**
-     * 发送规则D告警邮件
+     * 发送规则D告警邮件并保存记录
      */
     private void sendRuleDAlert(FundNav nav, int days, BigDecimal cumulativeReturn) {
         String subject = String.format("【基金预警-规则D】%s 连续%d天累计波动",
@@ -369,13 +415,26 @@ public class FundMonitorService {
             emailNotificationService.sendEmail(subject, content);
             log.info("规则D告警邮件已发送: fundCode={}, days={}, return={}",
                     nav.getFundCode(), days, cumulativeReturn);
+            
+            // 保存告警记录
+            AlarmRecord alarmRecord = new AlarmRecord();
+            alarmRecord.setFundCode(nav.getFundCode());
+            alarmRecord.setFundName(nav.getFundName());
+            alarmRecord.setRuleCode("D");
+            alarmRecord.setRuleDescription("连续3天累计涨跌幅绝对值≥5%");
+            alarmRecord.setConsecutiveDays(days);
+            alarmRecord.setCumulativeReturn(cumulativeReturn);
+            alarmRecord.setNavDate(nav.getNavDate());
+            alarmRecord.setUnitNav(nav.getUnitNav());
+            alarmRecord.setAlarmContent(content);
+            alarmRecordMapper.insert(alarmRecord);
         } catch (Exception e) {
             log.error("发送规则D告警邮件失败", e);
         }
     }
 
     /**
-     * 发送规则E告警邮件
+     * 发送规则E告警邮件并保存记录
      */
     private void sendRuleEAlert(FundNav nav, int days, BigDecimal cumulativeReturn) {
         String subject = String.format("【基金预警-规则E】%s 连续%d天累计波动",
@@ -404,6 +463,19 @@ public class FundMonitorService {
             emailNotificationService.sendEmail(subject, content);
             log.info("规则E告警邮件已发送: fundCode={}, days={}, return={}",
                     nav.getFundCode(), days, cumulativeReturn);
+            
+            // 保存告警记录
+            AlarmRecord alarmRecord = new AlarmRecord();
+            alarmRecord.setFundCode(nav.getFundCode());
+            alarmRecord.setFundName(nav.getFundName());
+            alarmRecord.setRuleCode("E");
+            alarmRecord.setRuleDescription("连续4天累计涨跌幅绝对值≥5%");
+            alarmRecord.setConsecutiveDays(days);
+            alarmRecord.setCumulativeReturn(cumulativeReturn);
+            alarmRecord.setNavDate(nav.getNavDate());
+            alarmRecord.setUnitNav(nav.getUnitNav());
+            alarmRecord.setAlarmContent(content);
+            alarmRecordMapper.insert(alarmRecord);
         } catch (Exception e) {
             log.error("发送规则E告警邮件失败", e);
         }

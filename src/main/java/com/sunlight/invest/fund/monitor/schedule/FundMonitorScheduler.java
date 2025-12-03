@@ -36,10 +36,10 @@ public class FundMonitorScheduler {
     private MonitorFundMapper monitorFundMapper;
 
     /**
-     * 每晚11点执行基金数据抓取和监控
-     * cron表达式: 0 0 23 * * ?
+     * 每晚10点执行基金数据抓取和监控
+     * cron表达式: 0 0 22 * * ?
      */
-    @Scheduled(cron = "0 0 23 * * ?")
+    @Scheduled(cron = "0 0 22 * * ?")
     public void scheduledMonitorTask() {
         log.info("========== 开始执行基金监控定时任务 ==========");
 
