@@ -1,15 +1,15 @@
 package com.sunlight.invest.fund.monitor.schedule;
 
+import com.sunlight.invest.fund.monitor.entity.MonitorFund;
+import com.sunlight.invest.fund.monitor.mapper.MonitorFundMapper;
 import com.sunlight.invest.fund.monitor.service.FundCrawlerService;
 import com.sunlight.invest.fund.monitor.service.FundMonitorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -32,12 +32,8 @@ public class FundMonitorScheduler {
     @Autowired
     private FundMonitorService fundMonitorService;
 
-    /**
-     * 监控的基金列表（基金代码:基金名称）
-     * 可以通过配置文件配置
-     */
-    @Value("${fund.monitor.codes:006195:国金量化多因子}")
-    private String monitorFundsConfig;
+    @Autowired
+    private MonitorFundMapper monitorFundMapper;
 
     /**
      * 每晚11点执行基金数据抓取和监控
@@ -47,17 +43,13 @@ public class FundMonitorScheduler {
     public void scheduledMonitorTask() {
         log.info("========== 开始执行基金监控定时任务 ==========");
 
-        List<String> fundConfigs = Arrays.asList(monitorFundsConfig.split(","));
+        // 从数据库获取所有启用的监控基金
+        List<MonitorFund> monitorFunds = monitorFundMapper.selectAllEnabled();
+        log.info("获取到 {} 个启用的监控基金", monitorFunds.size());
 
-        for (String fundConfig : fundConfigs) {
-            String[] parts = fundConfig.trim().split(":");
-            if (parts.length != 2) {
-                log.warn("基金配置格式错误: {}", fundConfig);
-                continue;
-            }
-
-            String fundCode = parts[0].trim();
-            String fundName = parts[1].trim();
+        for (MonitorFund monitorFund : monitorFunds) {
+            String fundCode = monitorFund.getFundCode();
+            String fundName = monitorFund.getFundName();
 
             try {
                 // 1. 增量更新基金数据

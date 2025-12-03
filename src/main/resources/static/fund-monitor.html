@@ -135,6 +135,16 @@
             box-shadow: 0 5px 20px rgba(52, 152, 219, 0.4);
         }
 
+        .btn-danger {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 75, 43, 0.4);
+        }
+
         .result {
             margin-top: 20px;
             padding: 15px;
@@ -296,6 +306,23 @@
                 <button class="btn btn-info" onclick="queryFundNav()">查询净值数据</button>
                 <div class="result" id="queryResult"></div>
                 <div id="navTableContainer"></div>
+            </div>
+
+            <!-- 监控基金管理 -->
+            <div class="form-section">
+                <h3>📋 监控基金管理</h3>
+                <div class="form-group">
+                    <label>基金代码*</label>
+                    <input type="text" id="monitorFundCode" placeholder="例如: 006195">
+                </div>
+                <div class="form-group">
+                    <label>基金名称*</label>
+                    <input type="text" id="monitorFundName" placeholder="例如: 国金量化多因子">
+                </div>
+                <button class="btn btn-primary" onclick="addMonitorFund()">添加监控基金</button>
+                <button class="btn btn-info" onclick="loadMonitorFunds()">刷新监控列表</button>
+                <div class="result" id="monitorResult"></div>
+                <div id="monitorFundsTableContainer"></div>
             </div>
         </div>
     </div>
@@ -475,7 +502,151 @@
 
             document.getElementById('startDate').valueAsDate = oneMonthAgo;
             document.getElementById('endDate').valueAsDate = today;
+            
+            // 加载监控基金列表
+            loadMonitorFunds();
         };
+
+        // 添加监控基金
+        async function addMonitorFund() {
+            const fundCode = document.getElementById('monitorFundCode').value;
+            const fundName = document.getElementById('monitorFundName').value;
+
+            if (!fundCode || !fundName) {
+                showResult('monitorResult', false, '请填写基金代码和基金名称');
+                return;
+            }
+
+            const params = new URLSearchParams({
+                fundCode: fundCode,
+                fundName: fundName
+            });
+
+            try {
+                const response = await fetch(`${API_BASE}/monitor-fund?${params}`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                showResult('monitorResult', result.success, result.message);
+                
+                if (result.success) {
+                    // 清空输入框
+                    document.getElementById('monitorFundCode').value = '';
+                    document.getElementById('monitorFundName').value = '';
+                    // 刷新列表
+                    loadMonitorFunds();
+                }
+            } catch (error) {
+                showResult('monitorResult', false, '请求失败: ' + error.message);
+            }
+        }
+
+        // 加载监控基金列表
+        async function loadMonitorFunds() {
+            try {
+                const response = await fetch(`${API_BASE}/monitor-funds`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    renderMonitorFundsTable(result.data);
+                } else {
+                    showResult('monitorResult', false, '加载监控基金列表失败: ' + result.message);
+                }
+            } catch (error) {
+                showResult('monitorResult', false, '请求失败: ' + error.message);
+            }
+        }
+
+        // 渲染监控基金表格
+        function renderMonitorFundsTable(data) {
+            if (!data || data.length === 0) {
+                document.getElementById('monitorFundsTableContainer').innerHTML = '<p>暂无监控基金</p>';
+                return;
+            }
+
+            let html = `
+                <table class="nav-table">
+                    <thead>
+                        <tr>
+                            <th>基金代码</th>
+                            <th>基金名称</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            for (let i = 0; i < data.length; i++) {
+                const item = data[i];
+                const statusText = item.enabled ? '启用' : '禁用';
+                const toggleAction = item.enabled ? '禁用' : '启用';
+                
+                html += `
+                    <tr>
+                        <td>${item.fundCode}</td>
+                        <td>${item.fundName}</td>
+                        <td>${statusText}</td>
+                        <td>
+                            <button class="btn btn-info" onclick="toggleMonitorFund(${item.id}, ${!item.enabled})">${toggleAction}</button>
+                            <button class="btn btn-danger" onclick="deleteMonitorFund(${item.id})">删除</button>
+                        </td>
+                    </tr>
+                `;
+            }
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            document.getElementById('monitorFundsTableContainer').innerHTML = html;
+        }
+
+        // 切换监控基金状态
+        async function toggleMonitorFund(id, enabled) {
+            const params = new URLSearchParams({
+                enabled: enabled
+            });
+
+            try {
+                const response = await fetch(`${API_BASE}/monitor-fund/${id}/status?${params}`, {
+                    method: 'PUT'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    loadMonitorFunds();
+                } else {
+                    showResult('monitorResult', false, '更新失败: ' + result.message);
+                }
+            } catch (error) {
+                showResult('monitorResult', false, '请求失败: ' + error.message);
+            }
+        }
+
+        // 删除监控基金
+        async function deleteMonitorFund(id) {
+            if (!confirm('确定要删除这个监控基金吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/monitor-fund/${id}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    loadMonitorFunds();
+                    showResult('monitorResult', true, '删除成功');
+                } else {
+                    showResult('monitorResult', false, '删除失败: ' + result.message);
+                }
+            } catch (error) {
+                showResult('monitorResult', false, '请求失败: ' + error.message);
+            }
+        }
     </script>
 </body>
 </html>

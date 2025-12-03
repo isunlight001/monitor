@@ -1,7 +1,9 @@
 package com.sunlight.invest.fund.monitor.controller;
 
 import com.sunlight.invest.fund.monitor.entity.FundNav;
+import com.sunlight.invest.fund.monitor.entity.MonitorFund;
 import com.sunlight.invest.fund.monitor.mapper.FundNavMapper;
+import com.sunlight.invest.fund.monitor.mapper.MonitorFundMapper;
 import com.sunlight.invest.fund.monitor.service.FundCrawlerService;
 import com.sunlight.invest.fund.monitor.service.FundMonitorService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +36,9 @@ public class FundMonitorController {
 
     @Autowired
     private FundNavMapper fundNavMapper;
+
+    @Autowired
+    private MonitorFundMapper monitorFundMapper;
 
     /**
      * 手动触发数据抓取
@@ -149,6 +154,127 @@ public class FundMonitorController {
         } catch (Exception e) {
             result.put("success", false);
             result.put("message", "增量更新失败: " + e.getMessage());
+        }
+
+        return result;
+    }
+
+    /**
+     * 添加监控基金
+     *
+     * @param fundCode 基金代码
+     * @param fundName 基金名称
+     * @return 响应结果
+     */
+    @PostMapping("/monitor-fund")
+    public Map<String, Object> addMonitorFund(
+            @RequestParam String fundCode,
+            @RequestParam String fundName) {
+
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            // 检查是否已存在
+            MonitorFund existing = monitorFundMapper.selectByFundCode(fundCode);
+            if (existing != null) {
+                result.put("success", false);
+                result.put("message", "基金已在监控列表中");
+                return result;
+            }
+
+            // 添加到监控列表
+            MonitorFund monitorFund = new MonitorFund(fundCode, fundName);
+            int count = monitorFundMapper.insert(monitorFund);
+
+            result.put("success", true);
+            result.put("message", "添加成功");
+            result.put("count", count);
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "添加失败: " + e.getMessage());
+        }
+
+        return result;
+    }
+
+    /**
+     * 查询所有监控基金
+     *
+     * @return 监控基金列表
+     */
+    @GetMapping("/monitor-funds")
+    public Map<String, Object> getAllMonitorFunds() {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            List<MonitorFund> funds = monitorFundMapper.selectAll();
+
+            result.put("success", true);
+            result.put("count", funds.size());
+            result.put("data", funds);
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "查询失败: " + e.getMessage());
+        }
+
+        return result;
+    }
+
+    /**
+     * 更新监控基金状态
+     *
+     * @param id      基金ID
+     * @param enabled 是否启用
+     * @return 响应结果
+     */
+    @PutMapping("/monitor-fund/{id}/status")
+    public Map<String, Object> updateMonitorFundStatus(
+            @PathVariable Long id,
+            @RequestParam Boolean enabled) {
+
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            MonitorFund monitorFund = monitorFundMapper.selectById(id);
+            if (monitorFund == null) {
+                result.put("success", false);
+                result.put("message", "基金不存在");
+                return result;
+            }
+
+            monitorFund.setEnabled(enabled);
+            int count = monitorFundMapper.update(monitorFund);
+
+            result.put("success", true);
+            result.put("message", "更新成功");
+            result.put("count", count);
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "更新失败: " + e.getMessage());
+        }
+
+        return result;
+    }
+
+    /**
+     * 删除监控基金
+     *
+     * @param id 基金ID
+     * @return 响应结果
+     */
+    @DeleteMapping("/monitor-fund/{id}")
+    public Map<String, Object> deleteMonitorFund(@PathVariable Long id) {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            int count = monitorFundMapper.deleteById(id);
+
+            result.put("success", true);
+            result.put("message", "删除成功");
+            result.put("count", count);
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "删除失败: " + e.getMessage());
         }
 
         return result;
