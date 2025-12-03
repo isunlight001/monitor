@@ -2,8 +2,10 @@ package com.sunlight.invest.fund.monitor.service;
 
 import com.sunlight.invest.fund.monitor.entity.AlarmRecord;
 import com.sunlight.invest.fund.monitor.entity.FundNav;
+import com.sunlight.invest.fund.monitor.entity.MonitorFund;
 import com.sunlight.invest.fund.monitor.mapper.AlarmRecordMapper;
 import com.sunlight.invest.fund.monitor.mapper.FundNavMapper;
+import com.sunlight.invest.fund.monitor.mapper.MonitorFundMapper;
 import com.sunlight.invest.notification.service.EmailNotificationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -43,10 +44,45 @@ public class FundMonitorService {
     @Autowired
     private AlarmRecordMapper alarmRecordMapper;
 
+    @Autowired
+    private FundCrawlerService fundCrawlerService;
+    @Autowired
+    private MonitorFundMapper monitorFundMapper;
+
     private static final BigDecimal THRESHOLD_5_PERCENT = new BigDecimal("5.0");
     private static final BigDecimal THRESHOLD_4_PERCENT = new BigDecimal("4.0");
     private static final int MONITOR_DAYS = 7; // 增加到7天以满足规则E的需求
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+
+    public void scheduledMonitorTask() {
+
+        // 从数据库获取所有启用的监控基金
+        List<MonitorFund> monitorFunds = monitorFundMapper.selectAllEnabled();
+        log.info("获取到 {} 个启用的监控基金", monitorFunds.size());
+
+        for (MonitorFund monitorFund : monitorFunds) {
+            String fundCode = monitorFund.getFundCode();
+            String fundName = monitorFund.getFundName();
+
+            try {
+                // 1. 增量更新基金数据
+                log.info("开始更新基金数据: {} - {}", fundCode, fundName);
+                int updateCount = fundCrawlerService.incrementalUpdate(fundCode, fundName);
+                log.info("基金数据更新完成: {} - {}, 更新记录数: {}", fundCode, fundName, updateCount);
+
+                // 2. 执行监控检查
+                log.info("开始监控基金: {} - {}", fundCode, fundName);
+                monitorFund(fundCode);
+                log.info("基金监控完成: {} - {}", fundCode, fundName);
+
+            } catch (Exception e) {
+                log.error("处理基金失败: {} - {}", fundCode, fundName, e);
+            }
+        }
+
+        log.info("========== 基金监控定时任务执行完成 ==========");
+    }
 
     /**
      * 监控指定基金
@@ -275,7 +311,7 @@ public class FundMonitorService {
             emailNotificationService.sendEmail(subject, content);
             log.info("规则A告警邮件已发送: fundCode={}, days={}, return={}",
                     nav.getFundCode(), days, cumulativeReturn);
-            
+
             // 保存告警记录
             AlarmRecord alarmRecord = new AlarmRecord();
             alarmRecord.setFundCode(nav.getFundCode());
@@ -320,7 +356,7 @@ public class FundMonitorService {
             emailNotificationService.sendEmail(subject, content);
             log.info("规则B告警邮件已发送: fundCode={}, return={}",
                     nav.getFundCode(), nav.getDailyReturn());
-            
+
             // 保存告警记录
             AlarmRecord alarmRecord = new AlarmRecord();
             alarmRecord.setFundCode(nav.getFundCode());
@@ -367,7 +403,7 @@ public class FundMonitorService {
             emailNotificationService.sendEmail(subject, content);
             log.info("规则C告警邮件已发送: fundCode={}, days={}, return={}",
                     nav.getFundCode(), days, cumulativeReturn);
-            
+
             // 保存告警记录
             AlarmRecord alarmRecord = new AlarmRecord();
             alarmRecord.setFundCode(nav.getFundCode());
@@ -415,7 +451,7 @@ public class FundMonitorService {
             emailNotificationService.sendEmail(subject, content);
             log.info("规则D告警邮件已发送: fundCode={}, days={}, return={}",
                     nav.getFundCode(), days, cumulativeReturn);
-            
+
             // 保存告警记录
             AlarmRecord alarmRecord = new AlarmRecord();
             alarmRecord.setFundCode(nav.getFundCode());
@@ -463,7 +499,7 @@ public class FundMonitorService {
             emailNotificationService.sendEmail(subject, content);
             log.info("规则E告警邮件已发送: fundCode={}, days={}, return={}",
                     nav.getFundCode(), days, cumulativeReturn);
-            
+
             // 保存告警记录
             AlarmRecord alarmRecord = new AlarmRecord();
             alarmRecord.setFundCode(nav.getFundCode());

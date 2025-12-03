@@ -42,32 +42,7 @@ public class FundMonitorScheduler {
     @Scheduled(cron = "0 0 22 * * ?")
     public void scheduledMonitorTask() {
         log.info("========== 开始执行基金监控定时任务 ==========");
-
-        // 从数据库获取所有启用的监控基金
-        List<MonitorFund> monitorFunds = monitorFundMapper.selectAllEnabled();
-        log.info("获取到 {} 个启用的监控基金", monitorFunds.size());
-
-        for (MonitorFund monitorFund : monitorFunds) {
-            String fundCode = monitorFund.getFundCode();
-            String fundName = monitorFund.getFundName();
-
-            try {
-                // 1. 增量更新基金数据
-                log.info("开始更新基金数据: {} - {}", fundCode, fundName);
-                int updateCount = fundCrawlerService.incrementalUpdate(fundCode, fundName);
-                log.info("基金数据更新完成: {} - {}, 更新记录数: {}", fundCode, fundName, updateCount);
-
-                // 2. 执行监控检查
-                log.info("开始监控基金: {} - {}", fundCode, fundName);
-                fundMonitorService.monitorFund(fundCode);
-                log.info("基金监控完成: {} - {}", fundCode, fundName);
-
-            } catch (Exception e) {
-                log.error("处理基金失败: {} - {}", fundCode, fundName, e);
-            }
-        }
-
-        log.info("========== 基金监控定时任务执行完成 ==========");
+        fundMonitorService.scheduledMonitorTask();
     }
 
     /**
