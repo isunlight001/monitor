@@ -1,8 +1,0 @@
--------------------------------------------------------------------------------
-Test set: com.monitor.invest.notification.service.EmailNotificationServiceTest
--------------------------------------------------------------------------------
-Tests run: 13, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 0.245 s <<< FAILURE! - in com.monitor.invest.notification.service.EmailNotificationServiceTest
-testSendSimpleEmail_Success  Time elapsed: 0.007 s  <<< FAILURE!
-org.opentest4j.AssertionFailedError: expected: <903635811@qq.com> but was: <sender@test.com>
-	at com.monitor.invest.notification.service.EmailNotificationServiceTest.testSendSimpleEmail_Success(EmailNotificationServiceTest.java:80)
-

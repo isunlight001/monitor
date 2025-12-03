@@ -1,7 +1,0 @@
-META-INF\spring.components
-com\sunlight\invest\fund\monitor\entity\FundNav.class
-com\sunlight\invest\fund\monitor\schedule\FundMonitorScheduler.class
-com\sunlight\invest\fund\monitor\mapper\FundNavMapper.class
-com\sunlight\invest\fund\monitor\service\FundMonitorService.class
-com\sunlight\invest\fund\monitor\service\FundCrawlerService.class
-com\sunlight\invest\fund\monitor\controller\FundMonitorController.class
