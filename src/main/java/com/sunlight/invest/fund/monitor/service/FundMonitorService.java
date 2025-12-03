@@ -49,7 +49,7 @@ public class FundMonitorService {
     public void monitorFund(String fundCode) {
         log.info("开始监控基金: {}", fundCode);
 
-        // 获取最近30天的数据
+        // 获取最近30天的数据 降序
         List<FundNav> navList = fundNavMapper.selectRecentDays(fundCode, MONITOR_DAYS);
         if (navList == null || navList.isEmpty()) {
             log.warn("基金 {} 没有数据", fundCode);
@@ -67,6 +67,20 @@ public class FundMonitorService {
 
     /**
      * 规则A：检测连续4天或以上上涨/下跌
+     * <p>
+     * 该方法遍历基金净值列表，检测是否存在连续4天或以上的持续上涨或下跌情况。
+     * 连续上涨/下跌的判断基于每日涨跌幅的符号一致性。
+     * 当检测到符合条件的情况时，会触发告警邮件通知。
+     * </p>
+     * <p>
+     * 检测逻辑：
+     * 1. 遍历净值列表，比较相邻两天的涨跌情况
+     * 2. 统计连续上涨或下跌的天数
+     * 3. 当连续天数达到4天或以上时，触发规则A告警
+     * 4. 当涨跌趋势发生变化时，重置计数器
+     * </p>
+     *
+     * @param navList 基金净值列表，按日期升序排列
      */
     private void checkRuleA(List<FundNav> navList) {
         int consecutiveDays = 1;
@@ -115,6 +129,12 @@ public class FundMonitorService {
 
     /**
      * 规则B：单日涨跌幅绝对值≥5%
+     * <p>
+     * 该方法检查基金净值列表中是否存在单日涨跌幅绝对值达到或超过5%的情况。
+     * 当发现符合条件的记录时，会立即触发告警邮件通知。
+     * </p>
+     *
+     * @param navList 基金净值列表，按日期升序排列
      */
     private void checkRuleB(List<FundNav> navList) {
         for (FundNav nav : navList) {
@@ -127,6 +147,19 @@ public class FundMonitorService {
 
     /**
      * 规则C：连续2-3天累计涨跌幅绝对值≥5%
+     * <p>
+     * 该方法检查基金净值列表中是否存在连续2天或3天的累计涨跌幅绝对值
+     * 达到或超过5%的情况。分别对连续2天和连续3天的情况进行检测。
+     * 当发现符合条件的记录时，会触发告警邮件通知。
+     * </p>
+     * <p>
+     * 检测逻辑：
+     * 1. 检查连续2天的累计涨跌幅是否≥5%
+     * 2. 检查连续3天的累计涨跌幅是否≥5%
+     * 3. 当发现符合条件的情况时，触发规则C告警
+     * </p>
+     *
+     * @param navList 基金净值列表，按日期升序排列
      */
     private void checkRuleC(List<FundNav> navList) {
         // 检查连续2天
