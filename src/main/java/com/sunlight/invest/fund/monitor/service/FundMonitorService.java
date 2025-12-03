@@ -40,7 +40,8 @@ public class FundMonitorService {
     private EmailNotificationService emailNotificationService;
 
     private static final BigDecimal THRESHOLD_5_PERCENT = new BigDecimal("5.0");
-    private static final int MONITOR_DAYS = 5;
+    private static final BigDecimal THRESHOLD_4_PERCENT = new BigDecimal("4.0");
+    private static final int MONITOR_DAYS = 5; // 增加到7天以满足规则E的需求
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     /**
@@ -51,26 +52,26 @@ public class FundMonitorService {
     public void monitorFund(String fundCode) {
         log.info("开始监控基金: {}", fundCode);
 
-        // 获取最近30天的数据 降序
+        // 获取最近5天的数据 降序
         List<FundNav> navList = fundNavMapper.selectRecentDays(fundCode, MONITOR_DAYS);
         if (navList == null || navList.isEmpty()) {
             log.warn("基金 {} 没有数据", fundCode);
             return;
         }
 
-        // 反转列表，使其按日期升序排列
-        java.util.Collections.reverse(navList);
 
-        // 执行三种规则检查
+        // 执行五种规则检查
         checkRuleA(navList);
         checkRuleB(navList);
         checkRuleC(navList);
+        checkRuleD(navList);
+        checkRuleE(navList);
     }
 
     /**
-     * 规则A：检测连续4天或以上上涨/下跌
+     * 规则A：检测连续5天或以上上涨/下跌
      * <p>
-     * 该方法遍历基金净值列表，检测是否存在连续4天或以上的持续上涨或下跌情况。
+     * 该方法遍历基金净值列表，检测是否存在连续5天或以上的持续上涨或下跌情况。
      * 连续上涨/下跌的判断基于每日涨跌幅的符号一致性。
      * 当检测到符合条件的情况时，会触发告警邮件通知。
      * </p>
@@ -78,7 +79,7 @@ public class FundMonitorService {
      * 检测逻辑：
      * 1. 遍历净值列表，比较相邻两天的涨跌情况
      * 2. 统计连续上涨或下跌的天数
-     * 3. 当连续天数达到4天或以上时，触发规则A告警
+     * 3. 当连续天数达到5天或以上时，触发规则A告警
      * 4. 当涨跌趋势发生变化时，重置计数器
      * </p>
      *
@@ -113,7 +114,7 @@ public class FundMonitorService {
                 cumulativeReturn = cumulativeReturn.add(dailyReturn);
             } else {
                 // 中断，检查是否需要告警
-                if (consecutiveDays >= 4) {
+                if (consecutiveDays >= 5) { // 修改为5天
                     sendRuleAAlert(navList.get(i - 1), consecutiveDays, cumulativeReturn, isRising);
                 }
                 // 重置
@@ -124,7 +125,7 @@ public class FundMonitorService {
         }
 
         // 检查最后的连续序列
-        if (consecutiveDays >= 4) {
+        if (consecutiveDays >= 5) { // 修改为5天
             sendRuleAAlert(navList.get(navList.size() - 1), consecutiveDays, cumulativeReturn, isRising);
         }
     }
@@ -139,49 +140,53 @@ public class FundMonitorService {
      * @param navList 基金净值列表，按日期升序排列
      */
     private void checkRuleB(List<FundNav> navList) {
-        for (FundNav nav : navList) {
-            if (nav.getDailyReturn() != null &&
-                    nav.getDailyReturn().abs().compareTo(THRESHOLD_5_PERCENT) >= 0) {
-                sendRuleBAlert(nav);
-            }
+        if (navList.get(0).getDailyReturn() != null &&
+                navList.get(0).getDailyReturn().abs().compareTo(THRESHOLD_5_PERCENT) >= 0) {
+            sendRuleBAlert(navList.get(0));
         }
     }
 
     /**
-     * 规则C：连续2-3天累计涨跌幅绝对值≥5%
+     * 规则C：连续2天累计涨跌幅绝对值≥4%
      * <p>
-     * 该方法检查基金净值列表中是否存在连续2天或3天的累计涨跌幅绝对值
-     * 达到或超过5%的情况。分别对连续2天和连续3天的情况进行检测。
+     * 该方法检查基金净值列表中是否存在连续2天的累计涨跌幅绝对值
+     * 达到或超过4%的情况。
      * 当发现符合条件的记录时，会触发告警邮件通知。
-     * </p>
-     * <p>
-     * 检测逻辑：
-     * 1. 检查连续2天的累计涨跌幅是否≥5%
-     * 2. 检查连续3天的累计涨跌幅是否≥5%
-     * 3. 当发现符合条件的情况时，触发规则C告警
      * </p>
      *
      * @param navList 基金净值列表，按日期升序排列
      */
     private void checkRuleC(List<FundNav> navList) {
         // 检查连续2天
-        for (int i = 1; i < navList.size(); i++) {
-            FundNav current = navList.get(i);
-            FundNav previous = navList.get(i - 1);
+//        for (int i = 0; i < navList.size(); i++) {
+            FundNav current = navList.get(0);
+            FundNav previous = navList.get(1);
 
             if (current.getDailyReturn() != null && previous.getDailyReturn() != null) {
                 BigDecimal sum2Days = current.getDailyReturn().add(previous.getDailyReturn());
-                if (sum2Days.abs().compareTo(THRESHOLD_5_PERCENT) >= 0) {
+                if (sum2Days.abs().compareTo(THRESHOLD_4_PERCENT) >= 0) { // 修改为4%
                     sendRuleCAlert(current, 2, sum2Days);
                 }
             }
-        }
+//        }
+    }
 
+    /**
+     * 规则D：连续3天累计涨跌幅绝对值≥5%
+     * <p>
+     * 该方法检查基金净值列表中是否存在连续3天的累计涨跌幅绝对值
+     * 达到或超过5%的情况。
+     * 当发现符合条件的记录时，会触发告警邮件通知。
+     * </p>
+     *
+     * @param navList 基金净值列表，按日期升序排列
+     */
+    private void checkRuleD(List<FundNav> navList) {
         // 检查连续3天
-        for (int i = 2; i < navList.size(); i++) {
-            FundNav current = navList.get(i);
-            FundNav previous1 = navList.get(i - 1);
-            FundNav previous2 = navList.get(i - 2);
+//        for (int i = 2; i < navList.size(); i++) {
+            FundNav current = navList.get(0);
+            FundNav previous1 = navList.get(1);
+            FundNav previous2 = navList.get(2);
 
             if (current.getDailyReturn() != null &&
                     previous1.getDailyReturn() != null &&
@@ -190,9 +195,42 @@ public class FundMonitorService {
                         .add(previous1.getDailyReturn())
                         .add(previous2.getDailyReturn());
                 if (sum3Days.abs().compareTo(THRESHOLD_5_PERCENT) >= 0) {
-                    sendRuleCAlert(current, 3, sum3Days);
+                    sendRuleDAlert(current, 3, sum3Days);
                 }
             }
+//        }
+    }
+
+    /**
+     * 规则E：连续4天累计涨跌幅绝对值≥5%
+     * <p>
+     * 该方法检查基金净值列表中是否存在连续4天的累计涨跌幅绝对值
+     * 达到或超过5%的情况。
+     * 当发现符合条件的记录时，会触发告警邮件通知。
+     * </p>
+     *
+     * @param navList 基金净值列表，按日期升序排列
+     */
+    private void checkRuleE(List<FundNav> navList) {
+        // 检查连续4天
+//        for (int i = 3; i < navList.size(); i++) {
+            FundNav current = navList.get(0);
+            FundNav previous1 = navList.get(1);
+            FundNav previous2 = navList.get(2);
+            FundNav previous3 = navList.get(3);
+
+            if (current.getDailyReturn() != null &&
+                    previous1.getDailyReturn() != null &&
+                    previous2.getDailyReturn() != null &&
+                    previous3.getDailyReturn() != null) {
+                BigDecimal sum4Days = current.getDailyReturn()
+                        .add(previous1.getDailyReturn())
+                        .add(previous2.getDailyReturn())
+                        .add(previous3.getDailyReturn());
+                if (sum4Days.abs().compareTo(THRESHOLD_5_PERCENT) >= 0) {
+                    sendRuleEAlert(current, 4, sum4Days);
+                }
+//            }
         }
     }
 
@@ -276,7 +314,7 @@ public class FundMonitorService {
         String content = String.format(
                 "基金名称: %s\n" +
                         "基金代码: %s\n" +
-                        "预警规则: 连续%d天累计涨跌幅绝对值≥5%%\n" +
+                        "预警规则: 连续%d天累计涨跌幅绝对值≥4%%\n" + // 修改为4%
                         "连续天数: %d天\n" +
                         "累计涨跌幅: %.2f%%\n" +
                         "最新净值日期: %s\n" +
@@ -298,6 +336,76 @@ public class FundMonitorService {
                     nav.getFundCode(), days, cumulativeReturn);
         } catch (Exception e) {
             log.error("发送规则C告警邮件失败", e);
+        }
+    }
+
+    /**
+     * 发送规则D告警邮件
+     */
+    private void sendRuleDAlert(FundNav nav, int days, BigDecimal cumulativeReturn) {
+        String subject = String.format("【基金预警-规则D】%s 连续%d天累计波动",
+                nav.getFundName(), days);
+
+        String content = String.format(
+                "基金名称: %s\n" +
+                        "基金代码: %s\n" +
+                        "预警规则: 连续%d天累计涨跌幅绝对值≥5%%\n" +
+                        "连续天数: %d天\n" +
+                        "累计涨跌幅: %.2f%%\n" +
+                        "最新净值日期: %s\n" +
+                        "最新单位净值: %.4f\n" +
+                        "\n" +
+                        "短期累计波动较大，请关注基金走势。",
+                nav.getFundName(),
+                nav.getFundCode(),
+                days,
+                days,
+                cumulativeReturn.doubleValue(),
+                nav.getNavDate().format(DATE_FORMATTER),
+                nav.getUnitNav().doubleValue()
+        );
+
+        try {
+            emailNotificationService.sendEmail(subject, content);
+            log.info("规则D告警邮件已发送: fundCode={}, days={}, return={}",
+                    nav.getFundCode(), days, cumulativeReturn);
+        } catch (Exception e) {
+            log.error("发送规则D告警邮件失败", e);
+        }
+    }
+
+    /**
+     * 发送规则E告警邮件
+     */
+    private void sendRuleEAlert(FundNav nav, int days, BigDecimal cumulativeReturn) {
+        String subject = String.format("【基金预警-规则E】%s 连续%d天累计波动",
+                nav.getFundName(), days);
+
+        String content = String.format(
+                "基金名称: %s\n" +
+                        "基金代码: %s\n" +
+                        "预警规则: 连续%d天累计涨跌幅绝对值≥5%%\n" +
+                        "连续天数: %d天\n" +
+                        "累计涨跌幅: %.2f%%\n" +
+                        "最新净值日期: %s\n" +
+                        "最新单位净值: %.4f\n" +
+                        "\n" +
+                        "短期累计波动较大，请关注基金走势。",
+                nav.getFundName(),
+                nav.getFundCode(),
+                days,
+                days,
+                cumulativeReturn.doubleValue(),
+                nav.getNavDate().format(DATE_FORMATTER),
+                nav.getUnitNav().doubleValue()
+        );
+
+        try {
+            emailNotificationService.sendEmail(subject, content);
+            log.info("规则E告警邮件已发送: fundCode={}, days={}, return={}",
+                    nav.getFundCode(), days, cumulativeReturn);
+        } catch (Exception e) {
+            log.error("发送规则E告警邮件失败", e);
         }
     }
 }
