@@ -1,11 +1,3 @@
-CREATE TABLE IF NOT EXISTS `user` (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    email VARCHAR(100),
-    age INT,
-    create_time DATETIME
-);
-
 -- 基金净值表
 CREATE TABLE IF NOT EXISTS `fund_nav` (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -29,3 +21,21 @@ CREATE TABLE IF NOT EXISTS `fund_monitor` (
     update_time DATETIME COMMENT '更新时间',
     UNIQUE KEY uk_fund_code (fund_code)
 ) COMMENT '基金监控表';
+
+-- 指数数据表
+CREATE TABLE IF NOT EXISTS `index_data` (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    index_code VARCHAR(20) NOT NULL COMMENT '指数代码',
+    index_name VARCHAR(100) NOT NULL COMMENT '指数名称',
+    trade_date DATE NOT NULL COMMENT '交易日期',
+    open_price DECIMAL(10,4) COMMENT '开盘价',
+    close_price DECIMAL(10,4) COMMENT '收盘价',
+    high_price DECIMAL(10,4) COMMENT '最高价',
+    low_price DECIMAL(10,4) COMMENT '最低价',
+    daily_return DECIMAL(10,4) COMMENT '日涨跌幅',
+    volume BIGINT COMMENT '成交量',
+    amount DECIMAL(15,4) COMMENT '成交额',
+    create_time DATETIME COMMENT '创建时间',
+    update_time DATETIME COMMENT '更新时间',
+    UNIQUE KEY uk_index_date (index_code, trade_date)
+) COMMENT '指数数据表';

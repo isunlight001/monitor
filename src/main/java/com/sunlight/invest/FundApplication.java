@@ -60,6 +60,7 @@ public class FundApplication {
                 "\t外部访问: \thttp://" + hostAddress +":" + port + contextPath + "\n" +
                 "\t通知测试: \thttp://localhost:" + port + "/notification-test.html\n" +
                 "\t基金监控: \thttp://localhost:" + port + "/fund-monitor.html\n" +
+                "\t指数监控: \thttp://localhost:" + port + "/index-data.html\n" +
                 "----------------------------------------------------------"
         );
     }

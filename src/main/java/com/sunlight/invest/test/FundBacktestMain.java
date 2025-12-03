@@ -1,4 +1,4 @@
-package com.sunlight.invest.fund;
+package com.sunlight.invest.test;
 
 import java.util.List;
 
