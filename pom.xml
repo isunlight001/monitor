@@ -6,7 +6,7 @@
     <artifactId>monitor</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>threadpool</name>
+    <name>fund-monitor</name>
     <description>Spring Boot ThreadPool Monitor Demo</description>
     <parent>
         <groupId>org.springframework.boot</groupId>
