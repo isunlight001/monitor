@@ -3,3 +3,4 @@
 !/target/
 !/.idea/
 /logs/app.log
+/.idea/workspace.xml
