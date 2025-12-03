@@ -17,10 +17,12 @@ import java.util.List;
 /**
  * 基金监控服务
  * <p>
- * 实现三种监控规则：
- * - 规则A：连续4天或以上上涨/下跌
+ * 实现五种监控规则：
+ * - 规则A：连续5天或以上上涨/下跌
  * - 规则B：单日涨跌幅绝对值≥5%
- * - 规则C：连续2-3天累计涨跌幅绝对值≥5%
+ * - 规则C：连续2天累计涨跌幅绝对值≥4%
+ * - 规则D：连续3天累计涨跌幅绝对值≥5%
+ * - 规则E：连续4天累计涨跌幅绝对值≥5%
  * </p>
  *
  * @author System
@@ -38,7 +40,7 @@ public class FundMonitorService {
     private EmailNotificationService emailNotificationService;
 
     private static final BigDecimal THRESHOLD_5_PERCENT = new BigDecimal("5.0");
-    private static final int MONITOR_DAYS = 7;
+    private static final int MONITOR_DAYS = 5;
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     /**
