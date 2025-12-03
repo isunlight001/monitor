@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>全局监控大屏</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { margin: 0; background: #181c2a; color: #fff; font-family: 'Microsoft YaHei', Arial, sans-serif; }
+        .dashboard-root { display: flex; flex-direction: column; height: 100vh; }
+        .dashboard-header {
+            background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+            padding: 28px 48px 18px 48px;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 24px #0004;
+        }
+        .dashboard-header .title { font-size: 2.1em; font-weight: bold; letter-spacing: 2px; }
+        .dashboard-header .global-stats { display: flex; gap: 48px; font-size: 1.1em; }
+        .dashboard-header .global-stats span { margin-right: 24px; }
+        .dashboard-main { flex: 1; display: flex; overflow: hidden; }
+        .dashboard-left, .dashboard-right { flex: 1.1; min-width: 320px; display: flex; flex-direction: column; gap: 24px; padding: 32px 16px 24px 16px; }
+        .dashboard-center { flex: 2.2; min-width: 420px; display: flex; flex-direction: column; gap: 24px; padding: 32px 16px 24px 16px; }
+        .panel { background: #23284a; border-radius: 16px; box-shadow: 0 4px 24px #0002; padding: 24px 28px; margin-bottom: 0; }
+        .panel-title { font-size: 1.2em; color: #4b6cb7; margin-bottom: 18px; font-weight: bold; letter-spacing: 1px; }
+        .footer { text-align: center; color: #888; font-size: 15px; margin: 0 0 8px 0; letter-spacing: 1px; }
+        /* 区域可视化样式 */
+        .heatmap-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .heatmap-cell { height: 36px; border-radius: 6px; text-align: center; line-height: 36px; font-size: 1em; color: #fff; font-weight: bold; }
+        .topology-svg { width: 100%; height: 160px; display: block; }
+        .isolation-list { display: flex; gap: 12px; justify-content: center; }
+        .isolation-unit { width: 60px; height: 60px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.95em; font-weight: bold; }
+        .isolation-green { background: #43e97b; color: #222; }
+        .isolation-red { background: #e96443; }
+        .isolation-gray { background: #888; }
+        .trend-chart { width: 100%; height: 120px; background: #181c2a; border-radius: 8px; position: relative; }
+        .trend-axis { position: absolute; left: 0; bottom: 0; width: 100%; height: 100%; pointer-events: none; }
+        .trend-path { stroke: #ffd200; stroke-width: 3; fill: none; }
+        .trend-bg { stroke: #444; stroke-width: 1; fill: none; }
+        .ranking-list { list-style: none; padding: 0; margin: 0; }
+        .ranking-item { display: flex; align-items: center; margin-bottom: 8px; }
+        .ranking-bar { height: 16px; border-radius: 8px; margin-left: 8px; background: linear-gradient(90deg,#f7971e,#ffd200); }
+        .sunburst-chart { width: 100%; height: 120px; display: flex; align-items: center; justify-content: center; }
+        .sunburst-legend { margin-left: 18px; }
+        .sunburst-legend span { display: block; margin-bottom: 4px; font-size: 0.95em; }
+        .radar-chart { width: 120px; height: 120px; margin: 0 auto; }
+        .gauge-wrap { width: 100%; display: flex; flex-direction: column; align-items: center; }
+        .gauge-bar-bg { width: 90%; height: 18px; background: #444; border-radius: 9px; margin: 8px 0; }
+        .gauge-bar { height: 18px; border-radius: 9px; background: linear-gradient(90deg,#ffd200,#e96443); }
+        .chaos-list { list-style: none; padding: 0; margin: 0; }
+        .chaos-item { display: flex; justify-content: space-between; margin-bottom: 6px; }
+        .nav-link { position: fixed; top: 20px; right: 20px; background: rgba(255,255,255,0.2); color: #fff; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; backdrop-filter: blur(10px); transition: all 0.3s; z-index: 1000; }
+        .nav-link:hover { background: rgba(255,255,255,0.3); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        @media (max-width: 1200px) {
+            .dashboard-main { flex-direction: column; }
+            .dashboard-left, .dashboard-center, .dashboard-right { min-width: 0; padding: 16px 4px; }
+        }
+        @media (max-width: 900px) {
+            .dashboard-header { flex-direction: column; gap: 12px; padding: 18px 8px 10px 8px; }
+            .dashboard-header .title { font-size: 1.3em; }
+            .dashboard-header .global-stats { flex-direction: column; gap: 8px; font-size: 1em; }
+        }
+    </style>
+</head>
+<body>
+<a href="/fund-backtest.html" class="nav-link">💰 基金回测系统</a>
+<div class="dashboard-root">
+    <!-- 顶部全局状态栏 -->
+    <div class="dashboard-header">
+        <div class="title">分布式系统全局监控大屏</div>
+        <div class="global-stats">
+            <span>今日交易总量: <b id="total_requests">123,456</b> (成功率 <b id="success_rate">99.87</b>%)</span>
+            <span>系统健康指数: <b id="health_index">98.2</b></span>
+            <span>资源利用率: CPU <b id="cpu_avg">67</b>% | 内存 <b id="mem_avg">72</b>% | 网络延迟 <b id="network_latency">32</b>ms</span>
+            <span>告警摘要: <b style="color:#ff4d4f;" id="critical_alerts">2 Critical</b> <b style="color:#ffd200;" id="warning_alerts">5 Warning</b></span>
+        </div>
+    </div>
+    <div class="dashboard-main">
+        <!-- 左侧全景区 -->
+        <div class="dashboard-left">
+            <div class="panel">
+                <div class="panel-title">地理单元分布热力图</div>
+                <div class="heatmap-grid" id="heatmap"></div>
+            </div>
+            <div class="panel">
+                <div class="panel-title">单元间调用拓扑</div>
+                <svg class="topology-svg" id="topology"></svg>
+            </div>
+            <div class="panel">
+                <div class="panel-title">单元隔离状态</div>
+                <div class="isolation-list" id="isolation"></div>
+            </div>
+        </div>
+        <!-- 中间核心业务指标区 -->
+        <div class="dashboard-center">
+            <div class="panel">
+                <div class="panel-title">交易成功率趋势图（24小时）</div>
+                <div class="trend-chart" id="trend"></div>
+            </div>
+            <div class="panel">
+                <div class="panel-title">跨单元延迟排行榜</div>
+                <ul class="ranking-list" id="ranking"></ul>
+            </div>
+            <div class="panel">
+                <div class="panel-title">实时错误分类旭日图</div>
+                <div class="sunburst-chart">
+                    <svg width="100" height="100" id="sunburst"></svg>
+                    <div class="sunburst-legend" id="sunburst-legend"></div>
+                </div>
+            </div>
+        </div>
+        <!-- 右侧智能预警区 -->
+        <div class="dashboard-right">
+            <div class="panel">
+                <div class="panel-title">异常检测雷达图</div>
+                <canvas class="radar-chart" id="radar"></canvas>
+            </div>
+            <div class="panel">
+                <div class="panel-title">容量预测仪表盘</div>
+                <div class="gauge-wrap">
+                    <div style="font-size:1.1em;">预计7天后资源缺口 <span id="gauge-predict">23%</span></div>
+                    <div class="gauge-bar-bg"><div class="gauge-bar" id="gauge-bar" style="width:23%"></div></div>
+                </div>
+            </div>
+            <div class="panel">
+                <div class="panel-title">混沌工程测试结果</div>
+                <ul class="chaos-list" id="chaos"></ul>
+            </div>
+        </div>
+    </div>
+    <div class="footer">© 2025 分布式系统监控大屏 | 仅供学习参考</div>
+</div>
+<script>
+// 1. 热力图数据
+const geoUnits = [
+    {name: '北京', value: 0.85},
+    {name: '上海', value: 0.62},
+    {name: '广州', value: 0.45},
+    {name: '深圳', value: 0.73},
+    {name: '成都', value: 0.33},
+    {name: '杭州', value: 0.51},
+    {name: '武汉', value: 0.28},
+    {name: '西安', value: 0.39}
+];
+function renderHeatmap() {
+    const grid = document.getElementById('heatmap');
+    grid.innerHTML = '';
+    geoUnits.forEach(u => {
+        const color = `rgba(75,108,183,${0.3 + u.value*0.7})`;
+        grid.innerHTML += `<div class="heatmap-cell" style="background:${color}">${u.name}<br>${Math.round(u.value*100)}%</div>`;
+    });
+}
+// 2. 拓扑图数据
+const topoNodes = [
+    {id: 1, name: '北京', x: 60, y: 80},
+    {id: 2, name: '上海', x: 220, y: 40},
+    {id: 3, name: '广州', x: 340, y: 120},
+    {id: 4, name: '深圳', x: 180, y: 140}
+];
+const topoLinks = [
+    {from: 1, to: 2, traffic: 1200, latency: 30},
+    {from: 2, to: 3, traffic: 900, latency: 80},
+    {from: 3, to: 4, traffic: 700, latency: 120},
+    {from: 4, to: 1, traffic: 400, latency: 50},
+    {from: 2, to: 4, traffic: 600, latency: 20}
+];
+function renderTopology() {
+    const svg = document.getElementById('topology');
+    svg.innerHTML = '';
+    // 画连线
+    topoLinks.forEach(link => {
+        const n1 = topoNodes.find(n => n.id === link.from);
+        const n2 = topoNodes.find(n => n.id === link.to);
+        const color = link.latency > 100 ? '#e96443' : '#4b6cb7';
+        const width = 2 + link.traffic/600;
+        svg.innerHTML += `<line x1="${n1.x}" y1="${n1.y}" x2="${n2.x}" y2="${n2.y}" stroke="${color}" stroke-width="${width}" />`;
+    });
+    // 画节点
+    topoNodes.forEach(n => {
+        svg.innerHTML += `<circle cx="${n.x}" cy="${n.y}" r="18" fill="#ffd200" stroke="#4b6cb7" stroke-width="2" />`;
+        svg.innerHTML += `<text x="${n.x}" y="${n.y+5}" text-anchor="middle" font-size="1em" fill="#23284a">${n.name}</text>`;
+    });
+}
+// 3. 隔离状态
+const isolationUnits = [
+    {name: '北京', status: 'healthy'},
+    {name: '上海', status: 'fault'},
+    {name: '广州', status: 'isolated'},
+    {name: '深圳', status: 'healthy'}
+];
+function renderIsolation() {
+    const list = document.getElementById('isolation');
+    list.innerHTML = '';
+    isolationUnits.forEach(u => {
+        let cls = 'isolation-green', txt = '健康';
+        if(u.status==='fault') { cls='isolation-red'; txt='故障'; }
+        if(u.status==='isolated') { cls='isolation-gray'; txt='隔离'; }
+        list.innerHTML += `<div class="isolation-unit ${cls}">${u.name}<br>${txt}</div>`;
+    });
+}
+// 4. 交易成功率趋势
+let trendData = Array.from({length:24}, (_,i)=>90+Math.round(Math.random()*10)+(i>12?Math.random()*5:0));
+function renderTrend() {
+    const w = 420, h = 120, max = 110, min = 85;
+    const points = trendData.map((v,i)=>`${i/(trendData.length-1)*w},${h-(v-min)/(max-min)*h}`).join(' ');
+    const svg = `<svg width="${w}" height="${h}" class="trend-axis">
+        <polyline class="trend-bg" points="0,${h} ${w},${h}" />
+        <polyline class="trend-path" points="${points}" />
+    </svg>`;
+    document.getElementById('trend').innerHTML = svg + `<div style="position:absolute;right:8px;top:8px;font-size:1.1em;color:#ffd200;">${trendData[trendData.length-1].toFixed(2)}%</div>`;
+}
+// 5. 延迟排行榜
+const rankingData = [
+    {name:'北京-广州', value: 120},
+    {name:'上海-深圳', value: 110},
+    {name:'广州-成都', value: 95},
+    {name:'深圳-杭州', value: 80},
+    {name:'成都-武汉', value: 70}
+];
+function renderRanking() {
+    const max = Math.max(...rankingData.map(r=>r.value));
+    const ul = document.getElementById('ranking');
+    ul.innerHTML = '';
+    rankingData.forEach(r => {
+        ul.innerHTML += `<li class="ranking-item">${r.name}<div class="ranking-bar" style="width:${r.value/max*80+20}%">${r.value}ms</div></li>`;
+    });
+}
+// 6. 旭日图（简化为扇形分布）
+const sunburstData = [
+    {name:'北京', value: 40, color:'#ffd200'},
+    {name:'上海', value: 25, color:'#4b6cb7'},
+    {name:'广州', value: 20, color:'#e96443'},
+    {name:'深圳', value: 15, color:'#43e97b'}
+];
+function renderSunburst() {
+    const svg = document.getElementById('sunburst');
+    let start = 0, total = sunburstData.reduce((a,b)=>a+b.value,0);
+    svg.innerHTML = '';
+    sunburstData.forEach(d => {
+        const angle = d.value/total*2*Math.PI;
+        const x1 = 50 + 40*Math.cos(start);
+        const y1 = 50 + 40*Math.sin(start);
+        const x2 = 50 + 40*Math.cos(start+angle);
+        const y2 = 50 + 40*Math.sin(start+angle);
+        const large = angle>Math.PI?1:0;
+        svg.innerHTML += `<path d="M50,50 L${x1},${y1} A40,40 0 ${large} 1 ${x2},${y2} Z" fill="${d.color}" stroke="#23284a" stroke-width="2" />`;
+        start += angle;
+    });
+    // 图例
+    let legend = '';
+    sunburstData.forEach(d => {
+        legend += `<span style="color:${d.color}">●</span> ${d.name} (${d.value})`;
+    });
+    document.getElementById('sunburst-legend').innerHTML = legend;
+}
+// 7. 雷达图
+const radarData = [0.7, 0.5, 0.8]; // CPU, 延迟, 错误率
+function renderRadar() {
+    const canvas = document.getElementById('radar');
+    const ctx = canvas.getContext('2d');
+    const w = 120, h = 120, cx = 60, cy = 60, r = 48;
+    ctx.clearRect(0,0,w,h);
+    // 画网格
+    ctx.strokeStyle = '#444';
+    for(let i=1;i<=3;i++){
+        ctx.beginPath();
+        for(let j=0;j<3;j++){
+            const angle = Math.PI*2/3*j-Math.PI/2;
+            const x = cx + Math.cos(angle)*r*i/3;
+            const y = cy + Math.sin(angle)*r*i/3;
+            if(j===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+        }
+        ctx.closePath(); ctx.stroke();
+    }
+    // 画雷达
+    ctx.beginPath();
+    radarData.forEach((v,i)=>{
+        const angle = Math.PI*2/3*i-Math.PI/2;
+        const x = cx + Math.cos(angle)*r*v;
+        const y = cy + Math.sin(angle)*r*v;
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+    });
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(75,108,183,0.5)';
+    ctx.fill();
+    ctx.strokeStyle = '#ffd200';
+    ctx.stroke();
+    // 画标签
+    ctx.fillStyle = '#fff';
+    ['CPU','延迟','错误率'].forEach((txt,i)=>{
+        const angle = Math.PI*2/3*i-Math.PI/2;
+        const x = cx + Math.cos(angle)*(r+16);
+        const y = cy + Math.sin(angle)*(r+16);
+        ctx.fillText(txt, x-12, y+4);
+    });
+}
+// 8. 仪表盘
+function renderGauge() {
+    const percent = 23 + Math.round(Math.random()*10-5);
+    document.getElementById('gauge-predict').innerText = percent+'%';
+    document.getElementById('gauge-bar').style.width = percent+'%';
+}
+// 9. 混沌工程
+const chaosData = [
+    {name:'北京-数据库', mttr: '2.3s'},
+    {name:'上海-缓存', mttr: '1.1s'},
+    {name:'广州-消息队列', mttr: '3.7s'},
+    {name:'深圳-API', mttr: '0.9s'}
+];
+function renderChaos() {
+    const ul = document.getElementById('chaos');
+    ul.innerHTML = '';
+    chaosData.forEach(c => {
+        ul.innerHTML += `<li class="chaos-item"><span>${c.name}</span><span style="color:#ffd200">${c.mttr}</span></li>`;
+    });
+}
+// 首次渲染
+renderHeatmap();
+renderTopology();
+renderIsolation();
+renderTrend();
+renderRanking();
+renderSunburst();
+renderRadar();
+renderGauge();
+renderChaos();
+// 动态刷新部分数据
+setInterval(()=>{
+    // 随机波动趋势
+    trendData.push(90+Math.round(Math.random()*10));
+    if(trendData.length>24) trendData.shift();
+    renderTrend();
+    renderGauge();
+    // 雷达图波动
+    radarData[0] = 0.6+Math.random()*0.3;
+    radarData[1] = 0.4+Math.random()*0.4;
+    radarData[2] = 0.7+Math.random()*0.2;
+    renderRadar();
+}, 2000);
+</script>
+</body>
+</html> 

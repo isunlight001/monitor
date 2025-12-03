@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>基金监控系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .form-section h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(56, 239, 125, 0.4);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+        }
+
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .result.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .nav-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .nav-table th,
+        .nav-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .nav-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        .nav-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .nav-table tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        .config-info {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 30px;
+            color: #856404;
+        }
+
+        .config-info h4 {
+            margin-bottom: 10px;
+            color: #856404;
+        }
+
+        .config-info ul {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+
+        .config-info code {
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📈 基金监控系统</h1>
+            <p>自动抓取基金数据并监控异常波动</p>
+        </div>
+
+        <div class="content">
+            <!-- 配置说明 -->
+            <div class="config-info">
+                <h4>⚙️ 系统说明</h4>
+                <ul>
+                    <li><strong>定时任务：</strong>每晚11点自动抓取基金数据并执行监控</li>
+                    <li><strong>监控规则：</strong>
+                        <ul>
+                            <li>规则A：连续4天或以上上涨/下跌</li>
+                            <li>规则B：单日涨跌幅绝对值≥5%</li>
+                            <li>规则C：连续2-3天累计涨跌幅绝对值≥5%</li>
+                        </ul>
+                    </li>
+                    <li><strong>告警方式：</strong>邮件通知（收件人：57954282@qq.com）</li>
+                </ul>
+            </div>
+
+            <!-- 基金数据抓取 -->
+            <div class="form-section">
+                <h3>📥 基金数据抓取</h3>
+                <div class="form-group">
+                    <label>基金代码*</label>
+                    <input type="text" id="fundCode" placeholder="例如: 006195" value="006195">
+                </div>
+                <div class="form-group">
+                    <label>基金名称*</label>
+                    <input type="text" id="fundName" placeholder="例如: 国金量化多因子" value="国金量化多因子">
+                </div>
+                <div class="form-group">
+                    <label>开始日期（可选）</label>
+                    <input type="date" id="startDate">
+                </div>
+                <div class="form-group">
+                    <label>结束日期（可选）</label>
+                    <input type="date" id="endDate">
+                </div>
+                <button class="btn btn-primary" onclick="crawlFundData()">抓取基金数据</button>
+                <button class="btn btn-info" onclick="incrementalUpdate()">增量更新</button>
+                <div class="result" id="crawlResult"></div>
+            </div>
+
+            <!-- 基金监控检查 -->
+            <div class="form-section">
+                <h3>🔍 基金监控检查</h3>
+                <div class="form-group">
+                    <label>基金代码*</label>
+                    <input type="text" id="checkFundCode" placeholder="例如: 006195" value="006195">
+                </div>
+                <button class="btn btn-success" onclick="checkFund()">执行监控检查</button>
+                <div class="result" id="checkResult"></div>
+            </div>
+
+            <!-- 查询基金净值 -->
+            <div class="form-section">
+                <h3>📊 查询基金净值</h3>
+                <div class="form-group">
+                    <label>基金代码*</label>
+                    <input type="text" id="queryFundCode" placeholder="例如: 006195" value="006195">
+                </div>
+                <div class="form-group">
+                    <label>查询天数</label>
+                    <input type="number" id="queryDays" placeholder="例如: 30" value="30" min="1" max="365">
+                </div>
+                <button class="btn btn-info" onclick="queryFundNav()">查询净值数据</button>
+                <div class="result" id="queryResult"></div>
+                <div id="navTableContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/fund/monitor';
+
+        // 抓取基金数据
+        async function crawlFundData() {
+            const fundCode = document.getElementById('fundCode').value;
+            const fundName = document.getElementById('fundName').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            if (!fundCode || !fundName) {
+                showResult('crawlResult', false, '请填写基金代码和基金名称');
+                return;
+            }
+
+            const params = new URLSearchParams({
+                fundCode: fundCode,
+                fundName: fundName
+            });
+            
+            if (startDate) params.append('startDate', startDate);
+            if (endDate) params.append('endDate', endDate);
+
+            try {
+                const response = await fetch(`${API_BASE}/crawl?${params}`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                showResult('crawlResult', result.success, result.message + (result.count ? ` (更新${result.count}条记录)` : ''));
+            } catch (error) {
+                showResult('crawlResult', false, '请求失败: ' + error.message);
+            }
+        }
+
+        // 增量更新
+        async function incrementalUpdate() {
+            const fundCode = document.getElementById('fundCode').value;
+            const fundName = document.getElementById('fundName').value;
+
+            if (!fundCode || !fundName) {
+                showResult('crawlResult', false, '请填写基金代码和基金名称');
+                return;
+            }
+
+            const params = new URLSearchParams({
+                fundCode: fundCode,
+                fundName: fundName
+            });
+
+            try {
+                const response = await fetch(`${API_BASE}/update?${params}`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                showResult('crawlResult', result.success, result.message + (result.count ? ` (更新${result.count}条记录)` : ''));
+            } catch (error) {
+                showResult('crawlResult', false, '请求失败: ' + error.message);
+            }
+        }
+
+        // 执行监控检查
+        async function checkFund() {
+            const fundCode = document.getElementById('checkFundCode').value;
+
+            if (!fundCode) {
+                showResult('checkResult', false, '请填写基金代码');
+                return;
+            }
+
+            const params = new URLSearchParams({
+                fundCode: fundCode
+            });
+
+            try {
+                const response = await fetch(`${API_BASE}/check?${params}`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                showResult('checkResult', result.success, result.message);
+            } catch (error) {
+                showResult('checkResult', false, '请求失败: ' + error.message);
+            }
+        }
+
+        // 查询基金净值
+        async function queryFundNav() {
+            const fundCode = document.getElementById('queryFundCode').value;
+            const days = document.getElementById('queryDays').value;
+
+            if (!fundCode) {
+                showResult('queryResult', false, '请填写基金代码');
+                return;
+            }
+
+            const params = new URLSearchParams({
+                fundCode: fundCode,
+                days: days
+            });
+
+            try {
+                const response = await fetch(`${API_BASE}/nav?${params}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    showResult('queryResult', true, `查询成功，共${result.count}条记录`);
+                    renderNavTable(result.data);
+                } else {
+                    showResult('queryResult', false, result.message);
+                    document.getElementById('navTableContainer').innerHTML = '';
+                }
+            } catch (error) {
+                showResult('queryResult', false, '请求失败: ' + error.message);
+                document.getElementById('navTableContainer').innerHTML = '';
+            }
+        }
+
+        // 渲染净值表格
+        function renderNavTable(data) {
+            if (!data || data.length === 0) {
+                document.getElementById('navTableContainer').innerHTML = '<p>没有数据</p>';
+                return;
+            }
+
+            let html = `
+                <table class="nav-table">
+                    <thead>
+                        <tr>
+                            <th>日期</th>
+                            <th>单位净值</th>
+                            <th>日涨跌幅(%)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            // 反向显示，最新的在前面
+            for (let i = data.length - 1; i >= 0; i--) {
+                const item = data[i];
+                html += `
+                    <tr>
+                        <td>${item.navDate}</td>
+                        <td>${item.unitNav}</td>
+                        <td>${item.dailyReturn !== null ? item.dailyReturn.toFixed(2) : '-'}</td>
+                    </tr>
+                `;
+            }
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            document.getElementById('navTableContainer').innerHTML = html;
+        }
+
+        // 显示结果
+        function showResult(elementId, success, message) {
+            const resultDiv = document.getElementById(elementId);
+            resultDiv.className = `result ${success ? 'success' : 'error'} show`;
+            resultDiv.innerHTML = `<strong>${success ? '✅ 成功' : '❌ 失败'}</strong><br>${message}`;
+            
+            // 5秒后自动隐藏
+            setTimeout(() => {
+                resultDiv.classList.remove('show');
+            }, 5000);
+        }
+
+        // 初始化日期选择器为最近一个月
+        window.onload = function() {
+            const today = new Date();
+            const oneMonthAgo = new Date();
+            oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
+            document.getElementById('startDate').valueAsDate = oneMonthAgo;
+            document.getElementById('endDate').valueAsDate = today;
+        };
+    </script>
+</body>
+</html>
