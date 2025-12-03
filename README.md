@@ -1,11 +1,10 @@
-# 基金监控与线程池监控系统
+# 基金监控系统
 
 ## 📋 项目概述
 
 本项目是一个综合性的监控系统，包含两个主要功能模块：
 
 1. **基金监控系统** - 自动抓取基金净值数据并监控异常波动
-2. **线程池监控系统** - 监控Spring Boot应用中的线程池状态
 
 ## 🏗️ 技术栈
 
@@ -45,9 +44,11 @@ src/main/java/com/sunlight/invest/
 │   │       └── FundBacktestService.java # 回测服务
 │   └── monitor/
 │       ├── entity/
-│       │   └── FundNav.java          # 基金净值实体类
+│       │   ├── FundNav.java          # 基金净值实体类
+│       │   └── MonitorFund.java      # 监控基金实体类
 │       ├── mapper/
-│       │   └── FundNavMapper.java    # 基金净值Mapper
+│       │   ├── FundNavMapper.java    # 基金净值Mapper
+│       │   └── MonitorFundMapper.java # 监控基金Mapper
 │       ├── service/
 │       │   ├── FundCrawlerService.java # 基金数据爬取服务
 │       │   └── FundMonitorService.java # 基金监控服务
@@ -98,12 +99,18 @@ src/main/resources/
   - 规则C: 连续2-3天累计涨跌幅绝对值≥5%
 - **邮件预警**: 异常波动时自动发送邮件通知
 - **数据存储**: MySQL数据库持久化存储
+- **监控管理**: 支持通过Web界面动态添加、删除和管理监控基金列表
+- **容器化部署**: 支持Docker和docker-compose一键部署
 
 #### API接口
 - `POST /api/fund/monitor/crawl` - 抓取基金数据
 - `POST /api/fund/monitor/update` - 增量更新基金数据
 - `POST /api/fund/monitor/check` - 执行监控检查
 - `GET /api/fund/monitor/nav` - 查询基金净值
+- `POST /api/fund/monitor/monitor-fund` - 添加监控基金
+- `GET /api/fund/monitor/monitor-funds` - 查询所有监控基金
+- `PUT /api/fund/monitor/monitor-fund/{id}/status` - 更新监控基金状态
+- `DELETE /api/fund/monitor/monitor-fund/{id}` - 删除监控基金
 
 #### 定时任务
 - 每晚11点自动执行数据抓取和监控检查
@@ -160,7 +167,17 @@ spring:
 ```yaml
 fund:
   monitor:
-    codes: 006195:国金量化多因子
+    codes: 006195:国金量化多因子,002170:东吴移动互联
+```
+
+### 邮件通知配置
+```yaml
+notification:
+  mail:
+    enabled: true
+    pass: your-email-password
+    from: your-email@qq.com
+    to: receiver-email@qq.com
 ```
 
 ## 🛠️ 构建与运行
@@ -169,6 +186,7 @@ fund:
 - Java 8
 - MySQL 8.0.33
 - Maven 3.6+
+- Docker (可选，用于容器化部署)
 
 ### 构建项目
 ```bash
@@ -186,14 +204,26 @@ mvn clean package
 java -jar target/monitor-1.0-SNAPSHOT.jar
 ```
 
+### Docker容器化部署
+```bash
+# 使用docker-compose一键部署
+docker-compose up -d
+
+# 单独构建Docker镜像
+docker build -t fund-monitor .
+
+# 运行容器
+docker run -d -p 8081:8081 fund-monitor
+```
+
 ## 🌐 访问地址
 
 启动应用后，可通过以下URL访问：
 
-- **首页**: http://localhost/
-- **基金回测**: http://localhost/fund-backtest.html
-- **基金监控**: http://localhost/fund-monitor.html
-- **通知测试**: http://localhost/notification-test.html
+- **首页**: http://localhost:8081/
+- **基金回测**: http://localhost:8081/fund-backtest.html
+- **基金监控**: http://localhost:8081/fund-monitor.html
+- **通知测试**: http://localhost:8081/notification-test.html
 
 ## 🧪 测试
 
@@ -236,6 +266,19 @@ CREATE TABLE IF NOT EXISTS `fund_nav` (
 ) COMMENT '基金净值表';
 ```
 
+### 基金监控表 (fund_monitor)
+```sql
+CREATE TABLE IF NOT EXISTS `fund_monitor` (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    fund_code VARCHAR(20) NOT NULL COMMENT '基金代码',
+    fund_name VARCHAR(100) NOT NULL COMMENT '基金名称',
+    enabled TINYINT(1) DEFAULT 1 COMMENT '是否启用监控 (1:启用, 0:禁用)',
+    create_time DATETIME COMMENT '创建时间',
+    update_time DATETIME COMMENT '更新时间',
+    UNIQUE KEY uk_fund_code (fund_code)
+) COMMENT '基金监控表';
+```
+
 ## 📞 技术支持
 
 如遇到问题，请检查：
@@ -254,3 +297,6 @@ CREATE TABLE IF NOT EXISTS `fund_nav` (
 - ✅ 可扩展设计，易于添加新功能
 - ✅ 完善的日志记录，便于问题排查
 - ✅ 完整的测试覆盖，保证代码质量
+- ✅ 支持动态管理监控基金列表
+- ✅ 支持Docker容器化部署
+- ✅ 数据库存储，持久化配置
