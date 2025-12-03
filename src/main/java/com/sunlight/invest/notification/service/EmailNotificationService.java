@@ -1,5 +1,6 @@
 package com.sunlight.invest.notification.service;
 
+import com.sunlight.invest.common.Constants;
 import com.sunlight.invest.notification.config.NotificationProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +38,7 @@ public class EmailNotificationService {
     @Value("${spring.mail.username:}")
     private String fromEmail;
 
-    public static String receiveEmail = "903635811@qq.com";
+    public static String receiveEmail = Constants.Email.DEFAULT_RECIPIENT_EMAIL;
 
     /**
      * 发送简单文本邮件

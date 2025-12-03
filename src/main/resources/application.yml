@@ -37,7 +37,7 @@ spring:
     # 发送方邮箱账号
     username: 57954282@qq.com
     # 邮箱授权码（不是邮箱密码）
-    password: okfrcokdlwlbbbac
+    password: pjglzpdieisebggb
     properties:
       mail:
         smtp:
@@ -68,7 +68,7 @@ notification:
   # 邮件配置
   mail:
     enabled: true
-    pass: okfrcokdlwlbbbac
+    pass: pjglzpdieisebggb
     # 发送方邮箱，需要修改为你的邮箱
     from: 57954282@qq.com
     # 默认接收方邮箱，多个用逗号分隔
