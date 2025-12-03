@@ -182,11 +182,9 @@ public class FundMonitorService {
      * @param navList 基金净值列表，按日期升序排列
      */
     private void checkRuleB(List<FundNav> navList) {
-        for (FundNav nav : navList) {
-            if (nav.getDailyReturn() != null &&
-                    nav.getDailyReturn().abs().compareTo(THRESHOLD_5_PERCENT) >= 0) {
-                sendRuleBAlert(nav);
-            }
+        if (navList.get(0).getDailyReturn() != null &&
+                navList.get(0).getDailyReturn().abs().compareTo(THRESHOLD_5_PERCENT) >= 0) {
+            sendRuleBAlert(navList.get(0));
         }
     }
 
@@ -202,17 +200,17 @@ public class FundMonitorService {
      */
     private void checkRuleC(List<FundNav> navList) {
         // 检查连续2天
-        for (int i = 1; i < navList.size(); i++) {
-            FundNav current = navList.get(i);
-            FundNav previous = navList.get(i - 1);
+//        for (int i = 0; i < navList.size(); i++) {
+        FundNav current = navList.get(0);
+        FundNav previous = navList.get(1);
 
-            if (current.getDailyReturn() != null && previous.getDailyReturn() != null) {
-                BigDecimal sum2Days = current.getDailyReturn().add(previous.getDailyReturn());
-                if (sum2Days.abs().compareTo(THRESHOLD_4_PERCENT) >= 0) { // 修改为4%
-                    sendRuleCAlert(current, 2, sum2Days);
-                }
+        if (current.getDailyReturn() != null && previous.getDailyReturn() != null) {
+            BigDecimal sum2Days = current.getDailyReturn().add(previous.getDailyReturn());
+            if (sum2Days.abs().compareTo(THRESHOLD_4_PERCENT) >= 0) { // 修改为4%
+                sendRuleCAlert(current, 2, sum2Days);
             }
         }
+//        }
     }
 
     /**
@@ -227,22 +225,22 @@ public class FundMonitorService {
      */
     private void checkRuleD(List<FundNav> navList) {
         // 检查连续3天
-        for (int i = 2; i < navList.size(); i++) {
-            FundNav current = navList.get(i);
-            FundNav previous1 = navList.get(i - 1);
-            FundNav previous2 = navList.get(i - 2);
+//        for (int i = 2; i < navList.size(); i++) {
+        FundNav current = navList.get(0);
+        FundNav previous1 = navList.get(1);
+        FundNav previous2 = navList.get(2);
 
-            if (current.getDailyReturn() != null &&
-                    previous1.getDailyReturn() != null &&
-                    previous2.getDailyReturn() != null) {
-                BigDecimal sum3Days = current.getDailyReturn()
-                        .add(previous1.getDailyReturn())
-                        .add(previous2.getDailyReturn());
-                if (sum3Days.abs().compareTo(THRESHOLD_5_PERCENT) >= 0) {
-                    sendRuleDAlert(current, 3, sum3Days);
-                }
+        if (current.getDailyReturn() != null &&
+                previous1.getDailyReturn() != null &&
+                previous2.getDailyReturn() != null) {
+            BigDecimal sum3Days = current.getDailyReturn()
+                    .add(previous1.getDailyReturn())
+                    .add(previous2.getDailyReturn());
+            if (sum3Days.abs().compareTo(THRESHOLD_5_PERCENT) >= 0) {
+                sendRuleDAlert(current, 3, sum3Days);
             }
         }
+//        }
     }
 
     /**
@@ -257,24 +255,24 @@ public class FundMonitorService {
      */
     private void checkRuleE(List<FundNav> navList) {
         // 检查连续4天
-        for (int i = 3; i < navList.size(); i++) {
-            FundNav current = navList.get(i);
-            FundNav previous1 = navList.get(i - 1);
-            FundNav previous2 = navList.get(i - 2);
-            FundNav previous3 = navList.get(i - 3);
+//        for (int i = 3; i < navList.size(); i++) {
+        FundNav current = navList.get(0);
+        FundNav previous1 = navList.get(1);
+        FundNav previous2 = navList.get(2);
+        FundNav previous3 = navList.get(3);
 
-            if (current.getDailyReturn() != null &&
-                    previous1.getDailyReturn() != null &&
-                    previous2.getDailyReturn() != null &&
-                    previous3.getDailyReturn() != null) {
-                BigDecimal sum4Days = current.getDailyReturn()
-                        .add(previous1.getDailyReturn())
-                        .add(previous2.getDailyReturn())
-                        .add(previous3.getDailyReturn());
-                if (sum4Days.abs().compareTo(THRESHOLD_5_PERCENT) >= 0) {
-                    sendRuleEAlert(current, 4, sum4Days);
-                }
+        if (current.getDailyReturn() != null &&
+                previous1.getDailyReturn() != null &&
+                previous2.getDailyReturn() != null &&
+                previous3.getDailyReturn() != null) {
+            BigDecimal sum4Days = current.getDailyReturn()
+                    .add(previous1.getDailyReturn())
+                    .add(previous2.getDailyReturn())
+                    .add(previous3.getDailyReturn());
+            if (sum4Days.abs().compareTo(THRESHOLD_5_PERCENT) >= 0) {
+                sendRuleEAlert(current, 4, sum4Days);
             }
+//            }
         }
     }
 
