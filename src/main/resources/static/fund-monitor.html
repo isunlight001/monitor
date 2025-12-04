@@ -19,7 +19,7 @@
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 0 auto;
             background: white;
             border-radius: 15px;
@@ -42,6 +42,24 @@
         .header p {
             font-size: 16px;
             opacity: 0.9;
+        }
+
+        .nav-links {
+            margin-top: 20px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.3s;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
 
         .content {
@@ -251,9 +269,12 @@
         <div class="header">
             <h1>📈 基金监控系统</h1>
             <p>自动抓取基金数据并监控异常波动</p>
-            <div style="margin-top: 15px;">
-                <a href="index-data.html" class="btn btn-info" style="color: white; text-decoration: none;">📊 指数数据监控</a>
-                <a href="alert-records.html" class="btn btn-warning" style="color: white; text-decoration: none;">🔔 告警记录</a>
+            <div class="nav-links">
+                <a href="index.html">🏠 首页</a>
+                <a href="index-data.html">📊 指数数据监控</a>
+                <a href="alert-records.html">🔔 告警记录</a>
+                <a href="fund-backtest.html">🧪 基金回测</a>
+                <a href="notification-test.html">📧 通知测试</a>
             </div>
         </div>
 
@@ -357,6 +378,18 @@
     <script>
         const API_BASE = '/api/fund/monitor';
 
+        // 页面加载完成后设置默认日期
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(today.getDate() - 30);
+            
+            document.getElementById('startDate').valueAsDate = thirtyDaysAgo;
+            document.getElementById('endDate').valueAsDate = today;
+            
+            loadMonitorFunds();
+        });
+
         // 抓取基金数据
         async function crawlFundData() {
             const fundCode = document.getElementById('fundCode').value;
@@ -384,7 +417,7 @@
                 const result = await response.json();
                 showResult('crawlResult', result.success, result.message + (result.count ? ` (更新${result.count}条记录)` : ''));
             } catch (error) {
-                showResult('crawlResult', false, '请求失败: ' + error.message);
+                showResult('crawlResult', false, '请求失败: ' + (error.message || '网络错误'));
             }
         }
 
@@ -410,7 +443,7 @@
                 const result = await response.json();
                 showResult('crawlResult', result.success, result.message + (result.count ? ` (更新${result.count}条记录)` : ''));
             } catch (error) {
-                showResult('crawlResult', false, '请求失败: ' + error.message);
+                showResult('crawlResult', false, '请求失败: ' + (error.message || '网络错误'));
             }
         }
 
@@ -434,7 +467,7 @@
                 const result = await response.json();
                 showResult('checkResult', result.success, result.message);
             } catch (error) {
-                showResult('checkResult', false, '请求失败: ' + error.message);
+                showResult('checkResult', false, '请求失败: ' + (error.message || '网络错误'));
             }
         }
 
@@ -461,10 +494,10 @@
                     showResult('queryResult', true, `查询成功，共${result.data.length}条记录`);
                     renderNavTable(result.data);
                 } else {
-                    showResult('queryResult', false, result.message);
+                    showResult('queryResult', false, result.message || '查询失败');
                 }
             } catch (error) {
-                showResult('queryResult', false, '请求失败: ' + error.message);
+                showResult('queryResult', false, '请求失败: ' + (error.message || '网络错误'));
             }
         }
 
@@ -635,23 +668,6 @@
             }
         }
 
-        // 显示结果消息
-        function showResult(elementId, isSuccess, message) {
-            const element = document.getElementById(elementId);
-            element.textContent = message;
-            element.className = `result ${isSuccess ? 'success' : 'error'} show`;
-            
-            // 3秒后自动隐藏
-            setTimeout(() => {
-                element.classList.remove('show');
-            }, 3000);
-        }
-
-        // 页面加载完成后加载监控基金列表
-        document.addEventListener('DOMContentLoaded', function() {
-            loadMonitorFunds();
-        });
-
         // 手工触发所有监控基金的预警任务
         async function triggerAllMonitorFunds() {
             if (!confirm('确定要立即执行所有启用基金的预警检查吗？')) {
@@ -680,6 +696,18 @@
                 button.disabled = false;
                 button.textContent = originalText;
             }
+        }
+
+        // 显示结果消息
+        function showResult(elementId, isSuccess, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `result ${isSuccess ? 'success' : 'error'} show`;
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                element.classList.remove('show');
+            }, 3000);
         }
     </script>
 </body>

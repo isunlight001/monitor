@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>基金监控系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            margin-bottom: 15px;
+        }
+
+        .header p {
+            font-size: 18px;
+            opacity: 0.9;
+            margin-bottom: 20px;
+        }
+
+        .nav-links {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .nav-link {
+            padding: 12px 25px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            color: white;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .welcome-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .welcome-section h2 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .welcome-section p {
+            color: #666;
+            font-size: 16px;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto 20px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+
+        .feature-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s;
+            border: 1px solid #e9ecef;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .feature-card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+
+        .feature-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .quick-actions {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .quick-actions h3 {
+            color: #1976d2;
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .action-btn {
+            padding: 12px 25px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s;
+            color: white;
+            background: linear-gradient(135deg, #2196f3 0%, #21cbf3 100%);
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(33, 150, 243, 0.4);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            border-top: 1px solid #eee;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 28px;
+            }
+            
+            .header p {
+                font-size: 16px;
+            }
+            
+            .nav-links {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .nav-link {
+                width: 80%;
+                text-align: center;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📈 基金监控系统</h1>
+            <p>一站式基金数据分析与监控平台</p>
+            <div class="nav-links">
+                <a href="fund-monitor.html" class="nav-link">📊 基金监控</a>
+                <a href="index-data.html" class="nav-link">💹 指数数据</a>
+                <a href="fund-backtest.html" class="nav-link">🧪 基金回测</a>
+                <a href="alert-records.html" class="nav-link">🔔 告警记录</a>
+                <a href="notification-test.html" class="nav-link">📧 通知测试</a>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="welcome-section">
+                <h2>欢迎使用基金监控系统</h2>
+                <p>本系统提供全面的基金数据分析、实时监控和智能预警功能，帮助您更好地了解基金表现和市场动态。</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>基金监控</h3>
+                    <p>实时监控基金净值变化，支持多种预警规则，及时发现异常波动。</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">💹</div>
+                    <h3>指数数据</h3>
+                    <p>获取主要股指历史数据，包括上证指数、深证成指、创业板指等。</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🧪</div>
+                    <h3>基金回测</h3>
+                    <p>基于历史数据进行策略回测，评估投资策略的有效性。</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">🔔</div>
+                    <h3>告警记录</h3>
+                    <p>查看所有历史告警记录，分析基金异常波动模式。</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📧</div>
+                    <h3>通知测试</h3>
+                    <p>测试邮件和微信通知功能，确保告警信息能及时送达。</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">📈</div>
+                    <h3>数据分析</h3>
+                    <p>提供丰富的图表和报表，直观展示基金和市场走势。</p>
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <h3>快速开始</h3>
+                <div class="action-buttons">
+                    <a href="fund-monitor.html" class="action-btn">开始基金监控</a>
+                    <a href="index-data.html" class="action-btn">查看指数数据</a>
+                    <a href="fund-backtest.html" class="action-btn">运行回测分析</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 基金监控系统 - 专业的基金数据分析平台</p>
+        </div>
+    </div>
+</body>
+</html>
