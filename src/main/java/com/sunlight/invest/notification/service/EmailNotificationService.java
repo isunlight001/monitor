@@ -2,6 +2,8 @@ package com.sunlight.invest.notification.service;
 
 import com.sunlight.invest.common.Constants;
 import com.sunlight.invest.notification.config.NotificationProperties;
+import com.sunlight.invest.notification.entity.EmailRecipient;
+import com.sunlight.invest.notification.mapper.EmailRecipientMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
+import java.util.List;
 
 /**
  * 邮件通知服务
@@ -37,6 +40,9 @@ public class EmailNotificationService {
     
     @Value("${spring.mail.username:}")
     private String fromEmail;
+    
+    @Autowired(required = false)
+    private EmailRecipientMapper emailRecipientMapper;
 
     public static String receiveEmail = Constants.Email.DEFAULT_RECIPIENT_EMAIL;
 
@@ -149,6 +155,69 @@ public class EmailNotificationService {
      */
     public void sendEmail(String subject, String content) {
         sendSimpleEmail(receiveEmail, subject, content);
+    }
+
+    /**
+     * 发送邮件给所有启用的邮件接收人
+     *
+     * @param subject 邮件主题
+     * @param content 邮件内容
+     */
+    public void sendEmailToAllRecipients(String subject, String content) {
+        // 检查邮件服务是否启用
+        if (!notificationProperties.getMail().isEnabled()) {
+            log.warn("邮件通知未启用，跳过邮件发送");
+            return;
+        }
+
+        // 检查邮件发送器是否配置
+        if (mailSender == null) {
+            log.error("邮件发送器未配置，请检查spring.mail配置");
+            throw new RuntimeException("邮件发送器未配置");
+        }
+        
+        // 检查邮件接收人Mapper是否配置
+        if (emailRecipientMapper == null) {
+            log.warn("邮件接收人Mapper未配置，使用默认收件人");
+            sendEmail(subject, content);
+            return;
+        }
+
+        try {
+            // 获取所有启用的邮件接收人
+            List<EmailRecipient> recipients = emailRecipientMapper.selectAllEnabled();
+            
+            if (recipients.isEmpty()) {
+                log.warn("没有启用的邮件接收人，使用默认收件人");
+                sendEmail(subject, content);
+                return;
+            }
+            
+            // 提取邮箱地址
+            String[] recipientEmails = recipients.stream()
+                    .map(EmailRecipient::getEmail)
+                    .toArray(String[]::new);
+            
+            SimpleMailMessage message = new SimpleMailMessage();
+            
+            // 设置发件人，优先使用配置的from，其次使用spring.mail.username
+            String sender = notificationProperties.getMail().getFrom();
+            if (sender == null || sender.trim().isEmpty()) {
+                sender = fromEmail;
+            }
+            message.setFrom(sender);
+            
+            message.setTo(recipientEmails);
+            message.setSubject(subject);
+            message.setText(content);
+            
+            mailSender.send(message);
+            log.info("邮件发送成功，收件人数量: {}, 主题: {}", recipientEmails.length, subject);
+            
+        } catch (Exception e) {
+            log.error("发送邮件给所有接收人失败，主题: {}", subject, e);
+            throw new RuntimeException("邮件发送失败: " + e.getMessage(), e);
+        }
     }
 
     /**

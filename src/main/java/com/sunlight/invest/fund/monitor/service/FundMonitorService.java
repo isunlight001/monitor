@@ -539,8 +539,8 @@ public class FundMonitorService {
         String content = contentBuilder.toString();
 
         try {
-            // 发送集中预警邮件
-            emailNotificationService.sendEmail(subject, content);
+            // 发送集中预警邮件给所有接收人
+            emailNotificationService.sendEmailToAllRecipients(subject, content);
             log.info("基金 {} 预警汇总邮件已发送，共 {} 个预警", fundCode, alerts.size());
 
             // 保存所有告警记录

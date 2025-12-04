@@ -134,12 +134,19 @@ src/main/resources/
 - **微信通知**: 支持Server酱和企业微信
 - **统一接口**: 提供统一的通知发送接口
 - **配置管理**: 灵活的配置管理机制
+- **邮件接收人管理**: 支持邮件接收人的增删改查操作
 
 #### API接口
 - `POST /api/notification/send` - 发送通知
 - `GET /api/notification/status` - 检查服务状态
 - `POST /api/notification/test/email` - 测试邮件发送
 - `POST /api/notification/test/wechat` - 测试微信发送
+- `POST /api/email-recipients` - 添加邮件接收人
+- `GET /api/email-recipients/{id}` - 根据ID查询邮件接收人
+- `GET /api/email-recipients` - 查询所有邮件接收人
+- `GET /api/email-recipients/enabled` - 查询所有启用的邮件接收人
+- `PUT /api/email-recipients` - 更新邮件接收人
+- `DELETE /api/email-recipients/{id}` - 删除邮件接收人
 
 ## ⚙️ 配置说明
 
@@ -179,6 +186,12 @@ notification:
     from: your-email@qq.com
     to: receiver-email@qq.com
 ```
+
+### 邮件接收人管理
+系统支持通过Web界面或API接口管理邮件接收人列表，可以添加、编辑、删除和查询邮件接收人信息。
+所有启用的邮件接收人都会在基金预警时收到通知邮件。
+
+访问地址: http://localhost:8081/email-recipient-management.html
 
 ## 🛠️ 构建与运行
 
@@ -224,6 +237,7 @@ docker run -d -p 8081:8081 fund-monitor
 - **基金回测**: http://localhost:8081/fund-backtest.html
 - **基金监控**: http://localhost:8081/fund-monitor.html
 - **通知测试**: http://localhost:8081/notification-test.html
+- **邮件接收人管理**: http://localhost:8081/email-recipient-management.html
 
 ## 🧪 测试
 
@@ -277,6 +291,41 @@ CREATE TABLE IF NOT EXISTS `fund_monitor` (
     update_time DATETIME COMMENT '更新时间',
     UNIQUE KEY uk_fund_code (fund_code)
 ) COMMENT '基金监控表';
+```
+
+### 告警记录表 (alarm_record)
+```sql
+CREATE TABLE IF NOT EXISTS `alarm_record` (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    fund_code VARCHAR(20) COMMENT '基金代码',
+    fund_name VARCHAR(100) COMMENT '基金名称',
+    rule_code VARCHAR(20) NOT NULL COMMENT '规则代码 (A,B,C,D,E等)',
+    rule_description VARCHAR(200) NOT NULL COMMENT '规则描述',
+    consecutive_days INT COMMENT '连续天数',
+    cumulative_return DECIMAL(10,4) COMMENT '累计涨跌幅',
+    daily_return DECIMAL(10,4) COMMENT '单日涨跌幅',
+    nav_date DATE COMMENT '净值日期',
+    unit_nav DECIMAL(10,4) COMMENT '单位净值',
+    alarm_content TEXT COMMENT '告警内容',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    INDEX idx_fund_code (fund_code),
+    INDEX idx_rule_code (rule_code),
+    INDEX idx_create_time (create_time)
+) COMMENT '告警记录表';
+```
+
+### 邮件接收人表 (email_recipient)
+```sql
+CREATE TABLE IF NOT EXISTS `email_recipient` (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL COMMENT '接收人姓名',
+    email VARCHAR(100) NOT NULL COMMENT '接收人邮箱地址',
+    enabled TINYINT(1) DEFAULT 1 COMMENT '是否启用 (1:启用, 0:禁用)',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    UNIQUE KEY uk_email (email)
+) COMMENT '邮件接收人表';
 ```
 
 ## 📞 技术支持

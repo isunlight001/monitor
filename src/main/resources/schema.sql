@@ -59,3 +59,14 @@ CREATE TABLE IF NOT EXISTS `alarm_record` (
     INDEX idx_rule_code (rule_code),
     INDEX idx_create_time (create_time)
 ) COMMENT '告警记录表';
+
+-- 邮件接收人表
+CREATE TABLE IF NOT EXISTS `email_recipient` (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL COMMENT '接收人姓名',
+    email VARCHAR(100) NOT NULL COMMENT '接收人邮箱地址',
+    enabled TINYINT(1) DEFAULT 1 COMMENT '是否启用 (1:启用, 0:禁用)',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    UNIQUE KEY uk_email (email)
+) COMMENT '邮件接收人表';
