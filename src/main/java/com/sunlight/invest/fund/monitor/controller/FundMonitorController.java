@@ -311,6 +311,44 @@ public class FundMonitorController {
     }
 
     /**
+     * 根据基金代码获取基金名称
+     *
+     * @param fundCode 基金代码
+     * @return 基金名称
+     */
+    @GetMapping("/fund-name")
+    public Map<String, Object> getFundNameByCode(@RequestParam String fundCode) {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            // 首先尝试从监控基金表中查找
+            MonitorFund monitorFund = monitorFundMapper.selectByFundCode(fundCode);
+            if (monitorFund != null) {
+                result.put("success", true);
+                result.put("fundName", monitorFund.getFundName());
+                return result;
+            }
+
+            // 如果监控基金表中没有，则尝试从基金净值表中查找
+            List<FundNav> fundNavs = fundNavMapper.selectByFundCode(fundCode, 1);
+            if (fundNavs != null && !fundNavs.isEmpty()) {
+                result.put("success", true);
+                result.put("fundName", fundNavs.get(0).getFundName());
+                return result;
+            }
+
+            // 如果都找不到，返回失败
+            result.put("success", false);
+            result.put("message", "未找到基金代码对应的基金名称");
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "查询失败: " + e.getMessage());
+        }
+
+        return result;
+    }
+
+    /**
      * 手动触发所有监控基金的预警任务
      *
      * @return 响应结果

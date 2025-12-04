@@ -262,6 +262,40 @@
             border-radius: 3px;
             font-family: 'Courier New', monospace;
         }
+        
+        /* 下拉列表样式 */
+        .fund-dropdown {
+            position: relative;
+        }
+        
+        .fund-dropdown-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+        
+        .fund-dropdown-item {
+            padding: 10px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .fund-dropdown-item:hover {
+            background-color: #e3f2fd;
+        }
+        
+        .fund-dropdown-item:last-child {
+            border-bottom: none;
+        }
     </style>
 </head>
 <body>
@@ -310,7 +344,10 @@
                 <h3>📥 基金数据抓取</h3>
                 <div class="form-group">
                     <label>基金代码*</label>
-                    <input type="text" id="fundCode" placeholder="例如: 006195" value="006195">
+                    <div class="fund-dropdown">
+                        <input type="text" id="fundCode" placeholder="例如: 006195" value="006195">
+                        <div class="fund-dropdown-list" id="fundCodeDropdown"></div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>基金名称*</label>
@@ -334,7 +371,10 @@
                 <h3>🔍 基金监控检查</h3>
                 <div class="form-group">
                     <label>基金代码*</label>
-                    <input type="text" id="checkFundCode" placeholder="例如: 006195" value="006195">
+                    <div class="fund-dropdown">
+                        <input type="text" id="checkFundCode" placeholder="例如: 006195" value="006195">
+                        <div class="fund-dropdown-list" id="checkFundCodeDropdown"></div>
+                    </div>
                 </div>
                 <button class="btn btn-success" onclick="checkFund()">执行监控检查</button>
                 <div class="result" id="checkResult"></div>
@@ -345,7 +385,10 @@
                 <h3>📊 查询基金净值</h3>
                 <div class="form-group">
                     <label>基金代码*</label>
-                    <input type="text" id="queryFundCode" placeholder="例如: 006195" value="006195">
+                    <div class="fund-dropdown">
+                        <input type="text" id="queryFundCode" placeholder="例如: 006195" value="006195">
+                        <div class="fund-dropdown-list" id="queryFundCodeDropdown"></div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>查询天数</label>
@@ -361,7 +404,10 @@
                 <h3>📋 监控基金管理</h3>
                 <div class="form-group">
                     <label>基金代码*</label>
-                    <input type="text" id="monitorFundCode" placeholder="例如: 006195">
+                    <div class="fund-dropdown">
+                        <input type="text" id="monitorFundCode" placeholder="例如: 006195">
+                        <div class="fund-dropdown-list" id="monitorFundCodeDropdown"></div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>基金名称*</label>
@@ -388,7 +434,124 @@
             document.getElementById('endDate').valueAsDate = today;
             
             loadMonitorFunds();
+            setupFundCodeAutocomplete();
         });
+
+        // 设置基金代码自动完成
+        function setupFundCodeAutocomplete() {
+            // 为所有基金代码输入框设置自动完成
+            const fundCodeInputs = [
+                {codeInput: 'fundCode', nameInput: 'fundName', dropdown: 'fundCodeDropdown'},
+                {codeInput: 'checkFundCode', nameInput: null, dropdown: 'checkFundCodeDropdown'},
+                {codeInput: 'queryFundCode', nameInput: null, dropdown: 'queryFundCodeDropdown'},
+                {codeInput: 'monitorFundCode', nameInput: 'monitorFundName', dropdown: 'monitorFundCodeDropdown'}
+            ];
+            
+            fundCodeInputs.forEach(input => {
+                const codeElement = document.getElementById(input.codeInput);
+                const dropdownElement = document.getElementById(input.dropdown);
+                
+                // 输入时显示下拉列表
+                codeElement.addEventListener('input', function() {
+                    const fundCode = this.value.trim();
+                    if (fundCode.length >= 4) {
+                        showFundSuggestions(fundCode, dropdownElement, input.codeInput, input.nameInput);
+                    } else {
+                        hideFundSuggestions(dropdownElement);
+                    }
+                });
+                
+                // 失去焦点时隐藏下拉列表（延时以允许点击选项）
+                codeElement.addEventListener('blur', function() {
+                    setTimeout(() => {
+                        hideFundSuggestions(dropdownElement);
+                    }, 200);
+                });
+                
+                // 获得焦点时显示下拉列表
+                codeElement.addEventListener('focus', function() {
+                    const fundCode = this.value.trim();
+                    if (fundCode.length >= 4) {
+                        showFundSuggestions(fundCode, dropdownElement, input.codeInput, input.nameInput);
+                    }
+                });
+            });
+        }
+
+        // 显示基金建议列表
+        async function showFundSuggestions(fundCode, dropdownElement, codeInputId, nameInputId) {
+            try {
+                // 获取监控基金列表
+                const response = await fetch(`${API_BASE}/monitor-funds`);
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    // 过滤匹配的基金
+                    const matchedFunds = result.data.filter(fund => 
+                        fund.fundCode.includes(fundCode) || fund.fundName.includes(fundCode)
+                    );
+                    
+                    if (matchedFunds.length > 0) {
+                        let dropdownHtml = '';
+                        matchedFunds.slice(0, 10).forEach(fund => {
+                            dropdownHtml += `
+                                <div class="fund-dropdown-item" 
+                                     onclick="selectFund('${fund.fundCode}', '${fund.fundName}', '${codeInputId}', '${nameInputId}')">
+                                    ${fund.fundCode} - ${fund.fundName}
+                                </div>
+                            `;
+                        });
+                        
+                        dropdownElement.innerHTML = dropdownHtml;
+                        dropdownElement.style.display = 'block';
+                    } else {
+                        hideFundSuggestions(dropdownElement);
+                    }
+                }
+            } catch (error) {
+                console.error('获取基金建议失败:', error);
+                hideFundSuggestions(dropdownElement);
+            }
+        }
+
+        // 隐藏基金建议列表
+        function hideFundSuggestions(dropdownElement) {
+            dropdownElement.style.display = 'none';
+        }
+
+        // 选择基金
+        function selectFund(fundCode, fundName, codeInputId, nameInputId) {
+            document.getElementById(codeInputId).value = fundCode;
+            
+            // 如果有对应的基金名称输入框，则自动填充
+            if (nameInputId) {
+                document.getElementById(nameInputId).value = fundName;
+            }
+            
+            // 隐藏下拉列表
+            const dropdownElements = document.querySelectorAll('.fund-dropdown-list');
+            dropdownElements.forEach(el => el.style.display = 'none');
+        }
+
+        // 根据基金代码获取基金名称
+        async function getFundNameByCode(fundCode, nameInputElement) {
+            if (!fundCode) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/fund-name?fundCode=${encodeURIComponent(fundCode)}`);
+                const result = await response.json();
+                
+                if (result.success && result.fundName) {
+                    nameInputElement.value = result.fundName;
+                } else {
+                    // 如果没找到，清空基金名称
+                    nameInputElement.value = '';
+                }
+            } catch (error) {
+                console.error('获取基金名称失败:', error);
+                nameInputElement.value = '';
+            }
+        }
 
         // 抓取基金数据
         async function crawlFundData() {
@@ -611,7 +774,7 @@
             `;
 
             data.forEach(item => {
-                const statusText = item.enabled ? '✅ 启用' : '❌ 禁用';
+                const statusText = item.enabled ? '✅ 启用' : '❌ 要用';
                 tableHtml += `
                     <tr>
                         <td>${item.fundCode}</td>

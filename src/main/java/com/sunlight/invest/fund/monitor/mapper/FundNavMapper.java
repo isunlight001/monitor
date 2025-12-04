@@ -132,6 +132,26 @@ public interface FundNavMapper {
     FundNav selectLatest(@Param("fundCode") String fundCode);
 
     /**
+     * 根据基金代码查询指定数量的净值记录
+     *
+     * @param fundCode 基金代码
+     * @param limit    数量限制
+     * @return 基金净值列表
+     */
+    @Select("SELECT * FROM fund_nav WHERE fund_code = #{fundCode} ORDER BY nav_date DESC LIMIT #{limit}")
+    @Results({
+            @Result(property = "id", column = "id"),
+            @Result(property = "fundCode", column = "fund_code"),
+            @Result(property = "fundName", column = "fund_name"),
+            @Result(property = "navDate", column = "nav_date"),
+            @Result(property = "unitNav", column = "unit_nav"),
+            @Result(property = "dailyReturn", column = "daily_return"),
+            @Result(property = "createTime", column = "create_time"),
+            @Result(property = "updateTime", column = "update_time")
+    })
+    List<FundNav> selectByFundCode(@Param("fundCode") String fundCode, @Param("limit") int limit);
+
+    /**
      * 删除指定日期之前的数据
      *
      * @param fundCode 基金代码
