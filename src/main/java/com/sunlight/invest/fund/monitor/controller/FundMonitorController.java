@@ -6,6 +6,8 @@ import com.sunlight.invest.fund.monitor.mapper.FundNavMapper;
 import com.sunlight.invest.fund.monitor.mapper.MonitorFundMapper;
 import com.sunlight.invest.fund.monitor.service.FundCrawlerService;
 import com.sunlight.invest.fund.monitor.service.FundMonitorService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +29,8 @@ import java.util.Map;
 @RequestMapping("/api/fund/monitor")
 @CrossOrigin(origins = "*")
 public class FundMonitorController {
+    
+    private static final Logger log = LoggerFactory.getLogger(FundMonitorController.class);
 
     @Autowired
     private FundCrawlerService fundCrawlerService;
@@ -45,7 +49,7 @@ public class FundMonitorController {
      *
      * @param fundCode  基金代码
      * @param fundName  基金名称
-     * @param startDate 开始日期（可选，默认最近1个月）
+     * @param startDate 开始日期（可选，默认最近20年）
      * @param endDate   结束日期（可选，默认今天）
      * @return 响应结果
      */
@@ -59,14 +63,40 @@ public class FundMonitorController {
         Map<String, Object> result = new HashMap<>();
 
         try {
-            LocalDate start = startDate != null ? LocalDate.parse(startDate) : LocalDate.now().minusMonths(1);
             LocalDate end = endDate != null ? LocalDate.parse(endDate) : LocalDate.now();
-
-            int count = fundCrawlerService.crawlAndSave(fundCode, fundName, start, end);
+            LocalDate start = startDate != null ? LocalDate.parse(startDate) : end.minusYears(20);
+            
+            // 按年分批抓取数据，每次抓取一年的数据
+            int totalCount = 0;
+            LocalDate currentEnd = end;
+            
+            // 循环20次，每次处理一年的数据
+            for (int year = 0; year < 20 && !currentEnd.isBefore(start); year++) {
+                LocalDate currentStart = currentEnd.minusYears(1).plusDays(1);
+                // 确保不超出起始日期
+                if (currentStart.isBefore(start)) {
+                    currentStart = start;
+                }
+                
+                log.info("开始抓取基金数据: fundCode={}, fundName={}, startDate={}, endDate={}", 
+                        fundCode, fundName, currentStart, currentEnd);
+                
+                int count = fundCrawlerService.crawlAndSave(fundCode, fundName, currentStart, currentEnd);
+                totalCount += count;
+                
+                log.info("完成抓取基金数据: fundCode={}, fundName={}, startDate={}, endDate={}, count={}", 
+                        fundCode, fundName, currentStart, currentEnd, count);
+                
+                // 更新下一批次的时间范围
+                currentEnd = currentStart.minusDays(1);
+                
+                // 添加短暂延迟，避免请求过于频繁
+                Thread.sleep(1000);
+            }
 
             result.put("success", true);
-            result.put("message", "数据抓取成功");
-            result.put("count", count);
+            result.put("message", "数据抓取成功，总共更新记录数: " + totalCount);
+            result.put("count", totalCount);
             result.put("fundCode", fundCode);
             result.put("fundName", fundName);
         } catch (Exception e) {
