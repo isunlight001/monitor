@@ -22,7 +22,7 @@ public interface AlertRecordMapper {
      */
     @Insert({
         "<script>",
-        "INSERT INTO alert_record (",
+        "INSERT INTO alarm_record (",
         "fund_code, fund_name, index_code, index_name, alert_type,",
         "rule_code, rule_description, consecutive_days, cumulative_return,",
         "daily_return, nav_date, unit_nav, volume, amount, alert_content",
@@ -41,7 +41,7 @@ public interface AlertRecordMapper {
      *
      * @return 告警记录列表
      */
-    @Select("SELECT * FROM alert_record ORDER BY create_time DESC LIMIT 100")
+    @Select("SELECT * FROM alarm_record ORDER BY create_time DESC LIMIT 100")
     @Results({
         @Result(property = "id", column = "id"),
         @Result(property = "fundCode", column = "fund_code"),
@@ -70,7 +70,7 @@ public interface AlertRecordMapper {
      * @param id 告警记录ID
      * @return 告警记录实体
      */
-    @Select("SELECT * FROM alert_record WHERE id = #{id}")
+    @Select("SELECT * FROM alarm_record WHERE id = #{id}")
     @Results({
         @Result(property = "id", column = "id"),
         @Result(property = "fundCode", column = "fund_code"),
@@ -99,7 +99,7 @@ public interface AlertRecordMapper {
      * @param fundCode 基金代码
      * @return 告警记录列表
      */
-    @Select("SELECT * FROM alert_record WHERE fund_code = #{fundCode} ORDER BY create_time DESC")
+    @Select("SELECT * FROM alarm_record WHERE fund_code = #{fundCode} ORDER BY create_time DESC")
     @Results({
         @Result(property = "id", column = "id"),
         @Result(property = "fundCode", column = "fund_code"),
@@ -128,7 +128,7 @@ public interface AlertRecordMapper {
      * @param ruleCode 规则代码
      * @return 告警记录列表
      */
-    @Select("SELECT * FROM alert_record WHERE rule_code = #{ruleCode} ORDER BY create_time DESC")
+    @Select("SELECT * FROM alarm_record WHERE rule_code = #{ruleCode} ORDER BY create_time DESC")
     @Results({
         @Result(property = "id", column = "id"),
         @Result(property = "fundCode", column = "fund_code"),
