@@ -381,10 +381,10 @@
         // 页面加载完成后设置默认日期
         document.addEventListener('DOMContentLoaded', function() {
             const today = new Date();
-            const thirtyDaysAgo = new Date();
-            thirtyDaysAgo.setDate(today.getDate() - 30);
+            const twentyYearsAgo = new Date();
+            twentyYearsAgo.setFullYear(today.getFullYear() - 20);
             
-            document.getElementById('startDate').valueAsDate = thirtyDaysAgo;
+            document.getElementById('startDate').valueAsDate = twentyYearsAgo;
             document.getElementById('endDate').valueAsDate = today;
             
             loadMonitorFunds();
