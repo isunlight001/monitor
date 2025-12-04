@@ -52,7 +52,7 @@ public class FundMonitorService {
     @Autowired
     private MonitorFundMapper monitorFundMapper;
 
-    private static final BigDecimal THRESHOLD_5_PERCENT = new BigDecimal("2.0");
+    private static final BigDecimal THRESHOLD_5_PERCENT = new BigDecimal("5.0");
     private static final BigDecimal THRESHOLD_4_PERCENT = new BigDecimal("4.0");
     private static final int MONITOR_DAYS = 5; // 增加到7天以满足规则E的需求
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -658,26 +658,39 @@ public class FundMonitorService {
         // 构建集中邮件主题
         String subject = String.format("【基金预警汇总】%s", "多基金预警通知");
         
-        // 构建美化后的HTML邮件内容
+        // 构建美化后的HTML邮件内容 - 优化移动端显示
         StringBuilder htmlBuilder = new StringBuilder();
         htmlBuilder.append("<!DOCTYPE html>");
         htmlBuilder.append("<html>");
         htmlBuilder.append("<head>");
         htmlBuilder.append("<meta charset='UTF-8'>");
+        htmlBuilder.append("<meta name='viewport' content='width=device-width, initial-scale=1.0'>");
         htmlBuilder.append("<title>基金预警汇总</title>");
         htmlBuilder.append("<style>");
-        htmlBuilder.append("body { font-family: 'Microsoft YaHei', Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px; }");
-        htmlBuilder.append(".container { max-width: 1000px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }");
-        htmlBuilder.append("h1 { color: #d32f2f; text-align: center; border-bottom: 2px solid #d32f2f; padding-bottom: 10px; }");
-        htmlBuilder.append("h2 { color: #1976d2; margin-top: 30px; border-bottom: 1px dashed #1976d2; padding-bottom: 5px; }");
-        htmlBuilder.append("h3 { color: #388e3c; margin-top: 20px; }");
-        htmlBuilder.append(".summary { background-color: #e3f2fd; padding: 15px; border-radius: 5px; margin-bottom: 20px; text-align: center; }");
-        htmlBuilder.append(".alert-summary { background-color: #fff3e0; padding: 15px; border-radius: 5px; margin-bottom: 20px; font-weight: bold; text-align: center; }");
-        htmlBuilder.append(".fund-section { background-color: #fafafa; padding: 20px; margin-bottom: 30px; border-radius: 8px; border-left: 5px solid #1976d2; }");
-        htmlBuilder.append(".alert-item { background-color: #ffffff; border: 1px solid #e0e0e0; border-left: 4px solid #1976d2; padding: 15px; margin-bottom: 15px; border-radius: 5px; }");
+        htmlBuilder.append("body { font-family: 'Microsoft YaHei', Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 10px; }");
+        htmlBuilder.append(".container { max-width: 100%; margin: 0 auto; background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }");
+        htmlBuilder.append("h1 { color: #d32f2f; text-align: center; border-bottom: 2px solid #d32f2f; padding-bottom: 10px; font-size: 1.4em; margin: 10px 0; }");
+        htmlBuilder.append("h2 { color: #1976d2; margin-top: 20px; border-bottom: 1px dashed #1976d2; padding-bottom: 5px; font-size: 1.2em; }");
+        htmlBuilder.append("h3 { color: #388e3c; margin-top: 15px; font-size: 1.1em; }");
+        htmlBuilder.append(".summary { background-color: #e3f2fd; padding: 10px; border-radius: 5px; margin-bottom: 15px; text-align: center; }");
+        htmlBuilder.append(".alert-summary { background-color: #fff3e0; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-weight: bold; text-align: center; }");
+        htmlBuilder.append(".alert-summary span { color: #d32f2f; font-size: 1.3em; }");
+        htmlBuilder.append(".fund-section { background-color: #fafafa; padding: 15px; margin-bottom: 20px; border-radius: 6px; border-left: 4px solid #1976d2; }");
+        htmlBuilder.append(".alert-item { background-color: #ffffff; border: 1px solid #e0e0e0; border-left: 4px solid #1976d2; padding: 12px; margin-bottom: 12px; border-radius: 4px; }");
         htmlBuilder.append(".alert-item.warning { border-left-color: #f57c00; }");
         htmlBuilder.append(".alert-item.critical { border-left-color: #d32f2f; }");
-        htmlBuilder.append(".footer { text-align: center; margin-top: 30px; color: #757575; font-size: 14px; }");
+        htmlBuilder.append(".footer { text-align: center; margin-top: 20px; color: #757575; font-size: 0.9em; }");
+        htmlBuilder.append(".info-line { margin: 5px 0; }");
+        htmlBuilder.append(".info-label { display: inline-block; min-width: 70px; font-weight: bold; color: #555; }");
+        htmlBuilder.append("@media screen and (max-width: 600px) {");
+        htmlBuilder.append("  body { padding: 5px; }");
+        htmlBuilder.append("  .container { padding: 10px; }");
+        htmlBuilder.append("  h1 { font-size: 1.3em; }");
+        htmlBuilder.append("  h2 { font-size: 1.1em; }");
+        htmlBuilder.append("  h3 { font-size: 1em; }");
+        htmlBuilder.append("  .summary, .alert-summary, .fund-section, .alert-item { padding: 10px; }");
+        htmlBuilder.append("  .info-label { min-width: 60px; }");
+        htmlBuilder.append("}");
         htmlBuilder.append("</style>");
         htmlBuilder.append("</head>");
         htmlBuilder.append("<body>");
@@ -692,7 +705,7 @@ public class FundMonitorService {
         
         // 预警摘要
         htmlBuilder.append("<div class='alert-summary'>");
-        htmlBuilder.append("共发现 <span style='color: #d32f2f; font-size: 24px;'>").append(allAlerts.size()).append("</span> 个预警事件");
+        htmlBuilder.append("共发现 <span>").append(allAlerts.size()).append("</span> 个预警事件");
         htmlBuilder.append("</div>");
         
         // 按基金分组显示预警信息
@@ -723,16 +736,17 @@ public class FundMonitorService {
                     htmlBuilder.append("<div class='alert-item").append(alertClass).append("'>");
                     htmlBuilder.append("<h3>预警 #").append(i + 1).append("</h3>");
                     
-                    // 解析原始内容并转换为HTML格式
+                    // 解析原始内容并转换为更适合移动端的HTML格式
                     String[] lines = alert.getContent().split("\n");
                     for (String line : lines) {
                         if (line.trim().isEmpty()) {
                             htmlBuilder.append("<br>");
                         } else if (line.contains(":")) {
                             String[] parts = line.split(":", 2);
-                            htmlBuilder.append("<strong>").append(parts[0].trim()).append(":</strong> ").append(parts.length > 1 ? parts[1].trim() : "").append("<br>");
+                            htmlBuilder.append("<div class='info-line'><span class='info-label'>").append(parts[0].trim()).append(":</span> ");
+                            htmlBuilder.append("<span>").append(parts.length > 1 ? parts[1].trim() : "").append("</span></div>");
                         } else {
-                            htmlBuilder.append(line).append("<br>");
+                            htmlBuilder.append("<div class='info-line'>").append(line).append("</div>");
                         }
                     }
                     
