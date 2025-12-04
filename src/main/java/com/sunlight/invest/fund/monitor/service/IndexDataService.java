@@ -95,12 +95,12 @@ public class IndexDataService {
                 .build();
         
         // 创建数据表
-        try {
-            indexDataMapper.createTable();
-            log.info("指数数据表创建成功");
-        } catch (Exception e) {
-            log.warn("指数数据表创建失败: {}", e.getMessage());
-        }
+//        try {
+//            indexDataMapper.createTable();
+//            log.info("指数数据表创建成功");
+//        } catch (Exception e) {
+//            log.warn("指数数据表创建失败: {}", e.getMessage());
+//        }
     }
 
     /**
