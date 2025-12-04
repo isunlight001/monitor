@@ -558,36 +558,92 @@ public class FundMonitorService {
         // 构建集中邮件主题
         String subject = String.format("【基金预警汇总】%s - %s", fundName, fundCode);
         
-        // 构建集中邮件内容
-        StringBuilder contentBuilder = new StringBuilder();
-        contentBuilder.append(String.format("基金名称: %s\n", fundName));
-        contentBuilder.append(String.format("基金代码: %s\n", fundCode));
-        contentBuilder.append("========================================\n");
-        contentBuilder.append(String.format("共发现 %d 个预警事件:\n\n", alerts.size()));
-
+        // 构建美化后的HTML邮件内容
+        StringBuilder htmlBuilder = new StringBuilder();
+        htmlBuilder.append("<!DOCTYPE html>");
+        htmlBuilder.append("<html>");
+        htmlBuilder.append("<head>");
+        htmlBuilder.append("<meta charset='UTF-8'>");
+        htmlBuilder.append("<title>基金预警汇总</title>");
+        htmlBuilder.append("<style>");
+        htmlBuilder.append("body { font-family: 'Microsoft YaHei', Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px; }");
+        htmlBuilder.append(".container { max-width: 800px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }");
+        htmlBuilder.append("h1 { color: #d32f2f; text-align: center; border-bottom: 2px solid #d32f2f; padding-bottom: 10px; }");
+        htmlBuilder.append("h2 { color: #1976d2; margin-top: 30px; }");
+        htmlBuilder.append(".fund-info { background-color: #e3f2fd; padding: 15px; border-radius: 5px; margin-bottom: 20px; }");
+        htmlBuilder.append(".alert-summary { background-color: #fff3e0; padding: 15px; border-radius: 5px; margin-bottom: 20px; font-weight: bold; }");
+        htmlBuilder.append(".alert-item { background-color: #fafafa; border-left: 4px solid #1976d2; padding: 15px; margin-bottom: 15px; border-radius: 5px; }");
+        htmlBuilder.append(".alert-item.warning { border-left-color: #f57c00; }");
+        htmlBuilder.append(".alert-item.critical { border-left-color: #d32f2f; }");
+        htmlBuilder.append(".footer { text-align: center; margin-top: 30px; color: #757575; font-size: 14px; }");
+        htmlBuilder.append("</style>");
+        htmlBuilder.append("</head>");
+        htmlBuilder.append("<body>");
+        htmlBuilder.append("<div class='container'>");
+        htmlBuilder.append("<h1>基金预警汇总报告</h1>");
+        
+        // 基金基本信息
+        htmlBuilder.append("<div class='fund-info'>");
+        htmlBuilder.append("<strong>基金名称:</strong> ").append(fundName).append("<br>");
+        htmlBuilder.append("<strong>基金代码:</strong> ").append(fundCode);
+        htmlBuilder.append("</div>");
+        
+        // 预警摘要
+        htmlBuilder.append("<div class='alert-summary'>");
+        htmlBuilder.append("共发现 <span style='color: #d32f2f; font-size: 18px;'>").append(alerts.size()).append("</span> 个预警事件");
+        htmlBuilder.append("</div>");
+        
         // 添加每个预警的详细信息
         for (int i = 0; i < alerts.size(); i++) {
             AlertInfo alert = alerts.get(i);
-            contentBuilder.append(String.format("--- 预警 #%d ---\n", i + 1));
-            contentBuilder.append(alert.getContent());
-            contentBuilder.append("\n\n");
+            String alertClass = "";
+            if (alert.getSubject().contains("规则A")) {
+                alertClass = " critical";
+            } else if (alert.getSubject().contains("规则B") || alert.getSubject().contains("规则C")) {
+                alertClass = " warning";
+            }
+            
+            htmlBuilder.append("<div class='alert-item").append(alertClass).append("'>");
+            htmlBuilder.append("<h2>预警 #").append(i + 1).append("</h2>");
+            
+            // 解析原始内容并转换为HTML格式
+            String[] lines = alert.getContent().split("\n");
+            for (String line : lines) {
+                if (line.trim().isEmpty()) {
+                    htmlBuilder.append("<br>");
+                } else if (line.contains(":")) {
+                    String[] parts = line.split(":", 2);
+                    htmlBuilder.append("<strong>").append(parts[0].trim()).append(":</strong> ").append(parts.length > 1 ? parts[1].trim() : "").append("<br>");
+                } else {
+                    htmlBuilder.append(line).append("<br>");
+                }
+            }
+            
+            htmlBuilder.append("</div>");
         }
+        
+        htmlBuilder.append("<div class='footer'>");
+        htmlBuilder.append("请关注基金波动情况。<br>");
+        htmlBuilder.append("本邮件由基金监控系统自动发送，请勿直接回复。");
+        htmlBuilder.append("</div>");
+        
+        htmlBuilder.append("</div>");
+        htmlBuilder.append("</body>");
+        htmlBuilder.append("</html>");
 
-        contentBuilder.append("请关注基金波动情况。");
-
-        String content = contentBuilder.toString();
+        String htmlContent = htmlBuilder.toString();
 
         try {
-            // 发送集中预警邮件给所有接收人
-            emailNotificationService.sendEmailToAllRecipients(subject, content);
-            log.info("基金 {} 预警汇总邮件已发送，共 {} 个预警", fundCode, alerts.size());
+            // 发送集中预警HTML邮件给所有接收人
+            emailNotificationService.sendHtmlEmailToAllRecipients(subject, htmlContent);
+            log.info("基金 {} 预警汇总HTML邮件已发送，共 {} 个预警", fundCode, alerts.size());
 
             // 保存所有告警记录
             for (AlertInfo alert : alerts) {
                 alarmRecordMapper.insert(alert.getAlarmRecord());
             }
         } catch (Exception e) {
-            log.error("发送基金 {} 预警汇总邮件失败", fundCode, e);
+            log.error("发送基金 {} 预警汇总HTML邮件失败", fundCode, e);
         }
     }
 
@@ -602,12 +658,43 @@ public class FundMonitorService {
         // 构建集中邮件主题
         String subject = String.format("【基金预警汇总】%s", "多基金预警通知");
         
-        // 构建集中邮件内容
-        StringBuilder contentBuilder = new StringBuilder();
-        contentBuilder.append("基金预警汇总报告\n");
-        contentBuilder.append("========================================\n");
-        contentBuilder.append(String.format("共发现 %d 个预警事件:\n\n", allAlerts.size()));
-
+        // 构建美化后的HTML邮件内容
+        StringBuilder htmlBuilder = new StringBuilder();
+        htmlBuilder.append("<!DOCTYPE html>");
+        htmlBuilder.append("<html>");
+        htmlBuilder.append("<head>");
+        htmlBuilder.append("<meta charset='UTF-8'>");
+        htmlBuilder.append("<title>基金预警汇总</title>");
+        htmlBuilder.append("<style>");
+        htmlBuilder.append("body { font-family: 'Microsoft YaHei', Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px; }");
+        htmlBuilder.append(".container { max-width: 1000px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }");
+        htmlBuilder.append("h1 { color: #d32f2f; text-align: center; border-bottom: 2px solid #d32f2f; padding-bottom: 10px; }");
+        htmlBuilder.append("h2 { color: #1976d2; margin-top: 30px; border-bottom: 1px dashed #1976d2; padding-bottom: 5px; }");
+        htmlBuilder.append("h3 { color: #388e3c; margin-top: 20px; }");
+        htmlBuilder.append(".summary { background-color: #e3f2fd; padding: 15px; border-radius: 5px; margin-bottom: 20px; text-align: center; }");
+        htmlBuilder.append(".alert-summary { background-color: #fff3e0; padding: 15px; border-radius: 5px; margin-bottom: 20px; font-weight: bold; text-align: center; }");
+        htmlBuilder.append(".fund-section { background-color: #fafafa; padding: 20px; margin-bottom: 30px; border-radius: 8px; border-left: 5px solid #1976d2; }");
+        htmlBuilder.append(".alert-item { background-color: #ffffff; border: 1px solid #e0e0e0; border-left: 4px solid #1976d2; padding: 15px; margin-bottom: 15px; border-radius: 5px; }");
+        htmlBuilder.append(".alert-item.warning { border-left-color: #f57c00; }");
+        htmlBuilder.append(".alert-item.critical { border-left-color: #d32f2f; }");
+        htmlBuilder.append(".footer { text-align: center; margin-top: 30px; color: #757575; font-size: 14px; }");
+        htmlBuilder.append("</style>");
+        htmlBuilder.append("</head>");
+        htmlBuilder.append("<body>");
+        htmlBuilder.append("<div class='container'>");
+        htmlBuilder.append("<h1>全局基金预警汇总报告</h1>");
+        
+        // 摘要信息
+        htmlBuilder.append("<div class='summary'>");
+        htmlBuilder.append("<h2>报告摘要</h2>");
+        htmlBuilder.append("<p>本次监控共扫描了所有启用的基金，发现了需要关注的预警信号。</p>");
+        htmlBuilder.append("</div>");
+        
+        // 预警摘要
+        htmlBuilder.append("<div class='alert-summary'>");
+        htmlBuilder.append("共发现 <span style='color: #d32f2f; font-size: 24px;'>").append(allAlerts.size()).append("</span> 个预警事件");
+        htmlBuilder.append("</div>");
+        
         // 按基金分组显示预警信息
         Map<String, List<AlertInfo>> alertsByFund = new HashMap<>();
         for (AlertInfo alert : allAlerts) {
@@ -621,32 +708,62 @@ public class FundMonitorService {
             List<AlertInfo> fundAlerts = entry.getValue();
             
             if (!fundAlerts.isEmpty()) {
-                contentBuilder.append(String.format("--- 基金 %s ---\n", fundCode));
+                htmlBuilder.append("<div class='fund-section'>");
+                htmlBuilder.append("<h2>基金代码: ").append(fundCode).append("</h2>");
+                
                 for (int i = 0; i < fundAlerts.size(); i++) {
                     AlertInfo alert = fundAlerts.get(i);
-                    contentBuilder.append(String.format("预警 #%d:\n", i + 1));
-                    contentBuilder.append(alert.getContent());
-                    contentBuilder.append("\n");
+                    String alertClass = "";
+                    if (alert.getSubject().contains("规则A")) {
+                        alertClass = " critical";
+                    } else if (alert.getSubject().contains("规则B") || alert.getSubject().contains("规则C")) {
+                        alertClass = " warning";
+                    }
+                    
+                    htmlBuilder.append("<div class='alert-item").append(alertClass).append("'>");
+                    htmlBuilder.append("<h3>预警 #").append(i + 1).append("</h3>");
+                    
+                    // 解析原始内容并转换为HTML格式
+                    String[] lines = alert.getContent().split("\n");
+                    for (String line : lines) {
+                        if (line.trim().isEmpty()) {
+                            htmlBuilder.append("<br>");
+                        } else if (line.contains(":")) {
+                            String[] parts = line.split(":", 2);
+                            htmlBuilder.append("<strong>").append(parts[0].trim()).append(":</strong> ").append(parts.length > 1 ? parts[1].trim() : "").append("<br>");
+                        } else {
+                            htmlBuilder.append(line).append("<br>");
+                        }
+                    }
+                    
+                    htmlBuilder.append("</div>");
                 }
-                contentBuilder.append("\n");
+                htmlBuilder.append("</div>");
             }
         }
+        
+        htmlBuilder.append("<div class='footer'>");
+        htmlBuilder.append("请关注基金波动情况。<br>");
+        htmlBuilder.append("本邮件由基金监控系统自动发送，请勿直接回复。");
+        htmlBuilder.append("</div>");
+        
+        htmlBuilder.append("</div>");
+        htmlBuilder.append("</body>");
+        htmlBuilder.append("</html>");
 
-        contentBuilder.append("请关注基金波动情况。");
-
-        String content = contentBuilder.toString();
+        String htmlContent = htmlBuilder.toString();
 
         try {
-            // 发送集中预警邮件给所有接收人
-            emailNotificationService.sendEmailToAllRecipients(subject, content);
-            log.error("全局基金预警汇总邮件已发送，共 {} 个预警", allAlerts.size());
+            // 发送集中预警HTML邮件给所有接收人
+            emailNotificationService.sendHtmlEmailToAllRecipients(subject, htmlContent);
+            log.info("全局基金预警汇总HTML邮件已发送，共 {} 个预警", allAlerts.size());
 
             // 保存所有告警记录
             for (AlertInfo alert : allAlerts) {
                 alarmRecordMapper.insert(alert.getAlarmRecord());
             }
         } catch (Exception e) {
-            log.error("发送全局基金预警汇总邮件失败", e);
+            log.error("发送全局基金预警汇总HTML邮件失败", e);
         }
     }
 }

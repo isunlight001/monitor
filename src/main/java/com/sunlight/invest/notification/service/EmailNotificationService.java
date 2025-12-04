@@ -221,6 +221,70 @@ public class EmailNotificationService {
     }
 
     /**
+     * 发送HTML格式邮件给所有启用的邮件接收人
+     *
+     * @param subject     邮件主题
+     * @param htmlContent HTML格式的邮件内容
+     */
+    public void sendHtmlEmailToAllRecipients(String subject, String htmlContent) {
+        // 检查邮件服务是否启用
+        if (!notificationProperties.getMail().isEnabled()) {
+            log.warn("邮件通知未启用，跳过HTML邮件发送");
+            return;
+        }
+
+        // 检查邮件发送器是否配置
+        if (mailSender == null) {
+            log.error("邮件发送器未配置，请检查spring.mail配置");
+            throw new RuntimeException("邮件发送器未配置");
+        }
+        
+        // 检查邮件接收人Mapper是否配置
+        if (emailRecipientMapper == null) {
+            log.warn("邮件接收人Mapper未配置，使用默认收件人");
+            sendHtmlEmail(null, subject, htmlContent);
+            return;
+        }
+
+        try {
+            // 获取所有启用的邮件接收人
+            List<EmailRecipient> recipients = emailRecipientMapper.selectAllEnabled();
+            
+            if (recipients.isEmpty()) {
+                log.warn("没有启用的邮件接收人，使用默认收件人");
+                sendHtmlEmail(null, subject, htmlContent);
+                return;
+            }
+            
+            // 提取邮箱地址
+            String[] recipientEmails = recipients.stream()
+                    .map(EmailRecipient::getEmail)
+                    .toArray(String[]::new);
+            
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            
+            // 设置发件人，优先使用配置的from，其次使用spring.mail.username
+            String sender = notificationProperties.getMail().getFrom();
+            if (sender == null || sender.trim().isEmpty()) {
+                sender = fromEmail;
+            }
+            helper.setFrom(sender);
+            
+            helper.setTo(recipientEmails);
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+            
+            mailSender.send(message);
+            log.info("HTML邮件发送成功，收件人数量: {}, 主题: {}", recipientEmails.length, subject);
+            
+        } catch (MessagingException e) {
+            log.error("发送HTML邮件给所有接收人失败，主题: {}", subject, e);
+            throw new RuntimeException("HTML邮件发送失败: " + e.getMessage(), e);
+        }
+    }
+
+    /**
      * 检查邮件服务是否可用
      *
      * @return true-可用，false-不可用
