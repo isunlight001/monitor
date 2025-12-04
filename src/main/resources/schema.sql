@@ -70,3 +70,15 @@ CREATE TABLE IF NOT EXISTS `email_recipient` (
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     UNIQUE KEY uk_email (email)
 ) COMMENT '邮件接收人表';
+
+-- 系统配置表
+CREATE TABLE IF NOT EXISTS `system_config` (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    config_key VARCHAR(100) NOT NULL COMMENT '配置键',
+    config_value VARCHAR(500) NOT NULL COMMENT '配置值',
+    description VARCHAR(200) COMMENT '配置描述',
+    enabled TINYINT(1) DEFAULT 1 COMMENT '是否启用 (1:启用, 0:禁用)',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    UNIQUE KEY uk_config_key (config_key)
+) COMMENT '系统配置表';

@@ -7,9 +7,11 @@ import com.sunlight.invest.fund.monitor.mapper.AlarmRecordMapper;
 import com.sunlight.invest.fund.monitor.mapper.FundNavMapper;
 import com.sunlight.invest.fund.monitor.mapper.MonitorFundMapper;
 import com.sunlight.invest.notification.service.EmailNotificationService;
+import com.sunlight.invest.system.service.SystemConfigService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -20,13 +22,13 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 基金监控服务
+ * 基金监控服务类
  * <p>
- * 实现五种监控规则：
- * - 规则A：连续5天或以上上涨/下跌
+ * 提供基金监控相关的业务逻辑处理，包括：
+ * - 规则A：检测连续5天或以上上涨/下跌
  * - 规则B：单日涨跌幅绝对值≥5%
  * - 规则C：连续2天累计涨跌幅绝对值≥4%
- * - 规则D：连续3天累计涨跌幅绝对值≥5%
+ * - 规则D：连续3天累计涨跌幅绝对值≥3%
  * - 规则E：连续4天累计涨跌幅绝对值≥5%
  * </p>
  *
@@ -49,13 +51,12 @@ public class FundMonitorService {
 
     @Autowired
     private FundCrawlerService fundCrawlerService;
+    
     @Autowired
     private MonitorFundMapper monitorFundMapper;
-
-    private static final BigDecimal THRESHOLD_5_PERCENT = new BigDecimal("5.0");
-    private static final BigDecimal THRESHOLD_4_PERCENT = new BigDecimal("4.0");
-    private static final int MONITOR_DAYS = 5; // 增加到7天以满足规则E的需求
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    
+    @Autowired
+    private SystemConfigService systemConfigService;
 
     // 内部类用于存储预警信息
     private static class AlertInfo {
@@ -74,7 +75,11 @@ public class FundMonitorService {
         public String getContent() { return content; }
         public AlarmRecord getAlarmRecord() { return alarmRecord; }
     }
+    
+    // 添加日期格式化器作为成员变量
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
+    @Scheduled(cron = "#{systemConfigService.scheduleCron}")
     public void scheduledMonitorTask() {
         // 从数据库获取所有启用的监控基金
         List<MonitorFund> monitorFunds = monitorFundMapper.selectAllEnabled();
@@ -120,8 +125,11 @@ public class FundMonitorService {
     public void monitorFund(String fundCode, List<AlertInfo> allAlerts) {
         log.info("开始监控基金: {}", fundCode);
 
-        // 获取最近7天的数据 降序
-        List<FundNav> navList = fundNavMapper.selectRecentDays(fundCode, MONITOR_DAYS);
+        // 从配置服务获取监控天数
+        int monitorDays = systemConfigService.getMonitorDays();
+        
+        // 获取最近配置天数的数据 降序
+        List<FundNav> navList = fundNavMapper.selectRecentDays(fundCode, monitorDays);
         if (navList == null || navList.isEmpty()) {
             log.warn("基金 {} 没有数据", fundCode);
             return;
@@ -149,8 +157,11 @@ public class FundMonitorService {
     public void monitorFund(String fundCode) {
         log.info("开始监控基金: {}", fundCode);
 
-        // 获取最近7天的数据 降序
-        List<FundNav> navList = fundNavMapper.selectRecentDays(fundCode, MONITOR_DAYS);
+        // 从配置服务获取监控天数
+        int monitorDays = systemConfigService.getMonitorDays();
+        
+        // 获取最近配置天数的数据 降序
+        List<FundNav> navList = fundNavMapper.selectRecentDays(fundCode, monitorDays);
         if (navList == null || navList.isEmpty()) {
             log.warn("基金 {} 没有数据", fundCode);
             return;
@@ -183,7 +194,7 @@ public class FundMonitorService {
      * 检测逻辑：
      * 1. 遍历净值列表，比较相邻两天的涨跌情况
      * 2. 统计连续上涨或下跌的天数
-     * 3. 当连续天数达到5天或以上时，触发规则A告警
+     * 3. 当连续天数达到配置的天数时，触发规则A告警
      * 4. 当涨跌趋势发生变化时，重置计数器
      * </p>
      *
@@ -194,6 +205,10 @@ public class FundMonitorService {
         int consecutiveDays = 1;
         boolean isRising = false;
         BigDecimal cumulativeReturn = BigDecimal.ZERO;
+        
+        // 从配置服务获取阈值
+        BigDecimal threshold5Percent = systemConfigService.getThreshold5Percent();
+        int monitorDays = systemConfigService.getMonitorDays();
 
         for (int i = 1; i < navList.size(); i++) {
             FundNav current = navList.get(i);
@@ -219,7 +234,7 @@ public class FundMonitorService {
                 cumulativeReturn = cumulativeReturn.add(dailyReturn);
             } else {
                 // 中断，检查是否需要告警
-                if (consecutiveDays >= 5) { // 修改为5天
+                if (consecutiveDays >= monitorDays) { // 使用配置的监控天数
                     alerts.add(createRuleAAlertInfo(navList.get(i - 1), consecutiveDays, cumulativeReturn, isRising));
                 }
                 // 重置
@@ -230,15 +245,15 @@ public class FundMonitorService {
         }
 
         // 检查最后的连续序列
-        if (consecutiveDays >= 5) { // 修改为5天
+        if (consecutiveDays >= monitorDays) { // 使用配置的监控天数
             alerts.add(createRuleAAlertInfo(navList.get(navList.size() - 1), consecutiveDays, cumulativeReturn, isRising));
         }
     }
 
     /**
-     * 规则B：单日涨跌幅绝对值≥5%
+     * 规则B：单日涨跌幅绝对值≥配置的阈值
      * <p>
-     * 该方法检查基金净值列表中是否存在单日涨跌幅绝对值达到或超过5%的情况。
+     * 该方法检查基金净值列表中是否存在单日涨跌幅绝对值达到或超过配置阈值的情况。
      * 当发现符合条件的记录时，会立即触发告警邮件通知。
      * </p>
      *
@@ -246,17 +261,20 @@ public class FundMonitorService {
      * @param alerts  预警信息收集列表
      */
     private void checkRuleB(List<FundNav> navList, List<AlertInfo> alerts) {
+        // 从配置服务获取阈值
+        BigDecimal threshold5Percent = systemConfigService.getThreshold5Percent();
+        
         if (navList.get(0).getDailyReturn() != null &&
-                navList.get(0).getDailyReturn().abs().compareTo(THRESHOLD_5_PERCENT) >= 0) {
+                navList.get(0).getDailyReturn().abs().compareTo(threshold5Percent) >= 0) {
             alerts.add(createRuleBAlertInfo(navList.get(0)));
         }
     }
 
     /**
-     * 规则C：连续2天累计涨跌幅绝对值≥4%
+     * 规则C：连续2天累计涨跌幅绝对值≥配置的阈值
      * <p>
      * 该方法检查基金净值列表中是否存在连续2天的累计涨跌幅绝对值
-     * 达到或超过4%的情况。
+     * 达到或超过配置阈值的情况。
      * 当发现符合条件的记录时，会触发告警邮件通知。
      * </p>
      *
@@ -264,6 +282,9 @@ public class FundMonitorService {
      * @param alerts  预警信息收集列表
      */
     private void checkRuleC(List<FundNav> navList, List<AlertInfo> alerts) {
+        // 从配置服务获取阈值
+        BigDecimal threshold4Percent = systemConfigService.getThreshold4Percent();
+        
         // 检查连续2天
 //        for (int i = 0; i < navList.size(); i++) {
         FundNav current = navList.get(0);
@@ -271,18 +292,17 @@ public class FundMonitorService {
 
         if (current.getDailyReturn() != null && previous.getDailyReturn() != null) {
             BigDecimal sum2Days = current.getDailyReturn().add(previous.getDailyReturn());
-            if (sum2Days.abs().compareTo(THRESHOLD_4_PERCENT) >= 0) { // 修改为4%
+            if (sum2Days.abs().compareTo(threshold4Percent) >= 0) { // 使用配置的4%阈值
                 alerts.add(createRuleCAlertInfo(current, 2, sum2Days));
             }
         }
-//        }
     }
 
     /**
-     * 规则D：连续3天累计涨跌幅绝对值≥5%
+     * 规则D：连续3天累计涨跌幅绝对值≥3%
      * <p>
      * 该方法检查基金净值列表中是否存在连续3天的累计涨跌幅绝对值
-     * 达到或超过5%的情况。
+     * 达到或超过3%的情况。
      * 当发现符合条件的记录时，会触发告警邮件通知。
      * </p>
      *
@@ -291,29 +311,23 @@ public class FundMonitorService {
      */
     private void checkRuleD(List<FundNav> navList, List<AlertInfo> alerts) {
         // 检查连续3天
-//        for (int i = 2; i < navList.size(); i++) {
         FundNav current = navList.get(0);
-        FundNav previous1 = navList.get(1);
+        FundNav previous = navList.get(1);
         FundNav previous2 = navList.get(2);
 
-        if (current.getDailyReturn() != null &&
-                previous1.getDailyReturn() != null &&
-                previous2.getDailyReturn() != null) {
-            BigDecimal sum3Days = current.getDailyReturn()
-                    .add(previous1.getDailyReturn())
-                    .add(previous2.getDailyReturn());
-            if (sum3Days.abs().compareTo(THRESHOLD_5_PERCENT) >= 0) {
+        if (current.getDailyReturn() != null && previous.getDailyReturn() != null && previous2.getDailyReturn() != null) {
+            BigDecimal sum3Days = current.getDailyReturn().add(previous.getDailyReturn()).add(previous2.getDailyReturn());
+            if (sum3Days.abs().compareTo(new BigDecimal("3.0")) >= 0) {
                 alerts.add(createRuleDAlertInfo(current, 3, sum3Days));
             }
         }
-//        }
     }
 
     /**
-     * 规则E：连续4天累计涨跌幅绝对值≥5%
+     * 规则E：连续4天累计涨跌幅绝对值≥配置的阈值
      * <p>
      * 该方法检查基金净值列表中是否存在连续4天的累计涨跌幅绝对值
-     * 达到或超过5%的情况。
+     * 达到或超过配置阈值的情况。
      * 当发现符合条件的记录时，会触发告警邮件通知。
      * </p>
      *
@@ -321,55 +335,51 @@ public class FundMonitorService {
      * @param alerts  预警信息收集列表
      */
     private void checkRuleE(List<FundNav> navList, List<AlertInfo> alerts) {
+        // 从配置服务获取阈值
+        BigDecimal threshold5Percent = systemConfigService.getThreshold5Percent();
+        
         // 检查连续4天
-//        for (int i = 3; i < navList.size(); i++) {
         FundNav current = navList.get(0);
-        FundNav previous1 = navList.get(1);
+        FundNav previous = navList.get(1);
         FundNav previous2 = navList.get(2);
         FundNav previous3 = navList.get(3);
 
-        if (current.getDailyReturn() != null &&
-                previous1.getDailyReturn() != null &&
-                previous2.getDailyReturn() != null &&
-                previous3.getDailyReturn() != null) {
-            BigDecimal sum4Days = current.getDailyReturn()
-                    .add(previous1.getDailyReturn())
-                    .add(previous2.getDailyReturn())
-                    .add(previous3.getDailyReturn());
-            if (sum4Days.abs().compareTo(THRESHOLD_5_PERCENT) >= 0) {
+        if (current.getDailyReturn() != null && previous.getDailyReturn() != null && 
+                previous2.getDailyReturn() != null && previous3.getDailyReturn() != null) {
+            BigDecimal sum4Days = current.getDailyReturn().add(previous.getDailyReturn())
+                    .add(previous2.getDailyReturn()).add(previous3.getDailyReturn());
+            if (sum4Days.abs().compareTo(threshold5Percent) >= 0) { // 使用配置的5%阈值
                 alerts.add(createRuleEAlertInfo(current, 4, sum4Days));
             }
-//            }
         }
     }
 
     /**
      * 创建规则A的预警信息
      */
-    private AlertInfo createRuleAAlertInfo(FundNav nav, int days, BigDecimal cumulativeReturn, boolean isRising) {
+    private AlertInfo createRuleAAlertInfo(FundNav nav, int consecutiveDays, BigDecimal cumulativeReturn, boolean isRising) {
         String subject = String.format("【基金预警-规则A】%s 连续%d天%s",
-                nav.getFundName(),
-                days,
-                isRising ? "上涨" : "下跌");
+                nav.getFundName(), consecutiveDays, isRising ? "上涨" : "下跌");
 
         String content = String.format(
                 "基金名称: %s\n" +
                         "基金代码: %s\n" +
-                        "预警规则: 连续%d天或以上%s\n" +
+                        "预警规则: 连续%d天持续%s\n" +
                         "连续天数: %d天\n" +
                         "累计涨跌幅: %.2f%%\n" +
                         "最新净值日期: %s\n" +
                         "最新单位净值: %.4f\n" +
                         "\n" +
-                        "请关注基金波动情况。",
+                        "%s趋势持续，请关注后续走势。",
                 nav.getFundName(),
                 nav.getFundCode(),
-                days,
+                consecutiveDays,
                 isRising ? "上涨" : "下跌",
-                days,
+                consecutiveDays,
                 cumulativeReturn.doubleValue(),
                 nav.getNavDate().format(DATE_FORMATTER),
-                nav.getUnitNav().doubleValue()
+                nav.getUnitNav().doubleValue(),
+                isRising ? "上涨" : "下跌"
         );
 
         // 创建告警记录
@@ -377,8 +387,8 @@ public class FundMonitorService {
         alarmRecord.setFundCode(nav.getFundCode());
         alarmRecord.setFundName(nav.getFundName());
         alarmRecord.setRuleCode("A");
-        alarmRecord.setRuleDescription("连续5天或以上上涨/下跌");
-        alarmRecord.setConsecutiveDays(days);
+        alarmRecord.setRuleDescription("连续" + consecutiveDays + "天持续" + (isRising ? "上涨" : "下跌"));
+        alarmRecord.setConsecutiveDays(consecutiveDays);
         alarmRecord.setCumulativeReturn(cumulativeReturn);
         alarmRecord.setNavDate(nav.getNavDate());
         alarmRecord.setUnitNav(nav.getUnitNav());
@@ -399,10 +409,10 @@ public class FundMonitorService {
                         "基金代码: %s\n" +
                         "预警规则: 单日涨跌幅绝对值≥5%%\n" +
                         "单日涨跌幅: %.2f%%\n" +
-                        "净值日期: %s\n" +
-                        "单位净值: %.4f\n" +
+                        "最新净值日期: %s\n" +
+                        "最新单位净值: %.4f\n" +
                         "\n" +
-                        "单日波动较大，请关注市场变化。",
+                        "单日波动较大，请关注基金走势。",
                 nav.getFundName(),
                 nav.getFundCode(),
                 nav.getDailyReturn().doubleValue(),
@@ -434,7 +444,7 @@ public class FundMonitorService {
         String content = String.format(
                 "基金名称: %s\n" +
                         "基金代码: %s\n" +
-                        "预警规则: 连续%d天累计涨跌幅绝对值≥4%%\n" + // 修改为4%
+                        "预警规则: 连续%d天累计涨跌幅绝对值≥4%%\n" +
                         "连续天数: %d天\n" +
                         "累计涨跌幅: %.2f%%\n" +
                         "最新净值日期: %s\n" +
@@ -475,7 +485,7 @@ public class FundMonitorService {
         String content = String.format(
                 "基金名称: %s\n" +
                         "基金代码: %s\n" +
-                        "预警规则: 连续%d天累计涨跌幅绝对值≥5%%\n" +
+                        "预警规则: 连续%d天累计涨跌幅绝对值≥3%%\n" +
                         "连续天数: %d天\n" +
                         "累计涨跌幅: %.2f%%\n" +
                         "最新净值日期: %s\n" +
@@ -496,7 +506,7 @@ public class FundMonitorService {
         alarmRecord.setFundCode(nav.getFundCode());
         alarmRecord.setFundName(nav.getFundName());
         alarmRecord.setRuleCode("D");
-        alarmRecord.setRuleDescription("连续3天累计涨跌幅绝对值≥5%");
+        alarmRecord.setRuleDescription("连续3天累计涨跌幅绝对值≥3%");
         alarmRecord.setConsecutiveDays(days);
         alarmRecord.setCumulativeReturn(cumulativeReturn);
         alarmRecord.setNavDate(nav.getNavDate());
@@ -658,39 +668,26 @@ public class FundMonitorService {
         // 构建集中邮件主题
         String subject = String.format("【基金预警汇总】%s", "多基金预警通知");
         
-        // 构建美化后的HTML邮件内容 - 优化移动端显示
+        // 构建美化后的HTML邮件内容
         StringBuilder htmlBuilder = new StringBuilder();
         htmlBuilder.append("<!DOCTYPE html>");
         htmlBuilder.append("<html>");
         htmlBuilder.append("<head>");
         htmlBuilder.append("<meta charset='UTF-8'>");
-        htmlBuilder.append("<meta name='viewport' content='width=device-width, initial-scale=1.0'>");
         htmlBuilder.append("<title>基金预警汇总</title>");
         htmlBuilder.append("<style>");
-        htmlBuilder.append("body { font-family: 'Microsoft YaHei', Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 10px; }");
-        htmlBuilder.append(".container { max-width: 100%; margin: 0 auto; background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }");
-        htmlBuilder.append("h1 { color: #d32f2f; text-align: center; border-bottom: 2px solid #d32f2f; padding-bottom: 10px; font-size: 1.4em; margin: 10px 0; }");
-        htmlBuilder.append("h2 { color: #1976d2; margin-top: 20px; border-bottom: 1px dashed #1976d2; padding-bottom: 5px; font-size: 1.2em; }");
-        htmlBuilder.append("h3 { color: #388e3c; margin-top: 15px; font-size: 1.1em; }");
-        htmlBuilder.append(".summary { background-color: #e3f2fd; padding: 10px; border-radius: 5px; margin-bottom: 15px; text-align: center; }");
-        htmlBuilder.append(".alert-summary { background-color: #fff3e0; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-weight: bold; text-align: center; }");
-        htmlBuilder.append(".alert-summary span { color: #d32f2f; font-size: 1.3em; }");
-        htmlBuilder.append(".fund-section { background-color: #fafafa; padding: 15px; margin-bottom: 20px; border-radius: 6px; border-left: 4px solid #1976d2; }");
-        htmlBuilder.append(".alert-item { background-color: #ffffff; border: 1px solid #e0e0e0; border-left: 4px solid #1976d2; padding: 12px; margin-bottom: 12px; border-radius: 4px; }");
+        htmlBuilder.append("body { font-family: 'Microsoft YaHei', Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px; }");
+        htmlBuilder.append(".container { max-width: 1000px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }");
+        htmlBuilder.append("h1 { color: #d32f2f; text-align: center; border-bottom: 2px solid #d32f2f; padding-bottom: 10px; }");
+        htmlBuilder.append("h2 { color: #1976d2; margin-top: 30px; border-bottom: 1px dashed #1976d2; padding-bottom: 5px; }");
+        htmlBuilder.append("h3 { color: #388e3c; margin-top: 20px; }");
+        htmlBuilder.append(".summary { background-color: #e3f2fd; padding: 15px; border-radius: 5px; margin-bottom: 20px; text-align: center; }");
+        htmlBuilder.append(".alert-summary { background-color: #fff3e0; padding: 15px; border-radius: 5px; margin-bottom: 20px; font-weight: bold; text-align: center; }");
+        htmlBuilder.append(".fund-section { background-color: #fafafa; padding: 20px; margin-bottom: 30px; border-radius: 8px; border-left: 5px solid #1976d2; }");
+        htmlBuilder.append(".alert-item { background-color: #ffffff; border: 1px solid #e0e0e0; border-left: 4px solid #1976d2; padding: 15px; margin-bottom: 15px; border-radius: 5px; }");
         htmlBuilder.append(".alert-item.warning { border-left-color: #f57c00; }");
         htmlBuilder.append(".alert-item.critical { border-left-color: #d32f2f; }");
-        htmlBuilder.append(".footer { text-align: center; margin-top: 20px; color: #757575; font-size: 0.9em; }");
-        htmlBuilder.append(".info-line { margin: 5px 0; }");
-        htmlBuilder.append(".info-label { display: inline-block; min-width: 70px; font-weight: bold; color: #555; }");
-        htmlBuilder.append("@media screen and (max-width: 600px) {");
-        htmlBuilder.append("  body { padding: 5px; }");
-        htmlBuilder.append("  .container { padding: 10px; }");
-        htmlBuilder.append("  h1 { font-size: 1.3em; }");
-        htmlBuilder.append("  h2 { font-size: 1.1em; }");
-        htmlBuilder.append("  h3 { font-size: 1em; }");
-        htmlBuilder.append("  .summary, .alert-summary, .fund-section, .alert-item { padding: 10px; }");
-        htmlBuilder.append("  .info-label { min-width: 60px; }");
-        htmlBuilder.append("}");
+        htmlBuilder.append(".footer { text-align: center; margin-top: 30px; color: #757575; font-size: 14px; }");
         htmlBuilder.append("</style>");
         htmlBuilder.append("</head>");
         htmlBuilder.append("<body>");
@@ -705,7 +702,7 @@ public class FundMonitorService {
         
         // 预警摘要
         htmlBuilder.append("<div class='alert-summary'>");
-        htmlBuilder.append("共发现 <span>").append(allAlerts.size()).append("</span> 个预警事件");
+        htmlBuilder.append("共发现 <span style='color: #d32f2f; font-size: 24px;'>").append(allAlerts.size()).append("</span> 个预警事件");
         htmlBuilder.append("</div>");
         
         // 按基金分组显示预警信息
@@ -736,17 +733,16 @@ public class FundMonitorService {
                     htmlBuilder.append("<div class='alert-item").append(alertClass).append("'>");
                     htmlBuilder.append("<h3>预警 #").append(i + 1).append("</h3>");
                     
-                    // 解析原始内容并转换为更适合移动端的HTML格式
+                    // 解析原始内容并转换为HTML格式
                     String[] lines = alert.getContent().split("\n");
                     for (String line : lines) {
                         if (line.trim().isEmpty()) {
                             htmlBuilder.append("<br>");
                         } else if (line.contains(":")) {
                             String[] parts = line.split(":", 2);
-                            htmlBuilder.append("<div class='info-line'><span class='info-label'>").append(parts[0].trim()).append(":</span> ");
-                            htmlBuilder.append("<span>").append(parts.length > 1 ? parts[1].trim() : "").append("</span></div>");
+                            htmlBuilder.append("<strong>").append(parts[0].trim()).append(":</strong> ").append(parts.length > 1 ? parts[1].trim() : "").append("<br>");
                         } else {
-                            htmlBuilder.append("<div class='info-line'>").append(line).append("</div>");
+                            htmlBuilder.append(line).append("<br>");
                         }
                     }
                     
