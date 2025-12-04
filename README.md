@@ -349,3 +349,4 @@ CREATE TABLE IF NOT EXISTS `email_recipient` (
 - ✅ 支持动态管理监控基金列表
 - ✅ 支持Docker容器化部署
 - ✅ 数据库存储，持久化配置
+- ✅ 响应式邮件设计，支持移动端浏览
