@@ -15,7 +15,9 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 基金监控服务
@@ -50,7 +52,7 @@ public class FundMonitorService {
     @Autowired
     private MonitorFundMapper monitorFundMapper;
 
-    private static final BigDecimal THRESHOLD_5_PERCENT = new BigDecimal("5.0");
+    private static final BigDecimal THRESHOLD_5_PERCENT = new BigDecimal("2.0");
     private static final BigDecimal THRESHOLD_4_PERCENT = new BigDecimal("4.0");
     private static final int MONITOR_DAYS = 5; // 增加到7天以满足规则E的需求
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -74,10 +76,12 @@ public class FundMonitorService {
     }
 
     public void scheduledMonitorTask() {
-
         // 从数据库获取所有启用的监控基金
         List<MonitorFund> monitorFunds = monitorFundMapper.selectAllEnabled();
         log.info("获取到 {} 个启用的监控基金", monitorFunds.size());
+
+        // 收集所有基金的预警信息
+        List<AlertInfo> allAlerts = new ArrayList<>();
 
         for (MonitorFund monitorFund : monitorFunds) {
             String fundCode = monitorFund.getFundCode();
@@ -91,7 +95,7 @@ public class FundMonitorService {
 
                 // 2. 执行监控检查
                 log.info("开始监控基金: {} - {}", fundCode, fundName);
-                monitorFund(fundCode);
+                monitorFund(fundCode, allAlerts); // 传递全局预警列表
                 log.info("基金监控完成: {} - {}", fundCode, fundName);
 
             } catch (Exception e) {
@@ -99,11 +103,46 @@ public class FundMonitorService {
             }
         }
 
+        // 如果有预警信息，则集中发送
+        if (!allAlerts.isEmpty()) {
+            sendGlobalCombinedAlerts(allAlerts);
+        }
+
         log.info("========== 基金监控定时任务执行完成 ==========");
     }
 
     /**
-     * 监控指定基金
+     * 监控指定基金，并将预警信息添加到全局列表中
+     *
+     * @param fundCode 基金代码
+     * @param allAlerts 全局预警信息列表
+     */
+    public void monitorFund(String fundCode, List<AlertInfo> allAlerts) {
+        log.info("开始监控基金: {}", fundCode);
+
+        // 获取最近7天的数据 降序
+        List<FundNav> navList = fundNavMapper.selectRecentDays(fundCode, MONITOR_DAYS);
+        if (navList == null || navList.isEmpty()) {
+            log.warn("基金 {} 没有数据", fundCode);
+            return;
+        }
+
+        // 收集当前基金的预警信息
+        List<AlertInfo> fundAlerts = new ArrayList<>();
+
+        // 执行五种规则检查并收集预警信息
+        checkRuleA(navList, fundAlerts);
+        checkRuleB(navList, fundAlerts);
+        checkRuleC(navList, fundAlerts);
+        checkRuleD(navList, fundAlerts);
+        checkRuleE(navList, fundAlerts);
+
+        // 将当前基金的预警信息添加到全局列表
+        allAlerts.addAll(fundAlerts);
+    }
+
+    /**
+     * 监控指定基金（保持原有方法签名以兼容其他调用）
      *
      * @param fundCode 基金代码
      */
@@ -549,6 +588,65 @@ public class FundMonitorService {
             }
         } catch (Exception e) {
             log.error("发送基金 {} 预警汇总邮件失败", fundCode, e);
+        }
+    }
+
+    /**
+     * 全局集中发送所有预警信息
+     */
+    private void sendGlobalCombinedAlerts(List<AlertInfo> allAlerts) {
+        if (allAlerts.isEmpty()) {
+            return;
+        }
+
+        // 构建集中邮件主题
+        String subject = String.format("【基金预警汇总】%s", "多基金预警通知");
+        
+        // 构建集中邮件内容
+        StringBuilder contentBuilder = new StringBuilder();
+        contentBuilder.append("基金预警汇总报告\n");
+        contentBuilder.append("========================================\n");
+        contentBuilder.append(String.format("共发现 %d 个预警事件:\n\n", allAlerts.size()));
+
+        // 按基金分组显示预警信息
+        Map<String, List<AlertInfo>> alertsByFund = new HashMap<>();
+        for (AlertInfo alert : allAlerts) {
+            String fundCode = alert.getAlarmRecord().getFundCode();
+            alertsByFund.computeIfAbsent(fundCode, k -> new ArrayList<>()).add(alert);
+        }
+
+        // 添加每个基金的预警信息
+        for (Map.Entry<String, List<AlertInfo>> entry : alertsByFund.entrySet()) {
+            String fundCode = entry.getKey();
+            List<AlertInfo> fundAlerts = entry.getValue();
+            
+            if (!fundAlerts.isEmpty()) {
+                contentBuilder.append(String.format("--- 基金 %s ---\n", fundCode));
+                for (int i = 0; i < fundAlerts.size(); i++) {
+                    AlertInfo alert = fundAlerts.get(i);
+                    contentBuilder.append(String.format("预警 #%d:\n", i + 1));
+                    contentBuilder.append(alert.getContent());
+                    contentBuilder.append("\n");
+                }
+                contentBuilder.append("\n");
+            }
+        }
+
+        contentBuilder.append("请关注基金波动情况。");
+
+        String content = contentBuilder.toString();
+
+        try {
+            // 发送集中预警邮件给所有接收人
+            emailNotificationService.sendEmailToAllRecipients(subject, content);
+            log.error("全局基金预警汇总邮件已发送，共 {} 个预警", allAlerts.size());
+
+            // 保存所有告警记录
+            for (AlertInfo alert : allAlerts) {
+                alarmRecordMapper.insert(alert.getAlarmRecord());
+            }
+        } catch (Exception e) {
+            log.error("发送全局基金预警汇总邮件失败", e);
         }
     }
 }
