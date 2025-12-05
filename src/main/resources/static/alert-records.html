@@ -12,103 +12,13 @@
         .rule-badge {
             font-size: 0.8em;
         }
-        
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            text-align: center;
-            position: relative;
-            margin-bottom: 20px;
-        }
-        
-        .user-info {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .logout-btn {
-            padding: 6px 12px;
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-        
-        .nav-links {
-            margin-top: 15px;
-        }
-
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            margin: 0 8px;
-            padding: 6px 12px;
-            border-radius: 15px;
-            background: rgba(255, 255, 255, 0.2);
-            transition: all 0.3s;
-            font-size: 14px;
-        }
-
-        .nav-links a:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-        
-        @media (max-width: 768px) {
-            .user-info {
-                position: relative;
-                top: auto;
-                right: auto;
-                justify-content: center;
-                margin-top: 15px;
-            }
-            
-            .nav-links {
-                display: flex;
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-            
-            .nav-links a {
-                margin: 5px;
-            }
-        }
     </style>
-    <!-- 引入认证脚本 -->
-    <script src="js/auth.js"></script>
 </head>
 <body>
-    <div class="header">
-        <h4>🔔 告警记录</h4>
-        <p>查看基金监控系统的告警记录</p>
-        <div class="user-info">
-            <span id="usernameDisplay"></span>
-            <button class="logout-btn" id="logoutBtn">退出</button>
-        </div>
-        <div class="nav-links">
-            <a href="index.html">🏠 首页</a>
-            <a href="fund-monitor.html">📊 基金监控</a>
-            <a href="index-data.html">💹 指数数据</a>
-            <a href="fund-backtest.html">🧪 基金回测</a>
-            <a href="notification-test.html">📧 通知测试</a>
-            <a href="email-recipient-management.html">👥 邮件接收人</a>
-            <a href="system-config.html">⚙️ 系统配置</a>
-        </div>
-    </div>
-    
     <div class="container-fluid mt-4">
         <div class="row">
             <div class="col-12">
+                <h2>告警记录</h2>
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="index.html">首页</a></li>
@@ -171,9 +81,6 @@
     <script>
         // 页面加载完成后获取告警记录
         document.addEventListener('DOMContentLoaded', function() {
-            // 初始化认证功能
-            initAuth();
-            
             loadAlertRecords();
         });
 
@@ -300,7 +207,7 @@
                                     </tr>
                                     <tr>
                                         <th>单位净值:</th>
-                                        <td>${data.unitNav ? data.unitNav.toFixed(4) : '-'}</td>
+                                        <td>${data.unitNav !== null ? data.unitNav.toFixed(4) : '-'}</td>
                                     </tr>
                                     <tr>
                                         <th>创建时间:</th>
@@ -313,10 +220,10 @@
                                 </table>
                             </div>
                         </div>
-                        <div class="mt-3">
-                            <h6>告警内容:</h6>
-                            <div class="alert alert-info">
-                                ${data.alarmContent || '-'}
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <h6>告警内容:</h6>
+                                <pre class="bg-light p-3">${data.alarmContent || '-'}</pre>
                             </div>
                         </div>
                     `;

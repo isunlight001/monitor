@@ -32,7 +32,6 @@
             color: white;
             padding: 30px;
             text-align: center;
-            position: relative;
         }
 
         .header h1 {
@@ -43,47 +42,6 @@
         .header p {
             font-size: 16px;
             opacity: 0.9;
-        }
-
-        .user-info {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .logout-btn {
-            padding: 8px 15px;
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .nav-links {
-            margin-top: 20px;
-        }
-
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            margin: 0 10px;
-            padding: 8px 16px;
-            border-radius: 20px;
-            background: rgba(255, 255, 255, 0.2);
-            transition: all 0.3s;
-        }
-
-        .nav-links a:hover {
-            background: rgba(255, 255, 255, 0.3);
         }
 
         .content {
@@ -241,12 +199,13 @@
             background: #fff3cd;
             border: 1px solid #ffc107;
             border-radius: 8px;
-            padding: 20px;
+            padding: 15px;
             margin-bottom: 30px;
+            color: #856404;
         }
 
         .config-info h4 {
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             color: #856404;
         }
 
@@ -256,97 +215,26 @@
         }
 
         .config-info code {
-            background: #f8f9fa;
+            background: #fff;
             padding: 2px 6px;
             border-radius: 3px;
             font-family: 'Courier New', monospace;
         }
-
-        @media (max-width: 768px) {
-            .user-info {
-                position: relative;
-                top: auto;
-                right: auto;
-                justify-content: center;
-                margin-top: 15px;
-            }
-        }
     </style>
-    <!-- 引入认证脚本 -->
-    <script src="js/auth.js"></script>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📧 通知系统测试</h1>
-            <p>测试邮件和微信通知功能</p>
-            <div class="user-info">
-                <span id="usernameDisplay"></span>
-                <button class="logout-btn" id="logoutBtn">退出</button>
-            </div>
-            <div class="nav-links">
-                <a href="index.html">🏠 首页</a>
-                <a href="fund-monitor.html">📊 基金监控</a>
-                <a href="index-data.html">💹 指数数据</a>
-                <a href="fund-backtest.html">🧪 基金回测</a>
-                <a href="alert-records.html">🔔 告警记录</a>
-                <a href="email-recipient-management.html">👥 邮件接收人</a>
-                <a href="system-config.html">⚙️ 系统配置</a>
+            <h1>📧 通知系统测试平台</h1>
+            <p>支持邮件和微信通知功能测试</p>
+            <div style="margin-top: 15px;">
+                <a href="index.html" style="padding: 8px 16px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; margin-right: 10px;">🏠 返回首页</a>
+                <a href="email-recipient-management.html" style="padding: 8px 16px; background: #28a745; color: white; text-decoration: none; border-radius: 4px;">👥 管理邮件接收人</a>
             </div>
         </div>
 
         <div class="content">
-            <div class="status-section">
-                <h3>🔍 服务状态</h3>
-                <div class="status-info" id="statusInfo">点击下方按钮检查服务状态</div>
-                <button class="btn btn-info" onclick="checkStatus()">检查服务状态</button>
-            </div>
-
-            <div class="form-section">
-                <h3>📧 邮件通知测试</h3>
-                <div class="form-group">
-                    <label for="emailSubject">邮件主题</label>
-                    <input type="text" id="emailSubject" placeholder="请输入邮件主题" value="基金监控系统测试邮件">
-                </div>
-                <div class="form-group">
-                    <label for="emailContent">邮件内容</label>
-                    <textarea id="emailContent" placeholder="请输入邮件内容">这是一封来自基金监控系统的测试邮件。
-                    
-测试时间：{{timestamp}}
-测试内容：邮件通知功能正常运行。
-
-感谢您的使用！</textarea>
-                </div>
-                <button class="btn btn-primary" onclick="sendEmail()">发送测试邮件</button>
-                <div class="result" id="emailResult"></div>
-            </div>
-
-            <div class="form-section">
-                <h3>💬 微信通知测试</h3>
-                <div class="form-group">
-                    <label for="wechatTitle">消息标题</label>
-                    <input type="text" id="wechatTitle" placeholder="请输入消息标题" value="基金监控系统测试">
-                </div>
-                <div class="form-group">
-                    <label for="wechatContent">消息内容</label>
-                    <textarea id="wechatContent" placeholder="请输入消息内容">这是一条来自基金监控系统的测试消息。
-
-测试时间：{{timestamp}}
-测试内容：微信通知功能正常运行。
-
-感谢您的使用！</textarea>
-                </div>
-                <div class="form-group">
-                    <label for="wechatType">通知方式</label>
-                    <select id="wechatType">
-                        <option value="serverchan">Server酱</option>
-                        <option value="enterprise">企业微信</option>
-                    </select>
-                </div>
-                <button class="btn btn-success" onclick="sendWeChat()">发送测试微信</button>
-                <div class="result" id="wechatResult"></div>
-            </div>
-
+            <!-- 配置说明 -->
             <div class="config-info">
                 <h4>⚙️ 配置说明</h4>
                 <ul>
@@ -355,134 +243,200 @@
                     <li><strong>Server酱：</strong>访问 <a href="https://sct.ftqq.com/" target="_blank">https://sct.ftqq.com/</a> 获取 SCKEY</li>
                 </ul>
             </div>
+
+            <!-- 状态检查 -->
+            <div class="status-section">
+                <h3>🔍 服务状态</h3>
+                <div class="status-info" id="statusInfo">点击下方按钮检查服务状态</div>
+                <button class="btn btn-info" onclick="checkStatus()">检查服务状态</button>
+            </div>
+
+            <!-- 邮件测试 -->
+            <div class="form-section">
+                <h3>📧 邮件通知测试</h3>
+                <div class="form-group">
+                    <label>收件人邮箱（可选，留空使用默认配置）</label>
+                    <input type="email" id="emailRecipient" placeholder="例如: user@example.com">
+                </div>
+                <div class="form-group">
+                    <label>邮件主题*</label>
+                    <input type="text" id="emailSubject" placeholder="请输入邮件主题" value="测试邮件">
+                </div>
+                <div class="form-group">
+                    <label>邮件内容*</label>
+                    <textarea id="emailContent" placeholder="请输入邮件内容">这是一封来自通知系统的测试邮件。\n\n发送时间：${new Date().toLocaleString()}</textarea>
+                </div>
+                <button class="btn btn-primary" onclick="sendEmail()">发送邮件</button>
+                <div class="result" id="emailResult"></div>
+            </div>
+
+            <!-- 微信测试 -->
+            <div class="form-section">
+                <h3>💬 微信通知测试</h3>
+                <div class="form-group">
+                    <label>通知标题*</label>
+                    <input type="text" id="wechatTitle" placeholder="请输入通知标题" value="系统通知">
+                </div>
+                <div class="form-group">
+                    <label>通知内容*</label>
+                    <textarea id="wechatContent" placeholder="请输入通知内容">这是一条来自监控系统的测试通知。\n\n发送时间：${new Date().toLocaleString()}</textarea>
+                </div>
+                <button class="btn btn-success" onclick="sendWeChat()">发送微信通知</button>
+                <div class="result" id="wechatResult"></div>
+            </div>
+
+            <!-- 综合测试 -->
+            <div class="form-section">
+                <h3>🚀 综合通知测试</h3>
+                <div class="form-group">
+                    <label>通知类型*</label>
+                    <select id="notificationType">
+                        <option value="EMAIL">仅邮件</option>
+                        <option value="WECHAT">仅微信</option>
+                        <option value="ALL">邮件+微信</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>标题*</label>
+                    <input type="text" id="allTitle" placeholder="请输入标题" value="综合测试通知">
+                </div>
+                <div class="form-group">
+                    <label>内容*</label>
+                    <textarea id="allContent" placeholder="请输入内容">综合通知测试\n\n此消息将根据选择的类型发送到对应渠道。</textarea>
+                </div>
+                <button class="btn btn-primary" onclick="sendAll()">发送通知</button>
+                <div class="result" id="allResult"></div>
+            </div>
         </div>
     </div>
 
     <script>
-        const API_BASE = '/api/notification';
-
-        // 页面加载完成后初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            // 初始化认证功能
-            initAuth();
-        });
+        const API_BASE = 'http://localhost/api/notification';
 
         // 检查服务状态
         async function checkStatus() {
-            const statusInfo = document.getElementById('statusInfo');
-            statusInfo.textContent = '检查中...';
-            
             try {
                 const response = await fetch(`${API_BASE}/status`);
                 const result = await response.json();
                 
+                const statusInfo = document.getElementById('statusInfo');
                 if (result.success) {
-                    statusInfo.innerHTML = `
-                        <strong>服务状态：</strong>✅ 正常<br>
-                        <strong>邮件服务：</strong>${result.data.emailEnabled ? '✅ 启用' : '❌ 禁用'}<br>
-                        <strong>微信服务：</strong>${result.data.wechatEnabled ? '✅ 启用' : '❌ 禁用'}<br>
-                        <strong>邮件接收人：</strong>${result.data.recipientCount || 0} 个
-                    `;
+                    statusInfo.innerHTML = `<strong>✅ 状态检查成功</strong><br>${result.message}`;
+                    statusInfo.style.color = '#155724';
                 } else {
-                    statusInfo.textContent = '检查失败: ' + (result.message || '未知错误');
+                    statusInfo.innerHTML = `<strong>❌ 状态检查失败</strong><br>${result.message}`;
+                    statusInfo.style.color = '#721c24';
                 }
             } catch (error) {
-                statusInfo.textContent = '检查失败: ' + (error.message || '网络错误');
+                document.getElementById('statusInfo').innerHTML = 
+                    `<strong>❌ 连接失败</strong><br>${error.message}`;
+                document.getElementById('statusInfo').style.color = '#721c24';
             }
         }
 
-        // 发送测试邮件
+        // 发送邮件
         async function sendEmail() {
+            const recipient = document.getElementById('emailRecipient').value;
             const subject = document.getElementById('emailSubject').value;
             const content = document.getElementById('emailContent').value;
-            
+
             if (!subject || !content) {
                 showResult('emailResult', false, '请填写邮件主题和内容');
                 return;
             }
-            
-            // 替换时间占位符
-            const timestamp = new Date().toLocaleString('zh-CN');
-            const finalContent = content.replace('{{timestamp}}', timestamp);
-            
-            const requestData = {
-                type: 'email',
+
+            const params = new URLSearchParams({
                 subject: subject,
-                content: finalContent
-            };
+                content: content
+            });
             
+            if (recipient) {
+                params.append('recipient', recipient);
+            }
+
             try {
-                const response = await fetch(`${API_BASE}/send`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(requestData)
+                const response = await fetch(`${API_BASE}/test/email?${params}`, {
+                    method: 'POST'
                 });
                 const result = await response.json();
-                
-                if (result.success) {
-                    showResult('emailResult', true, '邮件发送成功');
-                } else {
-                    showResult('emailResult', false, '邮件发送失败: ' + (result.message || '未知错误'));
-                }
+                showResult('emailResult', result.success, result.message);
             } catch (error) {
-                showResult('emailResult', false, '邮件发送失败: ' + (error.message || '网络错误'));
+                showResult('emailResult', false, '请求失败: ' + error.message);
             }
         }
 
-        // 发送测试微信
+        // 发送微信通知
         async function sendWeChat() {
             const title = document.getElementById('wechatTitle').value;
             const content = document.getElementById('wechatContent').value;
-            const type = document.getElementById('wechatType').value;
-            
+
             if (!title || !content) {
-                showResult('wechatResult', false, '请填写消息标题和内容');
+                showResult('wechatResult', false, '请填写通知标题和内容');
                 return;
             }
-            
-            // 替换时间占位符
-            const timestamp = new Date().toLocaleString('zh-CN');
-            const finalContent = content.replace('{{timestamp}}', timestamp);
-            
-            const requestData = {
-                type: type,
+
+            const params = new URLSearchParams({
                 title: title,
-                content: finalContent
-            };
-            
+                content: content
+            });
+
+            try {
+                const response = await fetch(`${API_BASE}/test/wechat?${params}`, {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                showResult('wechatResult', result.success, result.message);
+            } catch (error) {
+                showResult('wechatResult', false, '请求失败: ' + error.message);
+            }
+        }
+
+        // 发送综合通知
+        async function sendAll() {
+            const type = document.getElementById('notificationType').value;
+            const title = document.getElementById('allTitle').value;
+            const content = document.getElementById('allContent').value;
+
+            if (!title || !content) {
+                showResult('allResult', false, '请填写标题和内容');
+                return;
+            }
+
             try {
                 const response = await fetch(`${API_BASE}/send`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(requestData)
+                    body: JSON.stringify({
+                        type: type,
+                        title: title,
+                        content: content
+                    })
                 });
                 const result = await response.json();
-                
-                if (result.success) {
-                    showResult('wechatResult', true, '微信消息发送成功');
-                } else {
-                    showResult('wechatResult', false, '微信消息发送失败: ' + (result.message || '未知错误'));
-                }
+                showResult('allResult', result.success, result.message);
             } catch (error) {
-                showResult('wechatResult', false, '微信消息发送失败: ' + (error.message || '网络错误'));
+                showResult('allResult', false, '请求失败: ' + error.message);
             }
         }
 
-        // 显示结果消息
-        function showResult(elementId, isSuccess, message) {
-            const element = document.getElementById(elementId);
-            element.textContent = message;
-            element.className = `result ${isSuccess ? 'success' : 'error'} show`;
+        // 显示结果
+        function showResult(elementId, success, message) {
+            const resultDiv = document.getElementById(elementId);
+            resultDiv.className = `result ${success ? 'success' : 'error'} show`;
+            resultDiv.innerHTML = `<strong>${success ? '✅ 成功' : '❌ 失败'}</strong><br>${message}`;
             
             // 3秒后自动隐藏
             setTimeout(() => {
-                element.classList.remove('show');
-            }, 3000);
+                resultDiv.classList.remove('show');
+            }, 5000);
         }
+
+        // 页面加载时自动检查状态
+        window.onload = function() {
+            checkStatus();
+        };
     </script>
 </body>
 </html>
