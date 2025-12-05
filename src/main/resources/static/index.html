@@ -32,6 +32,7 @@
             color: white;
             padding: 30px;
             text-align: center;
+            position: relative;
         }
 
         .header h1 {
@@ -43,6 +44,29 @@
             font-size: 18px;
             opacity: 0.9;
             margin-bottom: 20px;
+        }
+
+        .user-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logout-btn {
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
 
         .nav-links {
@@ -199,14 +223,28 @@
             .features-grid {
                 grid-template-columns: 1fr;
             }
+            
+            .user-info {
+                position: relative;
+                top: auto;
+                right: auto;
+                justify-content: center;
+                margin-top: 15px;
+            }
         }
     </style>
+    <!-- 引入认证脚本 -->
+    <script src="js/auth.js"></script>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>📈 基金监控系统</h1>
             <p>一站式基金数据分析与监控平台</p>
+            <div class="user-info">
+                <span id="usernameDisplay"></span>
+                <button class="logout-btn" id="logoutBtn">退出</button>
+            </div>
             <div class="nav-links">
                 <a href="fund-monitor.html" class="nav-link">📊 基金监控</a>
                 <a href="index-data.html" class="nav-link">💹 指数数据</a>
@@ -276,5 +314,12 @@
             <p>© 2025 基金监控系统 - 专业的基金数据分析平台</p>
         </div>
     </div>
+
+    <script>
+        // 页面加载完成后初始化认证功能
+        document.addEventListener('DOMContentLoaded', function() {
+            initAuth();
+        });
+    </script>
 </body>
 </html>

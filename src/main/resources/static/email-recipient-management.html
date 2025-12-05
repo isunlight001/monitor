@@ -32,6 +32,7 @@
             color: white;
             padding: 30px;
             text-align: center;
+            position: relative;
         }
 
         .header h1 {
@@ -42,6 +43,47 @@
         .header p {
             font-size: 16px;
             opacity: 0.9;
+        }
+
+        .user-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logout-btn {
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-links {
+            margin-top: 20px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.3s;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
 
         .content {
@@ -203,16 +245,16 @@
         }
 
         tr:hover {
-            background-color: #e9ecef;
+            background-color: #e3f2fd;
         }
 
         .status-enabled {
-            color: #28a745;
+            color: #27ae60;
             font-weight: bold;
         }
 
         .status-disabled {
-            color: #dc3545;
+            color: #e74c3c;
             font-weight: bold;
         }
 
@@ -221,32 +263,54 @@
             gap: 5px;
         }
 
-        .back-link {
-            display: inline-block;
-            margin-bottom: 20px;
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 500;
+        .action-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            border-radius: 4px;
         }
 
-        .back-link:hover {
-            text-decoration: underline;
+        @media (max-width: 768px) {
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .user-info {
+                position: relative;
+                top: auto;
+                right: auto;
+                justify-content: center;
+                margin-top: 15px;
+            }
         }
     </style>
+    <!-- 引入认证脚本 -->
+    <script src="js/auth.js"></script>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📧 邮件接收人管理</h1>
-            <p>添加、编辑和管理邮件接收人信息</p>
+            <h1>👥 邮件接收人管理</h1>
+            <p>管理基金监控系统的邮件通知接收人</p>
+            <div class="user-info">
+                <span id="usernameDisplay"></span>
+                <button class="logout-btn" id="logoutBtn">退出</button>
+            </div>
+            <div class="nav-links">
+                <a href="index.html">🏠 首页</a>
+                <a href="fund-monitor.html">📊 基金监控</a>
+                <a href="index-data.html">💹 指数数据</a>
+                <a href="fund-backtest.html">🧪 基金回测</a>
+                <a href="alert-records.html">🔔 告警记录</a>
+                <a href="notification-test.html">📧 通知测试</a>
+                <a href="system-config.html">⚙️ 系统配置</a>
+            </div>
         </div>
 
         <div class="content">
-            <a href="notification-test.html" class="back-link">← 返回通知测试页面</a>
-            
-            <!-- 添加/编辑表单 -->
+            <!-- 添加/编辑邮件接收人 -->
             <div class="form-section">
-                <h3 id="formTitle">添加邮件接收人</h3>
+                <h3>📝 添加/编辑邮件接收人</h3>
                 <form id="recipientForm">
                     <input type="hidden" id="recipientId">
                     <div class="form-row">
@@ -261,23 +325,23 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="recipientStatus">状态</label>
-                            <select id="recipientStatus">
-                                <option value="true">启用</option>
-                                <option value="false">禁用</option>
+                            <label for="recipientEnabled">状态</label>
+                            <select id="recipientEnabled">
+                                <option value="1">启用</option>
+                                <option value="0">禁用</option>
                             </select>
                         </div>
                     </div>
                     <button type="submit" class="btn btn-primary">保存</button>
-                    <button type="button" class="btn" onclick="resetForm()">重置</button>
+                    <button type="button" class="btn btn-success" onclick="clearForm()">清空</button>
                 </form>
                 <div class="result" id="formResult"></div>
             </div>
 
             <!-- 邮件接收人列表 -->
             <div class="form-section">
-                <h3>邮件接收人列表</h3>
-                <button class="btn btn-success" onclick="loadRecipients()">刷新列表</button>
+                <h3>📋 邮件接收人列表</h3>
+                <button class="btn btn-primary" onclick="loadRecipients()">刷新列表</button>
                 <div class="table-container">
                     <table id="recipientsTable">
                         <thead>
@@ -287,6 +351,7 @@
                                 <th>邮箱</th>
                                 <th>状态</th>
                                 <th>创建时间</th>
+                                <th>更新时间</th>
                                 <th>操作</th>
                             </tr>
                         </thead>
@@ -295,6 +360,7 @@
                         </tbody>
                     </table>
                 </div>
+                <div class="result" id="tableResult"></div>
             </div>
         </div>
     </div>
@@ -302,119 +368,95 @@
     <script>
         const API_BASE = '/api/email-recipients';
 
-        // 页面加载时获取邮件接收人列表
-        window.onload = function() {
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化认证功能
+            initAuth();
+            
             loadRecipients();
-        };
+        });
 
-        // 加载邮件接收人列表
+        // 表单提交事件
+        document.getElementById('recipientForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            saveRecipient();
+        });
+
+        // 加载所有邮件接收人
         async function loadRecipients() {
             try {
                 const response = await fetch(API_BASE);
-                const recipients = await response.json();
+                const result = await response.json();
                 
-                const tbody = document.getElementById('recipientsTableBody');
-                tbody.innerHTML = '';
-                
-                recipients.forEach(recipient => {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td>${recipient.id || ''}</td>
-                        <td>${recipient.name || ''}</td>
-                        <td>${recipient.email || ''}</td>
-                        <td class="${recipient.enabled ? 'status-enabled' : 'status-disabled'}">
-                            ${recipient.enabled ? '启用' : '禁用'}
-                        </td>
-                        <td>${formatDate(recipient.createTime) || ''}</td>
-                        <td class="action-buttons">
-                            <button class="btn btn-primary" onclick='editRecipient(${JSON.stringify(JSON.stringify(recipient)).replace(/"/g, '&quot;')})'>编辑</button>
-                            <button class="btn btn-danger" onclick="deleteRecipient(${recipient.id})">删除</button>
-                        </td>
-                    `;
-                    tbody.appendChild(row);
-                });
-            } catch (error) {
-                console.error('加载邮件接收人列表失败:', error);
-            }
-        }
-
-        // 格式化日期
-        function formatDate(dateString) {
-            if (!dateString) return '';
-            const date = new Date(dateString);
-            return date.toLocaleString('zh-CN');
-        }
-
-        // 编辑邮件接收人
-        function editRecipient(recipient) {
-            // 解析字符串化的recipient对象
-            if (typeof recipient === 'string') {
-                recipient = JSON.parse(recipient);
-            }
-            
-            document.getElementById('formTitle').textContent = '编辑邮件接收人';
-            document.getElementById('recipientId').value = recipient.id;
-            document.getElementById('recipientName').value = recipient.name;
-            document.getElementById('recipientEmail').value = recipient.email;
-            document.getElementById('recipientStatus').value = recipient.enabled;
-        }
-
-        // 删除邮件接收人
-        async function deleteRecipient(id) {
-            if (!confirm('确定要删除这个邮件接收人吗？')) {
-                return;
-            }
-            
-            try {
-                const response = await fetch(`${API_BASE}/${id}`, {
-                    method: 'DELETE'
-                });
-                
-                if (response.ok) {
-                    showResult('formResult', true, '删除成功');
-                    loadRecipients(); // 刷新列表
+                if (result.success) {
+                    renderRecipientsTable(result.data);
                 } else {
-                    const result = await response.json();
-                    showResult('formResult', false, result.message || '删除失败');
+                    showResult('tableResult', false, '加载失败: ' + (result.message || '未知错误'));
                 }
             } catch (error) {
-                showResult('formResult', false, '删除失败: ' + error.message);
+                showResult('tableResult', false, '加载失败: ' + (error.message || '网络错误'));
             }
         }
 
-        // 重置表单
-        function resetForm() {
-            document.getElementById('formTitle').textContent = '添加邮件接收人';
-            document.getElementById('recipientForm').reset();
-            document.getElementById('recipientId').value = '';
+        // 渲染邮件接收人表格
+        function renderRecipientsTable(recipients) {
+            const tbody = document.getElementById('recipientsTableBody');
+            tbody.innerHTML = '';
+
+            if (!recipients || recipients.length === 0) {
+                const row = tbody.insertRow();
+                const cell = row.insertCell(0);
+                cell.colSpan = 7;
+                cell.textContent = '暂无邮件接收人数据';
+                cell.style.textAlign = 'center';
+                cell.style.padding = '20px';
+                return;
+            }
+
+            recipients.forEach(recipient => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${recipient.id}</td>
+                    <td>${recipient.name}</td>
+                    <td>${recipient.email}</td>
+                    <td>
+                        <span class="${recipient.enabled ? 'status-enabled' : 'status-disabled'}">
+                            ${recipient.enabled ? '✅ 启用' : '❌ 禁用'}
+                        </span>
+                    </td>
+                    <td>${formatDate(recipient.createTime)}</td>
+                    <td>${formatDate(recipient.updateTime)}</td>
+                    <td class="action-buttons">
+                        <button class="btn btn-primary action-btn" onclick="editRecipient(${recipient.id})">编辑</button>
+                        <button class="btn btn-danger action-btn" onclick="deleteRecipient(${recipient.id})">删除</button>
+                    </td>
+                `;
+            });
         }
 
-        // 表单提交处理
-        document.getElementById('recipientForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
+        // 保存邮件接收人
+        async function saveRecipient() {
             const id = document.getElementById('recipientId').value;
             const name = document.getElementById('recipientName').value;
             const email = document.getElementById('recipientEmail').value;
-            const enabled = document.getElementById('recipientStatus').value === 'true';
-            
+            const enabled = document.getElementById('recipientEnabled').value;
+
             if (!name || !email) {
                 showResult('formResult', false, '请填写姓名和邮箱');
                 return;
             }
-            
+
             const recipientData = {
                 name: name,
                 email: email,
-                enabled: enabled
+                enabled: parseInt(enabled)
             };
-            
+
             try {
                 let response;
                 if (id) {
                     // 更新
-                    recipientData.id = parseInt(id);
-                    response = await fetch(API_BASE, {
+                    response = await fetch(`${API_BASE}/${id}`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json'
@@ -431,29 +473,86 @@
                         body: JSON.stringify(recipientData)
                     });
                 }
+
+                const result = await response.json();
                 
-                if (response.ok) {
+                if (result.success) {
                     showResult('formResult', true, id ? '更新成功' : '添加成功');
-                    resetForm();
-                    loadRecipients(); // 刷新列表
+                    clearForm();
+                    loadRecipients();
                 } else {
-                    const result = await response.json();
                     showResult('formResult', false, result.message || (id ? '更新失败' : '添加失败'));
                 }
             } catch (error) {
-                showResult('formResult', false, (id ? '更新失败' : '添加失败') + ': ' + error.message);
+                showResult('formResult', false, '保存失败: ' + (error.message || '网络错误'));
             }
-        });
+        }
 
-        // 显示结果
-        function showResult(elementId, success, message) {
-            const resultDiv = document.getElementById(elementId);
-            resultDiv.className = `result ${success ? 'success' : 'error'} show`;
-            resultDiv.innerHTML = `<strong>${success ? '✅ 成功' : '❌ 失败'}</strong><br>${message}`;
+        // 编辑邮件接收人
+        async function editRecipient(id) {
+            try {
+                const response = await fetch(`${API_BASE}/${id}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const recipient = result.data;
+                    document.getElementById('recipientId').value = recipient.id;
+                    document.getElementById('recipientName').value = recipient.name;
+                    document.getElementById('recipientEmail').value = recipient.email;
+                    document.getElementById('recipientEnabled').value = recipient.enabled ? '1' : '0';
+                } else {
+                    showResult('formResult', false, '加载失败: ' + (result.message || '未知错误'));
+                }
+            } catch (error) {
+                showResult('formResult', false, '加载失败: ' + (error.message || '网络错误'));
+            }
+        }
+
+        // 删除邮件接收人
+        async function deleteRecipient(id) {
+            if (!confirm('确定要删除这个邮件接收人吗？')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/${id}`, {
+                    method: 'DELETE'
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showResult('tableResult', true, '删除成功');
+                    loadRecipients();
+                } else {
+                    showResult('tableResult', false, '删除失败: ' + (result.message || '未知错误'));
+                }
+            } catch (error) {
+                showResult('tableResult', false, '删除失败: ' + (error.message || '网络错误'));
+            }
+        }
+
+        // 清空表单
+        function clearForm() {
+            document.getElementById('recipientForm').reset();
+            document.getElementById('recipientId').value = '';
+        }
+
+        // 格式化日期
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toLocaleString('zh-CN');
+        }
+
+        // 显示结果消息
+        function showResult(elementId, isSuccess, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = `result ${isSuccess ? 'success' : 'error'} show`;
             
             // 3秒后自动隐藏
             setTimeout(() => {
-                resultDiv.classList.remove('show');
+                element.classList.remove('show');
             }, 3000);
         }
     </script>

@@ -198,117 +198,60 @@
             }
         }
 
-        .nav-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .nav-table th,
-        .nav-table td {
-            border: none;
-            padding: 16px;
-            text-align: left;
-        }
-
-        .nav-table th {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            font-weight: 500;
-        }
-
-        .nav-table tr:nth-child(even) {
-            background-color: #f8f9fa;
-        }
-
-        .nav-table tr:hover {
-            background-color: #e3f2fd;
-        }
-
-        .positive {
-            color: #e74c3c;
-            font-weight: bold;
-        }
-
-        .negative {
-            color: #27ae60;
-            font-weight: bold;
-        }
-
-        .config-info {
-            background: #e3f2fd;
-            border-left: 4px solid #2196f3;
-            padding: 20px;
-            margin-bottom: 30px;
-            border-radius: 0 8px 8px 0;
-        }
-
-        .config-info h4 {
-            margin-bottom: 15px;
-            color: #1976d2;
-        }
-
-        .config-info ul {
-            margin-left: 20px;
-            line-height: 1.8;
-        }
-
-        .config-info code {
-            background: #fff;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: 'Courier New', monospace;
-        }
-        
-        /* 下拉列表样式 */
-        .fund-dropdown {
-            position: relative;
-        }
-        
-        .fund-dropdown-list {
+        /* 添加用户信息和登出按钮样式 */
+        .user-info {
             position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 1000;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            display: none;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        
-        .fund-dropdown-item {
-            padding: 10px 12px;
+
+        .logout-btn {
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 5px;
             cursor: pointer;
-            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.3s;
         }
-        
-        .fund-dropdown-item:hover {
-            background-color: #e3f2fd;
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
-        
-        .fund-dropdown-item:last-child {
-            border-bottom: none;
+
+        @media (max-width: 768px) {
+            .user-info {
+                position: relative;
+                top: auto;
+                right: auto;
+                justify-content: center;
+                margin-top: 15px;
+            }
         }
     </style>
+    <!-- 引入认证脚本 -->
+    <script src="js/auth.js"></script>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>📈 基金监控系统</h1>
-            <p>自动抓取基金数据并监控异常波动</p>
+            <p>实时监控基金净值变化，及时发现异常波动</p>
+            <div class="user-info">
+                <span id="usernameDisplay"></span>
+                <button class="logout-btn" id="logoutBtn">退出</button>
+            </div>
             <div class="nav-links">
                 <a href="index.html">🏠 首页</a>
-                <a href="index-data.html">📊 指数数据监控</a>
-                <a href="alert-records.html">🔔 告警记录</a>
+                <a href="index-data.html">💹 指数数据</a>
                 <a href="fund-backtest.html">🧪 基金回测</a>
+                <a href="alert-records.html">🔔 告警记录</a>
                 <a href="notification-test.html">📧 通知测试</a>
+                <a href="email-recipient-management.html">👥 邮件接收人</a>
+                <a href="system-config.html">⚙️ 系统配置</a>
             </div>
         </div>
 
@@ -426,6 +369,9 @@
 
         // 页面加载完成后设置默认日期
         document.addEventListener('DOMContentLoaded', function() {
+            // 初始化认证功能
+            initAuth();
+            
             const today = new Date();
             const twentyYearsAgo = new Date();
             twentyYearsAgo.setFullYear(today.getFullYear() - 20);
@@ -871,6 +817,29 @@
             setTimeout(() => {
                 element.classList.remove('show');
             }, 3000);
+        }
+
+        // 检查用户是否已登录
+        if (localStorage.getItem('isLoggedIn') !== 'true') {
+            window.location.href = 'login.html';
+        }
+
+        // 显示用户名
+        const username = localStorage.getItem('username');
+        if (username) {
+            document.getElementById('usernameDisplay').textContent = '欢迎您，' + username;
+        }
+
+        // 登出功能
+        if (document.getElementById('logoutBtn')) {
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                // 清除登录状态
+                localStorage.removeItem('isLoggedIn');
+                localStorage.removeItem('username');
+                
+                // 跳转到登录页面
+                window.location.href = 'login.html';
+            });
         }
     </script>
 </body>

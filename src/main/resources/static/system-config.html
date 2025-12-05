@@ -33,19 +33,102 @@
             background-color: #0b5ed7;
             border-color: #0a58ca;
         }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            margin-bottom: 20px;
+        }
+        
+        .user-info {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logout-btn {
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .nav-links {
+            margin-top: 15px;
+        }
+
+        .nav-links a {
+            color: white;
+            text-decoration: none;
+            margin: 0 8px;
+            padding: 6px 12px;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .nav-links a:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .user-info {
+                position: relative;
+                top: auto;
+                right: auto;
+                justify-content: center;
+                margin-top: 15px;
+            }
+            
+            .nav-links {
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .nav-links a {
+                margin: 5px;
+            }
+        }
     </style>
+    <!-- 引入认证脚本 -->
+    <script src="js/auth.js"></script>
 </head>
 <body>
+    <div class="header">
+        <h4><i class="bi bi-gear me-2"></i>系统配置管理</h4>
+        <p>管理系统各项配置参数</p>
+        <div class="user-info">
+            <span id="usernameDisplay"></span>
+            <button class="logout-btn" id="logoutBtn">退出</button>
+        </div>
+        <div class="nav-links">
+            <a href="index.html">🏠 首页</a>
+            <a href="fund-monitor.html">📊 基金监控</a>
+            <a href="index-data.html">💹 指数数据</a>
+            <a href="fund-backtest.html">🧪 基金回测</a>
+            <a href="alert-records.html">🔔 告警记录</a>
+            <a href="notification-test.html">📧 通知测试</a>
+            <a href="email-recipient-management.html">👥 邮件接收人</a>
+        </div>
+    </div>
+    
     <div class="container-fluid py-4">
         <div class="row mb-3">
-            <div class="col-12">
-                <a href="index.html" class="btn btn-outline-primary">
-                    <i class="bi bi-arrow-left-circle me-1"></i>返回首页
-                </a>
-            </div>
-        </div>
-        
-        <div class="row">
             <div class="col-12">
                 <div class="card">
                     <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
@@ -76,7 +159,7 @@
             </div>
         </div>
     </div>
-
+    
     <!-- 编辑配置模态框 -->
     <div class="modal fade" id="editConfigModal" tabindex="-1" aria-labelledby="editConfigModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -122,14 +205,20 @@
         // 全局变量
         let configs = [];
         
+        // API基础路径
+        const API_BASE = '/api/system/config';
+        
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', function() {
+            // 初始化认证功能
+            initAuth();
+            
             loadConfigs();
         });
         
         // 加载所有配置项
         function loadConfigs() {
-            fetch('/api/system/config')
+            fetch(API_BASE)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -167,9 +256,6 @@
                     <td>
                         <button class="btn btn-sm btn-outline-primary me-1" onclick="editConfig(${config.id})">
                             <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteConfig(${config.id})">
-                            <i class="bi bi-trash"></i>
                         </button>
                     </td>
                 `;
@@ -209,13 +295,12 @@
             
             const configData = {
                 id: parseInt(id),
-                configKey: document.getElementById('configKey').value,
                 configValue: configValue,
                 description: description,
                 enabled: enabled
             };
             
-            fetch('/api/system/config', {
+            fetch(API_BASE, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
@@ -225,44 +310,23 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('配置保存成功');
                     // 关闭模态框
                     const modal = bootstrap.Modal.getInstance(document.getElementById('editConfigModal'));
                     modal.hide();
+                    
                     // 重新加载配置
                     loadConfigs();
+                    
+                    alert('配置保存成功');
                 } else {
-                    alert('保存配置失败: ' + data.message);
+                    alert('保存失败: ' + data.message);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('保存配置时发生错误');
+                alert('保存时发生错误');
             });
         });
-        
-        // 删除配置
-        function deleteConfig(id) {
-            if (confirm('确定要删除这个配置项吗？')) {
-                fetch(`/api/system/config/${id}`, {
-                    method: 'DELETE'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('配置删除成功');
-                        // 重新加载配置
-                        loadConfigs();
-                    } else {
-                        alert('删除配置失败: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('删除配置时发生错误');
-                });
-            }
-        }
     </script>
 </body>
 </html>
