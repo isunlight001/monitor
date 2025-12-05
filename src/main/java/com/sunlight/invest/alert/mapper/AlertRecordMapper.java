@@ -65,6 +65,44 @@ public interface AlertRecordMapper {
     List<AlertRecord> selectAll();
 
     /**
+     * 查询告警记录总数
+     *
+     * @return 总记录数
+     */
+    @Select("SELECT COUNT(*) FROM alarm_record")
+    int selectTotalCount();
+
+    /**
+     * 分页查询告警记录，按创建时间倒序排列
+     *
+     * @param offset 偏移量
+     * @param limit  限制数量
+     * @return 告警记录列表
+     */
+    @Select("SELECT * FROM alarm_record ORDER BY create_time DESC LIMIT #{limit} OFFSET #{offset}")
+    @Results({
+        @Result(property = "id", column = "id"),
+        @Result(property = "fundCode", column = "fund_code"),
+        @Result(property = "fundName", column = "fund_name"),
+        @Result(property = "indexCode", column = "index_code"),
+        @Result(property = "indexName", column = "index_name"),
+        @Result(property = "alertType", column = "alert_type"),
+        @Result(property = "ruleCode", column = "rule_code"),
+        @Result(property = "ruleDescription", column = "rule_description"),
+        @Result(property = "consecutiveDays", column = "consecutive_days"),
+        @Result(property = "cumulativeReturn", column = "cumulative_return"),
+        @Result(property = "dailyReturn", column = "daily_return"),
+        @Result(property = "navDate", column = "nav_date"),
+        @Result(property = "unitNav", column = "unit_nav"),
+        @Result(property = "volume", column = "volume"),
+        @Result(property = "amount", column = "amount"),
+        @Result(property = "alertContent", column = "alert_content"),
+        @Result(property = "createTime", column = "create_time"),
+        @Result(property = "updateTime", column = "update_time")
+    })
+    List<AlertRecord> selectWithPagination(@Param("offset") int offset, @Param("limit") int limit);
+
+    /**
      * 根据ID查询告警记录
      *
      * @param id 告警记录ID

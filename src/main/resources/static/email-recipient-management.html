@@ -232,18 +232,65 @@
         .back-link:hover {
             text-decoration: underline;
         }
+        
+        /* 返回首页按钮样式 */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .back-home {
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .back-home:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        
+        .nav-links {
+            margin-top: 15px;
+        }
+        
+        .nav-links a {
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-right: 10px;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+        
+        .nav-links a:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📧 邮件接收人管理</h1>
+            <div class="top-nav">
+                <h1>📧 邮件接收人管理</h1>
+                <a href="index.html" class="back-home">🏠 返回首页</a>
+            </div>
             <p>添加、编辑和管理邮件接收人信息</p>
+            <div class="nav-links">
+                <a href="notification-test.html">📧 通知测试</a>
+            </div>
         </div>
 
         <div class="content">
-            <a href="notification-test.html" class="back-link">← 返回通知测试页面</a>
-            
             <!-- 添加/编辑表单 -->
             <div class="form-section">
                 <h3 id="formTitle">添加邮件接收人</h3>
@@ -413,17 +460,19 @@
                 let response;
                 if (id) {
                     // 更新
-                    recipientData.id = parseInt(id);
-                    response = await fetch(API_BASE, {
+                    response = await fetch(`${API_BASE}`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify(recipientData)
+                        body: JSON.stringify({
+                            id: parseInt(id),
+                            ...recipientData
+                        })
                     });
                 } else {
-                    // 新增
-                    response = await fetch(API_BASE, {
+                    // 创建
+                    response = await fetch(`${API_BASE}`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -432,12 +481,13 @@
                     });
                 }
                 
-                if (response.ok) {
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
                     showResult('formResult', true, id ? '更新成功' : '添加成功');
                     resetForm();
                     loadRecipients(); // 刷新列表
                 } else {
-                    const result = await response.json();
                     showResult('formResult', false, result.message || (id ? '更新失败' : '添加失败'));
                 }
             } catch (error) {
@@ -446,14 +496,14 @@
         });
 
         // 显示结果
-        function showResult(elementId, success, message) {
-            const resultDiv = document.getElementById(elementId);
-            resultDiv.className = `result ${success ? 'success' : 'error'} show`;
-            resultDiv.innerHTML = `<strong>${success ? '✅ 成功' : '❌ 失败'}</strong><br>${message}`;
+        function showResult(elementId, isSuccess, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = 'result ' + (isSuccess ? 'success' : 'error') + ' show';
             
             // 3秒后自动隐藏
             setTimeout(() => {
-                resultDiv.classList.remove('show');
+                element.classList.remove('show');
             }, 3000);
         }
     </script>

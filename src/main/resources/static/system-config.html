@@ -33,15 +33,41 @@
             background-color: #0b5ed7;
             border-color: #0a58ca;
         }
+        
+        /* 返回首页按钮样式 */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .back-home {
+            padding: 8px 16px;
+            background: #0d6efd;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .back-home:hover {
+            background: #0b5ed7;
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body>
     <div class="container-fluid py-4">
         <div class="row mb-3">
             <div class="col-12">
-                <a href="index.html" class="btn btn-outline-primary">
-                    <i class="bi bi-arrow-left-circle me-1"></i>返回首页
-                </a>
+                <div class="top-nav">
+                    <h4 class="mb-0"><i class="bi bi-gear me-2"></i>系统配置管理</h4>
+                    <a href="index.html" class="back-home">
+                        <i class="bi bi-arrow-left-circle me-1"></i>返回首页
+                    </a>
+                </div>
             </div>
         </div>
         
@@ -125,6 +151,9 @@
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', function() {
             loadConfigs();
+            
+            // 绑定保存按钮事件
+            document.getElementById('saveConfigBtn').addEventListener('click', saveConfig);
         });
         
         // 加载所有配置项
@@ -201,15 +230,19 @@
         }
         
         // 保存配置
-        document.getElementById('saveConfigBtn').addEventListener('click', function() {
+        function saveConfig() {
             const id = document.getElementById('configId').value;
             const configValue = document.getElementById('configValue').value;
             const description = document.getElementById('configDescription').value;
             const enabled = document.getElementById('configEnabled').value === '1';
             
+            if (!configValue) {
+                alert('配置值不能为空');
+                return;
+            }
+            
             const configData = {
                 id: parseInt(id),
-                configKey: document.getElementById('configKey').value,
                 configValue: configValue,
                 description: description,
                 enabled: enabled
@@ -225,43 +258,48 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    alert('配置保存成功');
                     // 关闭模态框
                     const modal = bootstrap.Modal.getInstance(document.getElementById('editConfigModal'));
                     modal.hide();
+                    
                     // 重新加载配置
                     loadConfigs();
+                    
+                    alert('配置保存成功');
                 } else {
-                    alert('保存配置失败: ' + data.message);
+                    alert('保存失败: ' + data.message);
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
                 alert('保存配置时发生错误');
             });
-        });
+        }
         
         // 删除配置
         function deleteConfig(id) {
-            if (confirm('确定要删除这个配置项吗？')) {
-                fetch(`/api/system/config/${id}`, {
-                    method: 'DELETE'
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('配置删除成功');
-                        // 重新加载配置
-                        loadConfigs();
-                    } else {
-                        alert('删除配置失败: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('删除配置时发生错误');
-                });
+            if (!confirm('确定要删除这个配置项吗？')) {
+                return;
             }
+            
+            fetch(`/api/system/config/${id}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 重新加载配置
+                    loadConfigs();
+                    
+                    alert('配置删除成功');
+                } else {
+                    alert('删除失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('删除配置时发生错误');
+            });
         }
     </script>
 </body>

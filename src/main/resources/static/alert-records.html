@@ -12,13 +12,36 @@
         .rule-badge {
             font-size: 0.8em;
         }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .page-item.active .page-link {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+        .page-link {
+            color: #0d6efd;
+        }
+        .page-link:hover {
+            color: #0a58ca;
+        }
+        .sort-indicator {
+            margin-left: 5px;
+        }
     </style>
 </head>
 <body>
     <div class="container-fluid mt-4">
         <div class="row">
             <div class="col-12">
-                <h2>告警记录</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h2>告警记录</h2>
+                    <div>
+                        <a href="index.html" class="btn btn-outline-primary">🏠 返回首页</a>
+                    </div>
+                </div>
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb">
                         <li class="breadcrumb-item"><a href="index.html">首页</a></li>
@@ -51,6 +74,18 @@
                                 </tbody>
                             </table>
                         </div>
+                        
+                        <!-- 分页控件 -->
+                        <div class="pagination-container">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div id="paginationInfo"></div>
+                                <nav aria-label="Page navigation">
+                                    <ul class="pagination mb-0" id="pagination">
+                                        <!-- 分页按钮将通过JavaScript动态生成 -->
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -79,21 +114,26 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // 当前页码和每页大小
+        let currentPage = 1;
+        const pageSize = 20;
+        
         // 页面加载完成后获取告警记录
         document.addEventListener('DOMContentLoaded', function() {
-            loadAlertRecords();
+            loadAlertRecords(currentPage);
         });
 
         // 加载告警记录
-        function loadAlertRecords() {
-            fetch('/api/alert/records')
+        function loadAlertRecords(page) {
+            currentPage = page;
+            fetch(`/api/alert/records?page=${page}&size=${pageSize}`)
                 .then(response => response.json())
                 .then(data => {
                     const tableBody = document.getElementById('alertRecordsTable');
                     tableBody.innerHTML = '';
                     
-                    if (data && data.length > 0) {
-                        data.forEach(record => {
+                    if (data.success && data.data && data.data.length > 0) {
+                        data.data.forEach(record => {
                             const row = document.createElement('tr');
                             
                             // 连续天数
@@ -129,17 +169,68 @@
                             
                             tableBody.appendChild(row);
                         });
+                        
+                        // 更新分页控件
+                        updatePagination(data.currentPage, data.totalPages, data.totalRecords);
                     } else {
                         const row = document.createElement('tr');
                         row.innerHTML = '<td colspan="9" class="text-center">暂无告警记录</td>';
                         tableBody.appendChild(row);
+                        
+                        // 更新分页控件
+                        updatePagination(1, 1, 0);
                     }
                 })
                 .catch(error => {
                     console.error('获取告警记录失败:', error);
                     const tableBody = document.getElementById('alertRecordsTable');
                     tableBody.innerHTML = '<tr><td colspan="9" class="text-center text-danger">加载数据失败</td></tr>';
+                    
+                    // 更新分页控件
+                    updatePagination(1, 1, 0);
                 });
+        }
+
+        // 更新分页控件
+        function updatePagination(currentPage, totalPages, totalRecords) {
+            // 更新分页信息
+            const paginationInfo = document.getElementById('paginationInfo');
+            paginationInfo.innerHTML = `总共 ${totalRecords} 条记录，第 ${currentPage} 页，共 ${totalPages} 页`;
+            
+            // 更新分页按钮
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+            
+            if (totalPages <= 1) {
+                return;
+            }
+            
+            // 上一页按钮
+            const prevLi = document.createElement('li');
+            prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+            prevLi.innerHTML = `<a class="page-link" href="#" onclick="loadAlertRecords(${currentPage - 1}); return false;">上一页</a>`;
+            pagination.appendChild(prevLi);
+            
+            // 页码按钮
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, startPage + 4);
+            
+            if (endPage - startPage < 4) {
+                startPage = Math.max(1, endPage - 4);
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const li = document.createElement('li');
+                li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+                li.innerHTML = `<a class="page-link" href="#" onclick="loadAlertRecords(${i}); return false;">${i}</a>`;
+                pagination.appendChild(li);
+            }
+            
+            // 下一页按钮
+            const nextLi = document.createElement('li');
+            nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+            nextLi.innerHTML = `<a class="page-link" href="#" onclick="loadAlertRecords(${currentPage + 1}); return false;">下一页</a>`;
+            pagination.appendChild(nextLi);
         }
 
         // 查看告警详情

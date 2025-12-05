@@ -296,12 +296,38 @@
         .fund-dropdown-item:last-child {
             border-bottom: none;
         }
+        
+        /* 返回首页按钮样式 */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .back-home {
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .back-home:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📈 基金监控系统</h1>
+            <div class="top-nav">
+                <h1>📈 基金监控系统</h1>
+                <a href="index.html" class="back-home">🏠 返回首页</a>
+            </div>
             <p>自动抓取基金数据并监控异常波动</p>
             <div class="nav-links">
                 <a href="index.html">🏠 首页</a>
@@ -427,129 +453,48 @@
         // 页面加载完成后设置默认日期
         document.addEventListener('DOMContentLoaded', function() {
             const today = new Date();
-            const twentyYearsAgo = new Date();
-            twentyYearsAgo.setFullYear(today.getFullYear() - 20);
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(today.getDate() - 30);
             
-            document.getElementById('startDate').valueAsDate = twentyYearsAgo;
+            document.getElementById('startDate').valueAsDate = thirtyDaysAgo;
             document.getElementById('endDate').valueAsDate = today;
             
+            // 加载监控基金列表
             loadMonitorFunds();
-            setupFundCodeAutocomplete();
         });
 
-        // 设置基金代码自动完成
-        function setupFundCodeAutocomplete() {
-            // 为所有基金代码输入框设置自动完成
-            const fundCodeInputs = [
-                {codeInput: 'fundCode', nameInput: 'fundName', dropdown: 'fundCodeDropdown'},
-                {codeInput: 'checkFundCode', nameInput: null, dropdown: 'checkFundCodeDropdown'},
-                {codeInput: 'queryFundCode', nameInput: null, dropdown: 'queryFundCodeDropdown'},
-                {codeInput: 'monitorFundCode', nameInput: 'monitorFundName', dropdown: 'monitorFundCodeDropdown'}
-            ];
+        // 显示结果消息
+        function showResult(elementId, isSuccess, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = 'result ' + (isSuccess ? 'success' : 'error') + ' show';
             
-            fundCodeInputs.forEach(input => {
-                const codeElement = document.getElementById(input.codeInput);
-                const dropdownElement = document.getElementById(input.dropdown);
-                
-                // 输入时显示下拉列表
-                codeElement.addEventListener('input', function() {
-                    const fundCode = this.value.trim();
-                    if (fundCode.length >= 4) {
-                        showFundSuggestions(fundCode, dropdownElement, input.codeInput, input.nameInput);
-                    } else {
-                        hideFundSuggestions(dropdownElement);
-                    }
-                });
-                
-                // 失去焦点时隐藏下拉列表（延时以允许点击选项）
-                codeElement.addEventListener('blur', function() {
-                    setTimeout(() => {
-                        hideFundSuggestions(dropdownElement);
-                    }, 200);
-                });
-                
-                // 获得焦点时显示下拉列表
-                codeElement.addEventListener('focus', function() {
-                    const fundCode = this.value.trim();
-                    if (fundCode.length >= 4) {
-                        showFundSuggestions(fundCode, dropdownElement, input.codeInput, input.nameInput);
-                    }
-                });
-            });
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                element.classList.remove('show');
+            }, 3000);
         }
 
-        // 显示基金建议列表
-        async function showFundSuggestions(fundCode, dropdownElement, codeInputId, nameInputId) {
-            try {
-                // 获取监控基金列表
-                const response = await fetch(`${API_BASE}/monitor-funds`);
-                const result = await response.json();
-                
-                if (result.success && result.data) {
-                    // 过滤匹配的基金
-                    const matchedFunds = result.data.filter(fund => 
-                        fund.fundCode.includes(fundCode) || fund.fundName.includes(fundCode)
-                    );
-                    
-                    if (matchedFunds.length > 0) {
-                        let dropdownHtml = '';
-                        matchedFunds.slice(0, 10).forEach(fund => {
-                            dropdownHtml += `
-                                <div class="fund-dropdown-item" 
-                                     onclick="selectFund('${fund.fundCode}', '${fund.fundName}', '${codeInputId}', '${nameInputId}')">
-                                    ${fund.fundCode} - ${fund.fundName}
-                                </div>
-                            `;
-                        });
-                        
-                        dropdownElement.innerHTML = dropdownHtml;
-                        dropdownElement.style.display = 'block';
-                    } else {
-                        hideFundSuggestions(dropdownElement);
-                    }
-                }
-            } catch (error) {
-                console.error('获取基金建议失败:', error);
-                hideFundSuggestions(dropdownElement);
-            }
-        }
-
-        // 隐藏基金建议列表
-        function hideFundSuggestions(dropdownElement) {
-            dropdownElement.style.display = 'none';
-        }
-
-        // 选择基金
-        function selectFund(fundCode, fundName, codeInputId, nameInputId) {
-            document.getElementById(codeInputId).value = fundCode;
-            
-            // 如果有对应的基金名称输入框，则自动填充
-            if (nameInputId) {
-                document.getElementById(nameInputId).value = fundName;
-            }
-            
-            // 隐藏下拉列表
-            const dropdownElements = document.querySelectorAll('.fund-dropdown-list');
-            dropdownElements.forEach(el => el.style.display = 'none');
-        }
-
-        // 根据基金代码获取基金名称
-        async function getFundNameByCode(fundCode, nameInputElement) {
-            if (!fundCode) return;
+        // 手工触发所有监控基金的预警
+        async function triggerAllMonitorFunds() {
+            const resultElement = document.getElementById('triggerResult');
+            resultElement.textContent = '正在执行预警...';
+            resultElement.className = 'result show';
             
             try {
-                const response = await fetch(`${API_BASE}/fund-name?fundCode=${encodeURIComponent(fundCode)}`);
+                const response = await fetch(`${API_BASE}/trigger-all`, {
+                    method: 'POST'
+                });
+                
                 const result = await response.json();
                 
-                if (result.success && result.fundName) {
-                    nameInputElement.value = result.fundName;
+                if (result.success) {
+                    showResult('triggerResult', true, `预警执行成功！共处理 ${result.processedCount} 只基金`);
                 } else {
-                    // 如果没找到，清空基金名称
-                    nameInputElement.value = '';
+                    showResult('triggerResult', false, `预警执行失败: ${result.message}`);
                 }
             } catch (error) {
-                console.error('获取基金名称失败:', error);
-                nameInputElement.value = '';
+                showResult('triggerResult', false, `请求失败: ${error.message}`);
             }
         }
 
@@ -559,181 +504,200 @@
             const fundName = document.getElementById('fundName').value;
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
-
+            
             if (!fundCode || !fundName) {
                 showResult('crawlResult', false, '请填写基金代码和基金名称');
                 return;
             }
-
-            const params = new URLSearchParams({
-                fundCode: fundCode,
-                fundName: fundName
-            });
             
-            if (startDate) params.append('startDate', startDate);
-            if (endDate) params.append('endDate', endDate);
-
             try {
-                const response = await fetch(`${API_BASE}/crawl?${params}`, {
+                let url = `${API_BASE}/crawl?fundCode=${encodeURIComponent(fundCode)}&fundName=${encodeURIComponent(fundName)}`;
+                if (startDate) url += `&startDate=${startDate}`;
+                if (endDate) url += `&endDate=${endDate}`;
+                
+                const response = await fetch(url, {
                     method: 'POST'
                 });
+                
                 const result = await response.json();
-                showResult('crawlResult', result.success, result.message + (result.count ? ` (更新${result.count}条记录)` : ''));
+                
+                if (result.success) {
+                    showResult('crawlResult', true, `数据抓取成功！共获取 ${result.count} 条记录`);
+                } else {
+                    showResult('crawlResult', false, `数据抓取失败: ${result.message}`);
+                }
             } catch (error) {
-                showResult('crawlResult', false, '请求失败: ' + (error.message || '网络错误'));
+                showResult('crawlResult', false, `请求失败: ${error.message}`);
             }
         }
 
-        // 增量更新
+        // 增量更新基金数据
         async function incrementalUpdate() {
             const fundCode = document.getElementById('fundCode').value;
             const fundName = document.getElementById('fundName').value;
-
+            
             if (!fundCode || !fundName) {
                 showResult('crawlResult', false, '请填写基金代码和基金名称');
                 return;
             }
-
-            const params = new URLSearchParams({
-                fundCode: fundCode,
-                fundName: fundName
-            });
-
+            
             try {
-                const response = await fetch(`${API_BASE}/update?${params}`, {
-                    method: 'POST'
+                const response = await fetch(`${API_BASE}/incremental-update`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        fundCode: fundCode,
+                        fundName: fundName
+                    })
                 });
+                
                 const result = await response.json();
-                showResult('crawlResult', result.success, result.message + (result.count ? ` (更新${result.count}条记录)` : ''));
+                
+                if (result.success) {
+                    showResult('crawlResult', true, `增量更新成功！共更新 ${result.count} 条记录`);
+                } else {
+                    showResult('crawlResult', false, `增量更新失败: ${result.message}`);
+                }
             } catch (error) {
-                showResult('crawlResult', false, '请求失败: ' + (error.message || '网络错误'));
+                showResult('crawlResult', false, `请求失败: ${error.message}`);
             }
         }
 
-        // 执行监控检查
+        // 执行基金监控检查
         async function checkFund() {
             const fundCode = document.getElementById('checkFundCode').value;
-
+            
             if (!fundCode) {
                 showResult('checkResult', false, '请填写基金代码');
                 return;
             }
-
-            const params = new URLSearchParams({
-                fundCode: fundCode
-            });
-
+            
             try {
-                const response = await fetch(`${API_BASE}/check?${params}`, {
+                const response = await fetch(`${API_BASE}/check/${encodeURIComponent(fundCode)}`, {
                     method: 'POST'
                 });
+                
                 const result = await response.json();
-                showResult('checkResult', result.success, result.message);
+                
+                if (result.success) {
+                    showResult('checkResult', true, `监控检查完成！${result.alerts ? '发现 ' + result.alerts.length + ' 条预警' : '未发现异常'}`);
+                } else {
+                    showResult('checkResult', false, `监控检查失败: ${result.message}`);
+                }
             } catch (error) {
-                showResult('checkResult', false, '请求失败: ' + (error.message || '网络错误'));
+                showResult('checkResult', false, `请求失败: ${error.message}`);
             }
         }
 
         // 查询基金净值
         async function queryFundNav() {
             const fundCode = document.getElementById('queryFundCode').value;
-            const days = document.getElementById('queryDays').value;
-
+            const days = document.getElementById('queryDays').value || 30;
+            
             if (!fundCode) {
                 showResult('queryResult', false, '请填写基金代码');
                 return;
             }
-
-            const params = new URLSearchParams({
-                fundCode: fundCode,
-                days: days || 30
-            });
-
+            
             try {
-                const response = await fetch(`${API_BASE}/nav?${params}`);
+                const response = await fetch(`${API_BASE}/nav/${encodeURIComponent(fundCode)}?days=${days}`);
+                
                 const result = await response.json();
                 
                 if (result.success) {
-                    showResult('queryResult', true, `查询成功，共${result.data.length}条记录`);
                     renderNavTable(result.data);
+                    showResult('queryResult', true, `查询成功！共找到 ${result.data.length} 条记录`);
                 } else {
-                    showResult('queryResult', false, result.message || '查询失败');
+                    showResult('queryResult', false, `查询失败: ${result.message}`);
                 }
             } catch (error) {
-                showResult('queryResult', false, '请求失败: ' + (error.message || '网络错误'));
+                showResult('queryResult', false, `请求失败: ${error.message}`);
             }
         }
 
         // 渲染净值表格
         function renderNavTable(data) {
+            const container = document.getElementById('navTableContainer');
+            
             if (!data || data.length === 0) {
-                document.getElementById('navTableContainer').innerHTML = '<p>暂无数据</p>';
+                container.innerHTML = '<p>暂无数据</p>';
                 return;
             }
-
-            let tableHtml = `
+            
+            let html = `
                 <table class="nav-table">
                     <thead>
                         <tr>
-                            <th>日期</th>
+                            <th>净值日期</th>
                             <th>单位净值</th>
                             <th>日涨跌幅</th>
+                            <th>累计净值</th>
                         </tr>
                     </thead>
                     <tbody>
             `;
-
+            
             data.forEach(item => {
-                const dailyReturnClass = item.dailyReturn > 0 ? 'positive' : item.dailyReturn < 0 ? 'negative' : '';
-                const dailyReturnText = item.dailyReturn !== null ? `${item.dailyReturn.toFixed(2)}%` : '-';
+                const dailyReturn = item.dailyReturn !== null ? 
+                    `<span class="${item.dailyReturn >= 0 ? 'positive' : 'negative'}">
+                        ${item.dailyReturn >= 0 ? '+' : ''}${item.dailyReturn.toFixed(2)}%
+                    </span>` : '-';
                 
-                tableHtml += `
+                html += `
                     <tr>
                         <td>${item.navDate}</td>
                         <td>${item.unitNav.toFixed(4)}</td>
-                        <td class="${dailyReturnClass}">${dailyReturnText}</td>
+                        <td>${dailyReturn}</td>
+                        <td>${item.accumulatedNav ? item.accumulatedNav.toFixed(4) : '-'}</td>
                     </tr>
                 `;
             });
-
-            tableHtml += `
+            
+            html += `
                     </tbody>
                 </table>
             `;
-
-            document.getElementById('navTableContainer').innerHTML = tableHtml;
+            
+            container.innerHTML = html;
         }
 
         // 添加监控基金
         async function addMonitorFund() {
             const fundCode = document.getElementById('monitorFundCode').value;
             const fundName = document.getElementById('monitorFundName').value;
-
+            
             if (!fundCode || !fundName) {
                 showResult('monitorResult', false, '请填写基金代码和基金名称');
                 return;
             }
-
+            
             try {
-                const response = await fetch(`${API_BASE}/monitor-fund`, {
+                const response = await fetch(`${API_BASE}/monitor-funds`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
+                        'Content-Type': 'application/json'
                     },
-                    body: new URLSearchParams({
+                    body: JSON.stringify({
                         fundCode: fundCode,
-                        fundName: fundName
+                        fundName: fundName,
+                        enabled: true
                     })
                 });
+                
                 const result = await response.json();
-                showResult('monitorResult', result.success, result.message);
+                
                 if (result.success) {
+                    showResult('monitorResult', true, '监控基金添加成功！');
                     document.getElementById('monitorFundCode').value = '';
                     document.getElementById('monitorFundName').value = '';
-                    loadMonitorFunds();
+                    loadMonitorFunds(); // 刷新列表
+                } else {
+                    showResult('monitorResult', false, `添加失败: ${result.message}`);
                 }
             } catch (error) {
-                showResult('monitorResult', false, '请求失败: ' + (error.message || '网络错误'));
+                showResult('monitorResult', false, `请求失败: ${error.message}`);
             }
         }
 
@@ -746,131 +710,84 @@
                 if (result.success) {
                     renderMonitorFundsTable(result.data);
                 } else {
-                    document.getElementById('monitorFundsTableContainer').innerHTML = '<p>加载失败: ' + (result.message || '未知错误') + '</p>';
+                    console.error('加载监控基金列表失败:', result.message);
                 }
             } catch (error) {
-                document.getElementById('monitorFundsTableContainer').innerHTML = '<p>加载失败: ' + (error.message || '网络错误') + '</p>';
+                console.error('加载监控基金列表失败:', error);
             }
         }
 
         // 渲染监控基金表格
         function renderMonitorFundsTable(data) {
+            const container = document.getElementById('monitorFundsTableContainer');
+            
             if (!data || data.length === 0) {
-                document.getElementById('monitorFundsTableContainer').innerHTML = '<p>暂无监控基金</p>';
+                container.innerHTML = '<p class="text-muted">暂无监控基金</p>';
                 return;
             }
-
-            let tableHtml = `
+            
+            let html = `
                 <table class="nav-table">
                     <thead>
                         <tr>
                             <th>基金代码</th>
                             <th>基金名称</th>
-                            <th>启用状态</th>
+                            <th>状态</th>
+                            <th>创建时间</th>
                             <th>操作</th>
                         </tr>
                     </thead>
                     <tbody>
             `;
-
+            
             data.forEach(item => {
-                const statusText = item.enabled ? '✅ 启用' : '❌ 要用';
-                tableHtml += `
+                const statusText = item.enabled ? 
+                    '<span class="badge bg-success">启用</span>' : 
+                    '<span class="badge bg-secondary">禁用</span>';
+                
+                html += `
                     <tr>
                         <td>${item.fundCode}</td>
                         <td>${item.fundName}</td>
                         <td>${statusText}</td>
+                        <td>${item.createTime ? new Date(item.createTime).toLocaleString() : '-'}</td>
                         <td>
-                            <button class="btn btn-danger" onclick="deleteMonitorFund('${item.fundCode}')" style="padding: 6px 12px; font-size: 14px;">删除</button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteMonitorFund('${item.fundCode}')">删除</button>
                         </td>
                     </tr>
                 `;
             });
-
-            tableHtml += `
+            
+            html += `
                     </tbody>
                 </table>
             `;
-
-            document.getElementById('monitorFundsTableContainer').innerHTML = tableHtml;
+            
+            container.innerHTML = html;
         }
 
         // 删除监控基金
         async function deleteMonitorFund(fundCode) {
-            // 首先需要获取基金ID
-            try {
-                const response = await fetch(`${API_BASE}/monitor-funds`);
-                const result = await response.json();
-                
-                if (!result.success) {
-                    alert('获取基金列表失败: ' + (result.message || '未知错误'));
-                    return;
-                }
-                
-                // 查找对应的基金ID
-                const fund = result.data.find(f => f.fundCode === fundCode);
-                if (!fund) {
-                    alert('未找到基金: ' + fundCode);
-                    return;
-                }
-                
-                if (!confirm(`确定要删除基金 ${fundCode} 的监控吗？`)) {
-                    return;
-                }
-
-                const deleteResponse = await fetch(`${API_BASE}/monitor-fund/${fund.id}`, {
-                    method: 'DELETE'
-                });
-                const deleteResult = await deleteResponse.json();
-                showResult('monitorResult', deleteResult.success, deleteResult.message);
-                if (deleteResult.success) {
-                    loadMonitorFunds();
-                }
-            } catch (error) {
-                showResult('monitorResult', false, '请求失败: ' + (error.message || '网络错误'));
-            }
-        }
-
-        // 手工触发所有监控基金的预警任务
-        async function triggerAllMonitorFunds() {
-            if (!confirm('确定要立即执行所有启用基金的预警检查吗？')) {
+            if (!confirm(`确定要删除基金 ${fundCode} 的监控吗？`)) {
                 return;
             }
-
-            const button = event.target;
-            const originalText = button.textContent;
-            button.disabled = true;
-            button.textContent = '执行中...';
-
+            
             try {
-                const response = await fetch(`${API_BASE}/trigger-all`, {
-                    method: 'POST'
+                const response = await fetch(`${API_BASE}/monitor-funds/${encodeURIComponent(fundCode)}`, {
+                    method: 'DELETE'
                 });
+                
                 const result = await response.json();
                 
                 if (result.success) {
-                    showResult('triggerResult', true, result.message);
+                    showResult('monitorResult', true, '监控基金删除成功！');
+                    loadMonitorFunds(); // 刷新列表
                 } else {
-                    showResult('triggerResult', false, result.message || '执行失败');
+                    showResult('monitorResult', false, `删除失败: ${result.message}`);
                 }
             } catch (error) {
-                showResult('triggerResult', false, '请求失败: ' + (error.message || '网络错误'));
-            } finally {
-                button.disabled = false;
-                button.textContent = originalText;
+                showResult('monitorResult', false, `请求失败: ${error.message}`);
             }
-        }
-
-        // 显示结果消息
-        function showResult(elementId, isSuccess, message) {
-            const element = document.getElementById(elementId);
-            element.textContent = message;
-            element.className = `result ${isSuccess ? 'success' : 'error'} show`;
-            
-            // 3秒后自动隐藏
-            setTimeout(() => {
-                element.classList.remove('show');
-            }, 3000);
         }
     </script>
 </body>

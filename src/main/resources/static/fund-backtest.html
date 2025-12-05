@@ -231,6 +231,30 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
+        
+        /* 返回首页按钮样式 */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .back-home {
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .back-home:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        
         @media (max-width: 900px) {
             .main-content {
                 grid-template-columns: 1fr;
@@ -245,10 +269,12 @@
     </style>
 </head>
 <body>
-    <a href="index.html" class="back-link">🏠 返回首页</a>
     <div class="container">
-        <div class="header">
+        <div class="top-nav">
             <h1>💰 基金智能回测系统</h1>
+            <a href="index.html" class="back-home">🏠 返回首页</a>
+        </div>
+        <div class="header">
             <p>基于上证指数涨跌幅的动态仓位调整策略回测</p>
         </div>
         
@@ -398,186 +424,150 @@
             }
         });
 
-        let chartInstance = null;
-        
-        function addDebugMsg(msg) {
-            const debugArea = document.getElementById('debugInfo');
-            const debugMsg = document.getElementById('debugMsg');
-            debugArea.style.display = 'block';
-            const timestamp = new Date().toLocaleTimeString();
-            debugMsg.innerHTML += `<div>[${timestamp}] ${msg}</div>`;
-            debugMsg.scrollTop = debugMsg.scrollHeight;
-        }
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 设置默认日期范围（最近12个月）
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setMonth(startDate.getMonth() - 12);
+            
+            document.getElementById('startDate').valueAsDate = startDate;
+            document.getElementById('endDate').valueAsDate = endDate;
+            
+            // 绑定回测按钮事件
+            document.getElementById('runBtn').addEventListener('click', runBacktest);
+        });
 
+        // 运行回测
         async function runBacktest() {
-            const btn = document.getElementById('runBtn');
-            const loadingArea = document.getElementById('loadingArea');
-            const errorArea = document.getElementById('errorArea');
-            const resultArea = document.getElementById('resultArea');
-            const debugMsg = document.getElementById('debugMsg');
-            
-            // 清空之前的调试信息
-            debugMsg.innerHTML = '';
-            addDebugMsg('✨ 点击了「开始回测」按钮');
-            
             // 获取参数
-            const request = {
+            const params = {
                 initialCapital: parseFloat(document.getElementById('initialCapital').value),
                 initialHoldings: parseFloat(document.getElementById('initialHoldings').value),
                 upPositionChange: parseFloat(document.getElementById('upPositionChange').value),
                 downPositionChange: parseFloat(document.getElementById('downPositionChange').value),
                 upThreshold: parseFloat(document.getElementById('upThreshold').value),
                 downThreshold: parseFloat(document.getElementById('downThreshold').value),
+                startDate: document.getElementById('startDate').value,
+                endDate: document.getElementById('endDate').value,
                 backtestMonths: parseInt(document.getElementById('backtestMonths').value)
             };
-            
-            addDebugMsg(`✅ 已获取参数: `);
-            addDebugMsg(`&nbsp;&nbsp;初始资金: ${request.initialCapital}, 初始持仓: ${request.initialHoldings}`);
-            addDebugMsg(`&nbsp;&nbsp;回测个月: ${request.backtestMonths}`);
-            
+
+            // 验证参数
+            if (!params.startDate || !params.endDate) {
+                showError('请选择回测日期范围');
+                return;
+            }
+
             // 显示加载状态
-            btn.disabled = true;
-            loadingArea.style.display = 'block';
-            errorArea.style.display = 'none';
-            resultArea.classList.remove('show');
-            
-            addDebugMsg('🚀 发送请求到服务器: POST /api/fund/backtest/run');
-            
+            document.getElementById('loadingArea').style.display = 'block';
+            document.getElementById('resultArea').classList.remove('show');
+            document.getElementById('errorArea').style.display = 'none';
+
             try {
-                const response = await fetch('/api/fund/backtest/run', {
+                // 发送请求到后端API
+                const response = await fetch('/api/backtest/run', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(request)
+                    body: JSON.stringify(params)
                 });
-                
-                addDebugMsg(`📄 接收到服务器响应: HTTP ${response.status}`);
-                
-                if (!response.ok) {
-                    throw new Error(`服务器错误! HTTP状态为 ${response.status}
 
-可能原因:
-1. 服务器未启动 (http://localhost:8080)
-2. API端口配置错误`);
-                }
-                
                 const result = await response.json();
-                
-                addDebugMsg(`🏐 回测结果: success=${result.success}`);
-                
+
                 if (result.success) {
-                    addDebugMsg(`🎆 回测成功! 开始渲染结果...`);
-                    displayResult(result.data);
-                    resultArea.classList.add('show');
-                    addDebugMsg(`✅ 渲染完成!`);
+                    // 显示结果
+                    displayResults(result.data);
                 } else {
-                    const errorMsg = result.message || '未知错误';
-                    throw new Error(errorMsg);
+                    showError(result.message || '回测执行失败');
                 }
             } catch (error) {
-                addDebugMsg(`⚠️ 错误: ${error.message}`);
-                console.error('详细错误:', error);
-                errorArea.innerHTML = `<div class="error-msg">❌ ${error.message}</div>`;
-                errorArea.style.display = 'block';
+                console.error('Backtest error:', error);
+                showError('回测执行出错: ' + error.message);
             } finally {
-                btn.disabled = false;
-                loadingArea.style.display = 'none';
+                // 隐藏加载状态
+                document.getElementById('loadingArea').style.display = 'none';
             }
         }
 
-        function displayResult(data) {
-            // 更新概览卡片
-            document.getElementById('totalAssets').textContent = 
-                '¥' + data.totalAssets.toFixed(2);
-            document.getElementById('returnRate').textContent = 
-                data.returnRate.toFixed(2) + '%';
-            document.getElementById('maxDrawdown').textContent = 
-                data.maxDrawdown.toFixed(2) + '%';
-            document.getElementById('tradingDays').textContent = 
-                data.tradingDays;
-            document.getElementById('upChanges').textContent = 
-                data.upPositionChanges;
-            document.getElementById('downChanges').textContent = 
-                data.downPositionChanges;
-            
-            // 绘制资产曲线图
-            drawChart(data.dailyDetails);
-            
-            // 填充详细数据表
-            fillDetailTable(data.dailyDetails);
+        // 显示错误信息
+        function showError(message) {
+            const errorArea = document.getElementById('errorArea');
+            errorArea.innerHTML = `<div class="error-msg">${message}</div>`;
+            errorArea.style.display = 'block';
         }
 
-        function drawChart(dailyDetails) {
+        // 显示回测结果
+        async function displayResults(data) {
+            // 等待 Chart.js 加载完成
+            await scriptPromise;
+
+            // 更新概览卡片
+            document.getElementById('totalAssets').textContent = formatCurrency(data.totalAssets);
+            document.getElementById('returnRate').textContent = formatPercentage(data.returnRate);
+            document.getElementById('maxDrawdown').textContent = formatPercentage(data.maxDrawdown);
+            document.getElementById('tradingDays').textContent = data.tradingDays;
+            document.getElementById('upChanges').textContent = data.upChanges;
+            document.getElementById('downChanges').textContent = data.downChanges;
+
+            // 渲染资产曲线图
+            renderAssetsChart(data.assetsHistory);
+
+            // 渲染详细数据表
+            renderDetailTable(data.detailList);
+
+            // 显示结果区域
+            document.getElementById('resultArea').classList.add('show');
+        }
+
+        // 格式化货币
+        function formatCurrency(value) {
+            return '¥' + value.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+        }
+
+        // 格式化百分比
+        function formatPercentage(value) {
+            return (value * 100).toFixed(2) + '%';
+        }
+
+        // 渲染资产曲线图
+        function renderAssetsChart(assetsHistory) {
             const ctx = document.getElementById('assetsChart').getContext('2d');
             
-            // 销毁旧图表
-            if (chartInstance) {
-                chartInstance.destroy();
+            // 销毁之前的图表实例（如果存在）
+            if (window.assetsChartInstance) {
+                window.assetsChartInstance.destroy();
             }
-            
-            const labels = dailyDetails.map(d => d.date);
-            const assets = dailyDetails.map(d => d.totalAssets);
-            
-            // 计算数据范围，设置更紧凑的纵轴
-            const minAsset = Math.min(...assets);
-            const maxAsset = Math.max(...assets);
-            const range = maxAsset - minAsset;
-            const yMin = minAsset - range * 0.1; // 下畀10%的边距
-            const yMax = maxAsset + range * 0.1; // 上畀10%的边距
-            
-            // 准备加仓和减仓的数据点
-            const buyPoints = [];
-            const sellPoints = [];
-            
-            dailyDetails.forEach((detail, index) => {
-                if (detail.action === '加仓') {
-                    buyPoints.push({ x: index, y: detail.totalAssets });
-                } else if (detail.action === '减仓') {
-                    sellPoints.push({ x: index, y: detail.totalAssets });
-                }
-            });
-            
-            console.log(`图表数据统计: 总交易日${dailyDetails.length}天, 加仓${buyPoints.length}次, 减仓${sellPoints.length}次`);
-            
-            // 确保 Chart 已加载
-            if (!window.Chart) {
-                alert('图表库加载失败，请刷新页面重试');
-                return;
-            }
-            
-            chartInstance = new window.Chart(ctx, {
+
+            // 准备图表数据
+            const dates = assetsHistory.map(item => item.date);
+            const assets = assetsHistory.map(item => item.totalAssets);
+            const benchmarks = assetsHistory.map(item => item.benchmarkAssets);
+
+            // 创建新图表
+            window.assetsChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: labels,
+                    labels: dates,
                     datasets: [
                         {
-                            label: '总资产',
+                            label: '策略资产',
                             data: assets,
-                            borderColor: 'rgb(102, 126, 234)',
+                            borderColor: '#667eea',
                             backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                            tension: 0.3,
+                            borderWidth: 2,
                             fill: true,
-                            pointRadius: 0,
-                            pointHoverRadius: 5
+                            tension: 0.1
                         },
                         {
-                            label: '加仓',
-                            data: buyPoints,
-                            borderColor: 'transparent',
-                            backgroundColor: 'rgb(34, 197, 94)', // 绿色 - 加仓（买入）
-                            pointRadius: 6,
-                            pointHoverRadius: 8,
-                            showLine: false
-                        },
-                        {
-                            label: '减仓',
-                            data: sellPoints,
-                            borderColor: 'transparent',
-                            backgroundColor: 'rgb(239, 68, 68)', // 红色 - 减仓（卖出）
-                            pointRadius: 6,
-                            pointHoverRadius: 8,
-                            showLine: false
+                            label: '基准资产（上证指数）',
+                            data: benchmarks,
+                            borderColor: '#11998e',
+                            backgroundColor: 'rgba(17, 153, 142, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.1
                         }
                     ]
                 },
@@ -586,42 +576,26 @@
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            display: true,
                             position: 'top',
-                            labels: {
-                                usePointStyle: true,
-                                filter: function(item) {
-                                    return item.text !== '总资产';
-                                }
-                            }
                         },
                         tooltip: {
                             callbacks: {
                                 label: function(context) {
-                                    if (context.dataset.label === '总资产') {
-                                        return '总资产: ¥' + context.parsed.y.toFixed(2);
-                                    } else {
-                                        return context.dataset.label + ': ¥' + context.parsed.y.toFixed(2);
-                                    }
+                                    return context.dataset.label + ': ¥' + context.parsed.y.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
                                 }
                             }
                         }
                     },
                     scales: {
                         x: {
-                            ticks: {
-                                maxRotation: 45,
-                                minRotation: 45,
-                                autoSkip: true,
-                                maxTicksLimit: 10
+                            grid: {
+                                display: false
                             }
                         },
                         y: {
-                            min: yMin,
-                            max: yMax,
                             ticks: {
                                 callback: function(value) {
-                                    return '¥' + value.toLocaleString();
+                                    return '¥' + value.toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,');
                                 }
                             }
                         }
@@ -630,60 +604,34 @@
             });
         }
 
-        function fillDetailTable(dailyDetails) {
+        // 渲染详细数据表
+        function renderDetailTable(detailList) {
             const tbody = document.getElementById('detailTableBody');
             tbody.innerHTML = '';
-            
-            dailyDetails.forEach(detail => {
-                const row = tbody.insertRow();
+
+            detailList.forEach(item => {
+                const row = document.createElement('tr');
                 
-                row.insertCell(0).textContent = detail.date;
-                row.insertCell(1).textContent = detail.indexChange.toFixed(2) + '%';
-                row.insertCell(2).textContent = detail.nav.toFixed(4);
-                row.insertCell(3).textContent = '¥' + detail.capital.toFixed(2);
-                row.insertCell(4).textContent = detail.holdings.toFixed(2);
-                row.insertCell(5).textContent = '¥' + detail.totalAssets.toFixed(2);
-                
-                const actionCell = row.insertCell(6);
-                actionCell.textContent = detail.action;
-                if (detail.action === '加仓') {
-                    actionCell.className = 'action-buy';
-                } else if (detail.action === '减仓') {
-                    actionCell.className = 'action-sell';
-                } else {
-                    actionCell.className = 'action-hold';
+                // 根据操作类型设置样式
+                let actionClass = 'action-hold';
+                if (item.action === 'BUY') {
+                    actionClass = 'action-buy';
+                } else if (item.action === 'SELL') {
+                    actionClass = 'action-sell';
                 }
+
+                row.innerHTML = `
+                    <td>${item.date}</td>
+                    <td>${formatPercentage(item.indexChange)}</td>
+                    <td>${item.fundNav.toFixed(4)}</td>
+                    <td>${formatCurrency(item.cash)}</td>
+                    <td>${item.holdings.toFixed(2)}</td>
+                    <td>${formatCurrency(item.totalAssets)}</td>
+                    <td class="${actionClass}">${item.action === 'BUY' ? '加仓' : item.action === 'SELL' ? '减仓' : '持有'}</td>
+                `;
+                
+                tbody.appendChild(row);
             });
-        }
-        
-        // 页面加载完成后绑定事件
-        document.addEventListener('DOMContentLoaded', function() {
-            // 初始化日期范围（默认去年今日到今日）
-            const today = new Date();
-            const lastYearToday = new Date();
-            lastYearToday.setFullYear(today.getFullYear() - 1);
-            
-            document.getElementById('endDate').value = formatDate(today);
-            document.getElementById('startDate').value = formatDate(lastYearToday);
-            
-            const runBtn = document.getElementById('runBtn');
-            if (runBtn) {
-                runBtn.addEventListener('click', function() {
-                    console.log('按钮被点击');
-                    runBacktest();
-                });
-                console.log('回测按钮事件已绑定');
-            } else {
-                console.error('找不到回测按钮!');
-            }
-        });
-        
-        // 日期格式化函数
-        function formatDate(date) {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
         }
     </script>
 </body>

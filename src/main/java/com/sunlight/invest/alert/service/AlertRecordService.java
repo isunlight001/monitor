@@ -39,6 +39,27 @@ public class AlertRecordService {
     }
 
     /**
+     * 获取告警记录总数
+     *
+     * @return 总记录数
+     */
+    public int getTotalAlertRecordCount() {
+        return alertRecordMapper.selectTotalCount();
+    }
+
+    /**
+     * 分页获取告警记录
+     *
+     * @param page 页码（从1开始）
+     * @param size 每页大小
+     * @return 告警记录列表
+     */
+    public List<AlertRecord> getAlertRecordsWithPagination(int page, int size) {
+        int offset = (page - 1) * size;
+        return alertRecordMapper.selectWithPagination(offset, size);
+    }
+
+    /**
      * 根据ID获取告警记录
      *
      * @param id 告警记录ID

@@ -220,16 +220,61 @@
             border-radius: 3px;
             font-family: 'Courier New', monospace;
         }
+        
+        /* 返回首页按钮样式 */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .back-home {
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .back-home:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        
+        .nav-links {
+            margin-top: 15px;
+        }
+        
+        .nav-links a {
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-right: 10px;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+        
+        .nav-links a:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📧 通知系统测试平台</h1>
+            <div class="top-nav">
+                <h1>📧 通知系统测试平台</h1>
+                <a href="index.html" class="back-home">🏠 返回首页</a>
+            </div>
             <p>支持邮件和微信通知功能测试</p>
-            <div style="margin-top: 15px;">
-                <a href="index.html" style="padding: 8px 16px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; margin-right: 10px;">🏠 返回首页</a>
-                <a href="email-recipient-management.html" style="padding: 8px 16px; background: #28a745; color: white; text-decoration: none; border-radius: 4px;">👥 管理邮件接收人</a>
+            <div class="nav-links">
+                <a href="email-recipient-management.html">👥 管理邮件接收人</a>
             </div>
         </div>
 
@@ -311,7 +356,7 @@
     </div>
 
     <script>
-        const API_BASE = 'http://localhost/api/notification';
+        const API_BASE = '/api/notification';
 
         // 检查服务状态
         async function checkStatus() {
@@ -402,17 +447,15 @@
                 return;
             }
 
+            const params = new URLSearchParams({
+                type: type,
+                title: title,
+                content: content
+            });
+
             try {
-                const response = await fetch(`${API_BASE}/send`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        type: type,
-                        title: title,
-                        content: content
-                    })
+                const response = await fetch(`${API_BASE}/send?${params}`, {
+                    method: 'POST'
                 });
                 const result = await response.json();
                 showResult('allResult', result.success, result.message);
@@ -422,21 +465,16 @@
         }
 
         // 显示结果
-        function showResult(elementId, success, message) {
-            const resultDiv = document.getElementById(elementId);
-            resultDiv.className = `result ${success ? 'success' : 'error'} show`;
-            resultDiv.innerHTML = `<strong>${success ? '✅ 成功' : '❌ 失败'}</strong><br>${message}`;
+        function showResult(elementId, isSuccess, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = 'result ' + (isSuccess ? 'success' : 'error') + ' show';
             
             // 3秒后自动隐藏
             setTimeout(() => {
-                resultDiv.classList.remove('show');
-            }, 5000);
+                element.classList.remove('show');
+            }, 3000);
         }
-
-        // 页面加载时自动检查状态
-        window.onload = function() {
-            checkStatus();
-        };
     </script>
 </body>
 </html>
