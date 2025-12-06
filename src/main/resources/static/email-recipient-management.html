@@ -32,6 +32,7 @@
             color: white;
             padding: 30px;
             text-align: center;
+            position: relative;
         }
 
         .header h1 {
@@ -42,6 +43,43 @@
         .header p {
             font-size: 16px;
             opacity: 0.9;
+        }
+        
+        /* 用户信息样式 */
+        .user-info {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-info span {
+            font-weight: 500;
+            font-size: 16px;
+        }
+
+        .logout-btn {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
         }
 
         .content {
@@ -227,41 +265,20 @@
             background: #0056b3;
             transform: translateY(-2px);
         }
-
-        /* 用户信息显示 */
-        .user-info {
-            background: #e9ecef;
-            padding: 10px 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .user-info span {
-            font-weight: 500;
-        }
-
-        .logout-btn {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 3px;
-            cursor: pointer;
-        }
-
-        .logout-btn:hover {
-            background: #c82333;
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>👥 邮件接收人管理</h1>
-            <p>添加、编辑和管理邮件接收人信息</p>
+            <p>管理系统中的邮件接收人信息</p>
+            
+            <!-- 用户信息 -->
+            <div class="user-info" id="userInfo" style="display: none;">
+                <span>欢迎, <span id="currentUserName"></span></span>
+                <button class="logout-btn" onclick="logout()">退出登录</button>
+            </div>
+            
             <div class="nav-links">
                 <a href="index.html" class="nav-link">🏠 首页</a>
                 <a href="fund-monitor.html" class="nav-link">📊 基金监控</a>
@@ -276,12 +293,6 @@
         </div>
 
         <div class="content">
-            <!-- 用户信息 -->
-            <div class="user-info" id="userInfo" style="display: none;">
-                <span>当前用户: <span id="currentUserName"></span></span>
-                <button class="logout-btn" onclick="logout()">退出登录</button>
-            </div>
-
             <!-- 添加/编辑表单 -->
             <div class="form-section">
                 <h3 id="formTitle">添加邮件接收人</h3>
