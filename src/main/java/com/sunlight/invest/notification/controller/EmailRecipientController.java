@@ -8,7 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 邮件接收人管理控制器
@@ -29,14 +31,18 @@ public class EmailRecipientController {
      * 添加邮件接收人
      */
     @PostMapping
-    public ResponseEntity<String> addEmailRecipient(@RequestBody EmailRecipient emailRecipient) {
+    public Map<String, Object> addEmailRecipient(@RequestBody EmailRecipient emailRecipient) {
+        Map<String, Object> result = new HashMap<>();
         try {
             emailRecipientService.addEmailRecipient(emailRecipient);
-            return ResponseEntity.ok("邮件接收人添加成功");
+            result.put("success", true);
+            result.put("message", "邮件接收人添加成功");
         } catch (Exception e) {
             log.error("添加邮件接收人失败", e);
-            return ResponseEntity.badRequest().body("添加邮件接收人失败: " + e.getMessage());
+            result.put("success", false);
+            result.put("message", "添加邮件接收人失败: " + e.getMessage());
         }
+        return result;
     }
 
     /**

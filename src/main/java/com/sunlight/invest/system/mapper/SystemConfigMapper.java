@@ -101,7 +101,7 @@ public interface SystemConfigMapper {
      * @param systemConfig 系统配置对象
      * @return 影响行数
      */
-    @Update("UPDATE system_config SET config_key = #{configKey}, config_value = #{configValue}, " +
+    @Update("UPDATE system_config SET config_value = #{configValue}, " +
             "description = #{description}, enabled = #{enabled}, update_time = NOW() " +
             "WHERE id = #{id}")
     int update(SystemConfig systemConfig);

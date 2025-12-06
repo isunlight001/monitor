@@ -201,6 +201,16 @@ public class SystemConfigService {
      */
     public boolean updateConfig(SystemConfig systemConfig) {
         try {
+            // 先根据ID查询原始配置，以获取configKey
+            SystemConfig existingConfig = systemConfigMapper.selectById(systemConfig.getId());
+            if (existingConfig == null) {
+                log.warn("配置项不存在，id: {}", systemConfig.getId());
+                return false;
+            }
+            
+            // 设置configKey，确保不会为null
+            systemConfig.setConfigKey(existingConfig.getConfigKey());
+            
             int result = systemConfigMapper.update(systemConfig);
             if (result > 0) {
                 // 更新缓存
