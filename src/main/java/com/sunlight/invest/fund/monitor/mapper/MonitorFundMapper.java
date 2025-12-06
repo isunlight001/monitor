@@ -118,4 +118,12 @@ public interface MonitorFundMapper {
      */
     @Delete("DELETE FROM fund_monitor WHERE fund_code = #{fundCode}")
     int deleteByFundCode(@Param("fundCode") String fundCode);
+    
+    /**
+     * 统计所有监控基金数量
+     *
+     * @return 监控基金数量
+     */
+    @Select("SELECT COUNT(*) FROM fund_monitor")
+    int countAll();
 }

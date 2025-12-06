@@ -141,4 +141,12 @@ public interface EmailRecipientMapper {
      */
     @Delete("DELETE FROM email_recipient WHERE email = #{email}")
     int deleteByEmail(@Param("email") String email);
+    
+    /**
+     * 统计所有邮件接收人数量
+     *
+     * @return 邮件接收人数量
+     */
+    @Select("SELECT COUNT(*) FROM email_recipient")
+    int countAll();
 }

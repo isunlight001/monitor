@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -366,6 +367,57 @@ public class FundMonitorController {
         } catch (Exception e) {
             result.put("success", false);
             result.put("message", "触发预警任务失败: " + e.getMessage());
+        }
+
+        return result;
+    }
+    
+    /**
+     * 获取监控基金列表及其最新净值数据
+     *
+     * @return 监控基金列表及最新净值
+     */
+    @GetMapping("/monitor-funds-with-nav")
+    public Map<String, Object> getMonitorFundsWithNav() {
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            // 获取所有监控基金
+            List<MonitorFund> funds = monitorFundMapper.selectAll();
+            
+            // 为每个基金获取最新净值数据
+            List<Map<String, Object>> fundsWithNav = new ArrayList<>();
+            for (MonitorFund fund : funds) {
+                Map<String, Object> fundData = new HashMap<>();
+                fundData.put("id", fund.getId());
+                fundData.put("fundCode", fund.getFundCode());
+                fundData.put("fundName", fund.getFundName());
+                fundData.put("enabled", fund.getEnabled());
+                fundData.put("createTime", fund.getCreateTime());
+                fundData.put("updateTime", fund.getUpdateTime());
+                
+                // 获取基金最新净值
+                FundNav latestNav = fundNavMapper.selectLatest(fund.getFundCode());
+                if (latestNav != null) {
+                    fundData.put("latestNav", latestNav.getUnitNav());
+                    fundData.put("latestReturn", latestNav.getDailyReturn());
+                    fundData.put("navDate", latestNav.getNavDate());
+                } else {
+                    fundData.put("latestNav", null);
+                    fundData.put("latestReturn", null);
+                    fundData.put("navDate", null);
+                }
+                
+                fundsWithNav.add(fundData);
+            }
+
+            result.put("success", true);
+            result.put("count", fundsWithNav.size());
+            result.put("data", fundsWithNav);
+        } catch (Exception e) {
+            log.error("获取监控基金列表及净值数据失败", e);
+            result.put("success", false);
+            result.put("message", "查询失败: " + e.getMessage());
         }
 
         return result;

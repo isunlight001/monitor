@@ -240,6 +240,7 @@
 
     <script>
         const USER_API_BASE = '/api/users';
+        const DASHBOARD_API_BASE = '/api/dashboard';
 
         // 页面加载时检查登录状态
         document.addEventListener('DOMContentLoaded', function() {
@@ -291,33 +292,88 @@
         // 加载仪表板数据
         async function loadDashboardData() {
             try {
-                // 模拟数据
-                document.getElementById('fundCount').textContent = '25';
-                document.getElementById('todayAlerts').textContent = '3';
-                document.getElementById('recipientCount').textContent = '8';
-                document.getElementById('systemStatus').textContent = '🟢';
+                // 获取统计数据
+                const statsResponse = await fetch(`${DASHBOARD_API_BASE}/stats`);
+                const statsResult = await statsResponse.json();
                 
-                // 模拟最近告警
-                const alertsContainer = document.getElementById('alertsContainer');
-                alertsContainer.innerHTML = `
-                    <div class="alert-item danger">
-                        <h4>⚠️ 基金下跌预警</h4>
-                        <p>基金代码: 001234 - 今日跌幅超过5%</p>
-                        <p>时间: 2025-12-06 09:30:15</p>
-                    </div>
-                    <div class="alert-item warning">
-                        <h4>🔔 指数波动提醒</h4>
-                        <p>上证指数 - 波动幅度较大</p>
-                        <p>时间: 2025-12-06 09:45:22</p>
-                    </div>
-                    <div class="alert-item">
-                        <h4>📈 基金上涨通知</h4>
-                        <p>基金代码: 567890 - 今日涨幅超过4%</p>
-                        <p>时间: 2025-12-06 10:15:30</p>
-                    </div>
-                `;
+                if (statsResult.success) {
+                    const data = statsResult.data;
+                    document.getElementById('fundCount').textContent = data.fundCount;
+                    document.getElementById('todayAlerts').textContent = data.todayAlerts;
+                    document.getElementById('recipientCount').textContent = data.recipientCount;
+                    document.getElementById('systemStatus').textContent = data.systemStatus;
+                } else {
+                    console.error('获取统计数据失败:', statsResult.message);
+                }
+                
+                // 获取最近告警
+                const alertsResponse = await fetch(`${DASHBOARD_API_BASE}/recent-alerts`);
+                const alertsResult = await alertsResponse.json();
+                
+                if (alertsResult.success) {
+                    displayRecentAlerts(alertsResult.data);
+                } else {
+                    console.error('获取告警记录失败:', alertsResult.message);
+                }
             } catch (error) {
                 console.error('加载仪表板数据失败:', error);
+            }
+        }
+        
+        // 显示最近告警
+        function displayRecentAlerts(alerts) {
+            const alertsContainer = document.getElementById('alertsContainer');
+            
+            if (!alerts || alerts.length === 0) {
+                alertsContainer.innerHTML = '<p style="text-align: center; color: #6c757d;">暂无告警记录</p>';
+                return;
+            }
+            
+            let alertsHtml = '';
+            alerts.forEach(alert => {
+                // 根据告警类型设置样式
+                let alertClass = 'alert-item';
+                if (alert.alertType === 'DANGER' || alert.alertType === 'HIGH') {
+                    alertClass += ' danger';
+                } else if (alert.alertType === 'WARNING' || alert.alertType === 'MEDIUM') {
+                    alertClass += ' warning';
+                }
+                
+                // 格式化时间
+                let createTime = '';
+                if (alert.createTime) {
+                    // 假设createTime是ISO格式的字符串
+                    const date = new Date(alert.createTime);
+                    createTime = date.toLocaleString('zh-CN');
+                }
+                
+                alertsHtml += `
+                    <div class="${alertClass}">
+                        <h4>${getAlertIcon(alert.alertType)} ${alert.ruleDescription || '告警通知'}</h4>
+                        <p>基金: ${alert.fundName} (${alert.fundCode})</p>
+                        <p>内容: ${alert.alertContent || '无具体内容'}</p>
+                        <p>时间: ${createTime}</p>
+                    </div>
+                `;
+            });
+            
+            alertsContainer.innerHTML = alertsHtml;
+        }
+        
+        // 根据告警类型获取图标
+        function getAlertIcon(alertType) {
+            switch (alertType) {
+                case 'DANGER':
+                case 'HIGH':
+                    return '🔴';
+                case 'WARNING':
+                case 'MEDIUM':
+                    return '🟡';
+                case 'INFO':
+                case 'LOW':
+                    return '🟢';
+                default:
+                    return '🔔';
             }
         }
     </script>

@@ -188,4 +188,44 @@ public interface AlertRecordMapper {
         @Result(property = "updateTime", column = "update_time")
     })
     List<AlertRecord> selectByRuleCode(String ruleCode);
+    
+    /**
+     * 统计指定日期范围内的告警记录数量
+     *
+     * @param startTime 开始时间
+     * @param endTime 结束时间
+     * @return 告警记录数量
+     */
+    @Select("SELECT COUNT(*) FROM alarm_record WHERE create_time BETWEEN #{startTime} AND #{endTime}")
+    int countByDateRange(@Param("startTime") java.time.LocalDateTime startTime, 
+                        @Param("endTime") java.time.LocalDateTime endTime);
+    
+    /**
+     * 查询最近的告警记录
+     *
+     * @param limit 数量限制
+     * @return 告警记录列表
+     */
+    @Select("SELECT * FROM alarm_record ORDER BY create_time DESC LIMIT #{limit}")
+    @Results({
+        @Result(property = "id", column = "id"),
+        @Result(property = "fundCode", column = "fund_code"),
+        @Result(property = "fundName", column = "fund_name"),
+        @Result(property = "indexCode", column = "index_code"),
+        @Result(property = "indexName", column = "index_name"),
+        @Result(property = "alertType", column = "alert_type"),
+        @Result(property = "ruleCode", column = "rule_code"),
+        @Result(property = "ruleDescription", column = "rule_description"),
+        @Result(property = "consecutiveDays", column = "consecutive_days"),
+        @Result(property = "cumulativeReturn", column = "cumulative_return"),
+        @Result(property = "dailyReturn", column = "daily_return"),
+        @Result(property = "navDate", column = "nav_date"),
+        @Result(property = "unitNav", column = "unit_nav"),
+        @Result(property = "volume", column = "volume"),
+        @Result(property = "amount", column = "amount"),
+        @Result(property = "alertContent", column = "alert_content"),
+        @Result(property = "createTime", column = "create_time"),
+        @Result(property = "updateTime", column = "update_time")
+    })
+    List<AlertRecord> selectRecent(@Param("limit") int limit);
 }
