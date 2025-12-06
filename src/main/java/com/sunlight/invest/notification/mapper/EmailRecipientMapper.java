@@ -20,8 +20,8 @@ public interface EmailRecipientMapper {
      * @param emailRecipient 邮件接收人对象
      * @return 影响行数
      */
-    @Insert("INSERT INTO email_recipient (name, email, enabled, create_time, update_time) " +
-            "VALUES (#{name}, #{email}, #{enabled}, NOW(), NOW())")
+    @Insert("INSERT INTO email_recipient (name, email, enabled, user_id, create_time, update_time) " +
+            "VALUES (#{name}, #{email}, #{enabled}, #{userId}, NOW(), NOW())")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(EmailRecipient emailRecipient);
 
@@ -37,6 +37,7 @@ public interface EmailRecipientMapper {
             @Result(property = "name", column = "name"),
             @Result(property = "email", column = "email"),
             @Result(property = "enabled", column = "enabled"),
+            @Result(property = "userId", column = "user_id"),
             @Result(property = "createTime", column = "create_time"),
             @Result(property = "updateTime", column = "update_time")
     })
@@ -54,10 +55,29 @@ public interface EmailRecipientMapper {
             @Result(property = "name", column = "name"),
             @Result(property = "email", column = "email"),
             @Result(property = "enabled", column = "enabled"),
+            @Result(property = "userId", column = "user_id"),
             @Result(property = "createTime", column = "create_time"),
             @Result(property = "updateTime", column = "update_time")
     })
     EmailRecipient selectByEmail(@Param("email") String email);
+
+    /**
+     * 根据用户ID查询邮件接收人
+     *
+     * @param userId 用户ID
+     * @return 邮件接收人列表
+     */
+    @Select("SELECT * FROM email_recipient WHERE user_id = #{userId}")
+    @Results({
+            @Result(property = "id", column = "id"),
+            @Result(property = "name", column = "name"),
+            @Result(property = "email", column = "email"),
+            @Result(property = "enabled", column = "enabled"),
+            @Result(property = "userId", column = "user_id"),
+            @Result(property = "createTime", column = "create_time"),
+            @Result(property = "updateTime", column = "update_time")
+    })
+    List<EmailRecipient> selectByUserId(@Param("userId") Long userId);
 
     /**
      * 查询所有启用的邮件接收人
@@ -70,6 +90,7 @@ public interface EmailRecipientMapper {
             @Result(property = "name", column = "name"),
             @Result(property = "email", column = "email"),
             @Result(property = "enabled", column = "enabled"),
+            @Result(property = "userId", column = "user_id"),
             @Result(property = "createTime", column = "create_time"),
             @Result(property = "updateTime", column = "update_time")
     })
@@ -86,6 +107,7 @@ public interface EmailRecipientMapper {
             @Result(property = "name", column = "name"),
             @Result(property = "email", column = "email"),
             @Result(property = "enabled", column = "enabled"),
+            @Result(property = "userId", column = "user_id"),
             @Result(property = "createTime", column = "create_time"),
             @Result(property = "updateTime", column = "update_time")
     })
@@ -97,7 +119,8 @@ public interface EmailRecipientMapper {
      * @param emailRecipient 邮件接收人对象
      * @return 影响行数
      */
-    @Update("UPDATE email_recipient SET name = #{name}, email = #{email}, enabled = #{enabled}, update_time = NOW() " +
+    @Update("UPDATE email_recipient SET name = #{name}, email = #{email}, enabled = #{enabled}, " +
+            "user_id = #{userId}, update_time = NOW() " +
             "WHERE id = #{id}")
     int update(EmailRecipient emailRecipient);
 

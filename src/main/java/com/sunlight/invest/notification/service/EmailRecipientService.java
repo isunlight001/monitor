@@ -47,16 +47,16 @@ public class EmailRecipientService {
     }
 
     /**
-     * 根据ID查询邮件接收人
+     * 根据ID获取邮件接收人
      *
-     * @param id 主键ID
+     * @param id 邮件接收人ID
      * @return 邮件接收人对象
      */
     public EmailRecipient getEmailRecipientById(Long id) {
         try {
-            EmailRecipient result = emailRecipientMapper.selectById(id);
-            log.debug("查询邮件接收人: ID={}, 结果={}", id, result);
-            return result;
+            EmailRecipient emailRecipient = emailRecipientMapper.selectById(id);
+            log.debug("查询邮件接收人: ID={}", id);
+            return emailRecipient;
         } catch (Exception e) {
             log.error("查询邮件接收人失败: ID={}", id, e);
             throw new RuntimeException("查询邮件接收人失败: " + e.getMessage(), e);
@@ -64,32 +64,49 @@ public class EmailRecipientService {
     }
 
     /**
-     * 根据邮箱查询邮件接收人
+     * 根据邮箱获取邮件接收人
      *
      * @param email 邮箱地址
      * @return 邮件接收人对象
      */
     public EmailRecipient getEmailRecipientByEmail(String email) {
         try {
-            EmailRecipient result = emailRecipientMapper.selectByEmail(email);
-            log.debug("查询邮件接收人: 邮箱={}, 结果={}", email, result);
-            return result;
+            EmailRecipient emailRecipient = emailRecipientMapper.selectByEmail(email);
+            log.debug("查询邮件接收人: email={}", email);
+            return emailRecipient;
         } catch (Exception e) {
-            log.error("查询邮件接收人失败: 邮箱={}", email, e);
+            log.error("查询邮件接收人失败: email={}", email, e);
             throw new RuntimeException("查询邮件接收人失败: " + e.getMessage(), e);
         }
     }
 
     /**
-     * 查询所有启用的邮件接收人
+     * 根据用户ID获取邮件接收人列表
+     *
+     * @param userId 用户ID
+     * @return 邮件接收人列表
+     */
+    public List<EmailRecipient> getEmailRecipientsByUserId(Long userId) {
+        try {
+            List<EmailRecipient> emailRecipients = emailRecipientMapper.selectByUserId(userId);
+            log.debug("查询邮件接收人: userId={}, 数量: {}", userId, emailRecipients.size());
+            return emailRecipients;
+        } catch (Exception e) {
+            log.error("查询邮件接收人失败: userId={}", userId, e);
+            throw new RuntimeException("查询邮件接收人失败: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 获取所有启用的邮件接收人
      *
      * @return 邮件接收人列表
      */
     public List<EmailRecipient> getAllEnabledEmailRecipients() {
         try {
-            List<EmailRecipient> result = emailRecipientMapper.selectAllEnabled();
-            log.debug("查询所有启用的邮件接收人，数量: {}", result.size());
-            return result;
+            List<EmailRecipient> emailRecipients = emailRecipientMapper.selectAllEnabled();
+            log.debug("查询所有启用的邮件接收人，数量: {}", emailRecipients.size());
+            return emailRecipients;
         } catch (Exception e) {
             log.error("查询所有启用的邮件接收人失败", e);
             throw new RuntimeException("查询所有启用的邮件接收人失败: " + e.getMessage(), e);
@@ -97,7 +114,7 @@ public class EmailRecipientService {
     }
 
     /**
-     * 查询所有邮件接收人
+     * 获取所有邮件接收人
      *
      * @return 邮件接收人列表
      */

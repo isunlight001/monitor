@@ -42,6 +42,11 @@ public class EmailRecipient {
      * 更新时间
      */
     private LocalDateTime updateTime;
+    
+    /**
+     * 关联用户ID
+     */
+    private Long userId;
 
     // Constructors
     public EmailRecipient() {}
@@ -101,6 +106,14 @@ public class EmailRecipient {
         this.updateTime = updateTime;
     }
 
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
     @Override
     public String toString() {
         return "EmailRecipient{" +
@@ -110,6 +123,7 @@ public class EmailRecipient {
                 ", enabled=" + enabled +
                 ", createTime=" + createTime +
                 ", updateTime=" + updateTime +
+                ", userId=" + userId +
                 '}';
     }
 }

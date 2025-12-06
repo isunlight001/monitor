@@ -82,3 +82,28 @@ CREATE TABLE IF NOT EXISTS `system_config` (
     update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
     UNIQUE KEY uk_config_key (config_key)
 ) COMMENT '系统配置表';
+
+-- 用户表
+CREATE TABLE IF NOT EXISTS `user` (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL COMMENT '用户名',
+    password VARCHAR(100) NOT NULL COMMENT '密码',
+    email VARCHAR(100) NOT NULL COMMENT '邮箱地址',
+    real_name VARCHAR(100) COMMENT '真实姓名',
+    enabled TINYINT(1) DEFAULT 1 COMMENT '是否启用 (1:启用, 0:禁用)',
+    create_time DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    UNIQUE KEY uk_username (username),
+    UNIQUE KEY uk_email (email)
+) COMMENT '用户表';
+
+-- 修改邮件接收者表，添加用户关联字段
+ALTER TABLE `email_recipient` 
+ADD COLUMN user_id BIGINT NULL COMMENT '关联用户ID',
+ADD INDEX idx_user_id (user_id);
+
+-- 添加外键约束（可选）
+-- ALTER TABLE `email_recipient` 
+-- ADD CONSTRAINT fk_email_recipient_user 
+-- FOREIGN KEY (user_id) REFERENCES `user`(id) 
+-- ON DELETE SET NULL ON UPDATE CASCADE;
