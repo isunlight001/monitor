@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>基金监控</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <title>基金监控系统</title>
     <style>
         * {
             margin: 0;
@@ -18,7 +16,6 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
-            background-color: #f8f9fa;
         }
 
         .container {
@@ -48,117 +45,290 @@
         }
 
         .nav-links {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 15px;
             margin-top: 20px;
         }
 
-        .nav-link {
-            padding: 12px 25px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s;
+        .nav-links a {
             color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            padding: 8px 16px;
+            border-radius: 20px;
             background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s;
         }
 
-        .nav-link:hover {
+        .nav-links a:hover {
             background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
 
         .content {
             padding: 30px;
         }
 
-        .card {
-            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-            border: 1px solid rgba(0, 0, 0, 0.125);
-        }
-        
-        .card-header {
-            background-color: #fff;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
-        }
-        
-        .table th {
-            font-weight: 600;
-        }
-        
-        .form-control:focus {
-            border-color: #86b7fe;
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-        }
-        
-        .btn-primary {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
-        }
-        
-        .btn-primary:hover {
-            background-color: #0b5ed7;
-            border-color: #0a58ca;
-        }
-        
-        @media (max-width: 768px) {
-            .nav-links {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .nav-link {
-                width: 80%;
-                text-align: center;
-            }
+        .form-section {
+            margin-bottom: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
         }
 
-        /* 用户信息显示 */
-        .user-info {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 10px 15px;
-            border-radius: 5px;
+        .form-section h3 {
+            color: #333;
             margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            font-size: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
         }
 
-        .user-info span {
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
             font-weight: 500;
         }
 
-        .logout-btn {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 3px;
-            cursor: pointer;
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
         }
 
-        .logout-btn:hover {
-            background: #c82333;
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(56, 239, 125, 0.4);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+        }
+
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 75, 43, 0.4);
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .result.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .nav-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-table th,
+        .nav-table td {
+            border: none;
+            padding: 16px;
+            text-align: left;
+        }
+
+        .nav-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 500;
+        }
+
+        .nav-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .nav-table tr:hover {
+            background-color: #e3f2fd;
+        }
+
+        .positive {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .negative {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .config-info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .config-info h4 {
+            margin-bottom: 15px;
+            color: #1976d2;
+        }
+
+        .config-info ul {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+
+        .config-info code {
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        /* 下拉列表样式 */
+        .fund-dropdown {
+            position: relative;
+        }
+        
+        .fund-dropdown-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+        
+        .fund-dropdown-item {
+            padding: 10px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .fund-dropdown-item:hover {
+            background-color: #e3f2fd;
+        }
+        
+        .fund-dropdown-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* 返回首页按钮样式 */
+        .top-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .back-home {
+            padding: 8px 16px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .back-home:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📊 基金监控</h1>
-            <p>实时监控基金走势和风险预警</p>
-            
-            <!-- 用户信息 -->
-            <div class="user-info" id="userInfo" style="display: none; background: rgba(255, 255, 255, 0.3);">
-                <span>欢迎, <span id="currentUserName"></span></span>
-                <button class="logout-btn" onclick="logout()">退出登录</button>
+            <div class="top-nav">
+                <h1>📈 基金监控系统</h1>
+                <a href="index.html" class="back-home">🏠 返回首页</a>
             </div>
-            
+            <p>自动抓取基金数据并监控异常波动</p>
             <div class="nav-links">
                 <a href="index.html" class="nav-link">🏠 首页</a>
                 <a href="fund-monitor.html" class="nav-link">📊 基金监控</a>
@@ -166,144 +336,452 @@
                 <a href="fund-backtest.html" class="nav-link">🧪 基金回测</a>
                 <a href="alert-records.html" class="nav-link">🔔 告警记录</a>
                 <a href="notification-test.html" class="nav-link">📧 通知测试</a>
-                <a href="fund-report-test.html" class="nav-link">📈 报告测试</a>
                 <a href="email-recipient-management.html" class="nav-link">👥 邮件接收人</a>
                 <a href="system-config.html" class="nav-link">⚙️ 系统配置</a>
             </div>
         </div>
-        
+
         <div class="content">
-            <div class="row">
-                <div class="col-md-12">
-                    <div class="card">
-                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                            <h4 class="mb-0"><i class="bi bi-graph-up me-2"></i>基金监控列表</h4>
-                            <button class="btn btn-light" onclick="refreshFunds()">
-                                <i class="bi bi-arrow-clockwise"></i> 刷新
-                            </button>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>基金代码</th>
-                                            <th>基金名称</th>
-                                            <th>最新净值</th>
-                                            <th>涨跌幅</th>
-                                            <th>监控状态</th>
-                                            <th>更新时间</th>
-                                            <th>操作</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="fundTableBody">
-                                        <!-- 基金数据将通过JavaScript动态加载 -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+            <!-- 配置说明 -->
+            <div class="config-info">
+                <h4>⚙️ 系统说明</h4>
+                <ul>
+                    <li><strong>定时任务：</strong>每晚11点自动抓取基金数据并执行监控</li>
+                    <li><strong>监控规则：</strong>
+                        <ul>
+                            <li>规则A：连续5天或以上上涨/下跌</li>
+                            <li>规则B：单日涨跌幅绝对值≥5%</li>
+                            <li>规则C：连续2天累计涨跌幅绝对值≥4%</li>
+                            <li>规则D：连续3天累计涨跌幅绝对值≥5%</li>
+                            <li>规则E：连续4天累计涨跌幅绝对值≥5%</li>
+                        </ul>
+                    </li>
+                    <li><strong>告警方式：</strong>邮件通知（收件人：默认收件人）</li>
+                </ul>
+            </div>
+
+            <!-- 手工触发预警 -->
+            <div class="form-section">
+                <h3>🚨 手工触发预警</h3>
+                <p>立即对所有启用的监控基金执行数据更新和预警检查</p>
+                <button class="btn btn-danger" onclick="triggerAllMonitorFunds()">立即执行预警</button>
+                <div class="result" id="triggerResult"></div>
+            </div>
+
+            <!-- 基金数据抓取 -->
+            <div class="form-section">
+                <h3>📥 基金数据抓取</h3>
+                <div class="form-group">
+                    <label>基金代码*</label>
+                    <div class="fund-dropdown">
+                        <input type="text" id="fundCode" placeholder="例如: 006195" value="006195">
+                        <div class="fund-dropdown-list" id="fundCodeDropdown"></div>
                     </div>
                 </div>
+                <div class="form-group">
+                    <label>基金名称*</label>
+                    <input type="text" id="fundName" placeholder="例如: 国金量化多因子" value="国金量化多因子">
+                </div>
+                <div class="form-group">
+                    <label>开始日期（可选）</label>
+                    <input type="date" id="startDate">
+                </div>
+                <div class="form-group">
+                    <label>结束日期（可选）</label>
+                    <input type="date" id="endDate">
+                </div>
+                <button class="btn btn-primary" onclick="crawlFundData()">抓取基金数据</button>
+                <button class="btn btn-info" onclick="incrementalUpdate()">增量更新</button>
+                <div class="result" id="crawlResult"></div>
             </div>
-        </div>
-        
-        <div class="footer" style="text-align: center; padding: 20px; color: #666; border-top: 1px solid #eee; margin-top: 30px;">
-            <p>© 2025 基金监控系统 - 专业的基金数据分析平台</p>
+
+            <!-- 基金监控检查 -->
+            <div class="form-section">
+                <h3>🔍 基金监控检查</h3>
+                <div class="form-group">
+                    <label>基金代码*</label>
+                    <div class="fund-dropdown">
+                        <input type="text" id="checkFundCode" placeholder="例如: 006195" value="006195">
+                        <div class="fund-dropdown-list" id="checkFundCodeDropdown"></div>
+                    </div>
+                </div>
+                <button class="btn btn-success" onclick="checkFund()">执行监控检查</button>
+                <div class="result" id="checkResult"></div>
+            </div>
+
+            <!-- 查询基金净值 -->
+            <div class="form-section">
+                <h3>📊 查询基金净值</h3>
+                <div class="form-group">
+                    <label>基金代码*</label>
+                    <div class="fund-dropdown">
+                        <input type="text" id="queryFundCode" placeholder="例如: 006195" value="006195">
+                        <div class="fund-dropdown-list" id="queryFundCodeDropdown"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>查询天数</label>
+                    <input type="number" id="queryDays" placeholder="例如: 30" value="30" min="1" max="365">
+                </div>
+                <button class="btn btn-info" onclick="queryFundNav()">查询净值数据</button>
+                <div class="result" id="queryResult"></div>
+                <div id="navTableContainer"></div>
+            </div>
+
+            <!-- 监控基金管理 -->
+            <div class="form-section">
+                <h3>📋 监控基金管理</h3>
+                <div class="form-group">
+                    <label>基金代码*</label>
+                    <div class="fund-dropdown">
+                        <input type="text" id="monitorFundCode" placeholder="例如: 006195">
+                        <div class="fund-dropdown-list" id="monitorFundCodeDropdown"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>基金名称*</label>
+                    <input type="text" id="monitorFundName" placeholder="例如: 国金量化多因子">
+                </div>
+                <button class="btn btn-primary" onclick="addMonitorFund()">添加监控基金</button>
+                <button class="btn btn-info" onclick="loadMonitorFunds()">刷新监控列表</button>
+                <div class="result" id="monitorResult"></div>
+                <div id="monitorFundsTableContainer"></div>
+            </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        const USER_API_BASE = '/api/users';
+        const API_BASE = '/api/fund/monitor';
 
-        // 页面加载完成后初始化
+        // 页面加载完成后设置默认日期
         document.addEventListener('DOMContentLoaded', function() {
-            checkLoginStatus();
-            loadFunds();
+            const today = new Date();
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(today.getDate() - 30);
+            
+            document.getElementById('startDate').valueAsDate = thirtyDaysAgo;
+            document.getElementById('endDate').valueAsDate = today;
+            
+            // 加载监控基金列表
+            loadMonitorFunds();
         });
 
-        // 检查登录状态
-        async function checkLoginStatus() {
-            try {
-                const response = await fetch(`${USER_API_BASE}/status`);
-                const result = await response.json();
-                
-                if (result.success) {
-                    // 显示用户信息
-                    document.getElementById('userInfo').style.display = 'flex';
-                    document.getElementById('currentUserName').textContent = result.data.username;
-                } else {
-                    // 未登录，跳转到登录页面
-                    window.location.href = 'login.html';
-                }
-            } catch (error) {
-                console.error('检查登录状态失败:', error);
-                // 跳转到登录页面
-                window.location.href = 'login.html';
-            }
+        // 显示结果消息
+        function showResult(elementId, isSuccess, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = 'result ' + (isSuccess ? 'success' : 'error') + ' show';
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                element.classList.remove('show');
+            }, 3000);
         }
 
-        // 用户登出
-        async function logout() {
+        // 手工触发所有监控基金的预警
+        async function triggerAllMonitorFunds() {
+            const resultElement = document.getElementById('triggerResult');
+            resultElement.textContent = '正在执行预警...';
+            resultElement.className = 'result show';
+            
             try {
-                const response = await fetch(`${USER_API_BASE}/logout`, {
+                const response = await fetch(`${API_BASE}/trigger-all`, {
                     method: 'POST'
                 });
                 
                 const result = await response.json();
                 
-                if (response.ok && result.success) {
-                    // 登出成功，跳转到登录页面
-                    window.location.href = 'login.html';
+                if (result.success) {
+                    showResult('triggerResult', true, `预警执行成功！共处理 ${result.processedCount} 只基金`);
                 } else {
-                    alert('登出失败: ' + result.message);
+                    showResult('triggerResult', false, `预警执行失败: ${result.message}`);
                 }
             } catch (error) {
-                alert('登出失败: ' + error.message);
+                showResult('triggerResult', false, `请求失败: ${error.message}`);
             }
         }
 
-        // 加载基金数据
-        function loadFunds() {
-            const tbody = document.getElementById('fundTableBody');
-            tbody.innerHTML = '';
+        // 抓取基金数据
+        async function crawlFundData() {
+            const fundCode = document.getElementById('fundCode').value;
+            const fundName = document.getElementById('fundName').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
             
-            // 模拟基金数据
-            const funds = [
-                {code: '001234', name: '华夏成长混合', nav: '1.2345', change: '+2.34%', status: '监控中', updateTime: '2025-12-06 10:30:15'},
-                {code: '567890', name: '易方达消费', nav: '2.3456', change: '-1.23%', status: '监控中', updateTime: '2025-12-06 10:30:12'},
-                {code: '112233', name: '嘉实新兴产业', nav: '1.8765', change: '+0.87%', status: '监控中', updateTime: '2025-12-06 10:30:10'}
-            ];
+            if (!fundCode || !fundName) {
+                showResult('crawlResult', false, '请填写基金代码和基金名称');
+                return;
+            }
             
-            funds.forEach(fund => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${fund.code}</td>
-                    <td>${fund.name}</td>
-                    <td>${fund.nav}</td>
-                    <td class="${fund.change.startsWith('+') ? 'text-success' : 'text-danger'}">
-                        ${fund.change}
-                    </td>
-                    <td>
-                        <span class="badge bg-success">${fund.status}</span>
-                    </td>
-                    <td>${fund.updateTime}</td>
-                    <td>
-                        <button class="btn btn-sm btn-outline-primary me-1">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
+            try {
+                let url = `${API_BASE}/crawl?fundCode=${encodeURIComponent(fundCode)}&fundName=${encodeURIComponent(fundName)}`;
+                if (startDate) url += `&startDate=${startDate}`;
+                if (endDate) url += `&endDate=${endDate}`;
+                
+                const response = await fetch(url, {
+                    method: 'POST'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showResult('crawlResult', true, `数据抓取成功！共获取 ${result.count} 条记录`);
+                } else {
+                    showResult('crawlResult', false, `数据抓取失败: ${result.message}`);
+                }
+            } catch (error) {
+                showResult('crawlResult', false, `请求失败: ${error.message}`);
+            }
         }
 
-        // 刷新基金数据
-        function refreshFunds() {
-            loadFunds();
+        // 增量更新基金数据
+        async function incrementalUpdate() {
+            const fundCode = document.getElementById('fundCode').value;
+            const fundName = document.getElementById('fundName').value;
+            
+            if (!fundCode || !fundName) {
+                showResult('crawlResult', false, '请填写基金代码和基金名称');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/update`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `fundCode=${encodeURIComponent(fundCode)}&fundName=${encodeURIComponent(fundName)}`
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showResult('crawlResult', true, `增量更新成功！共更新 ${result.count} 条记录`);
+                } else {
+                    showResult('crawlResult', false, `增量更新失败: ${result.message}`);
+                }
+            } catch (error) {
+                showResult('crawlResult', false, `请求失败: ${error.message}`);
+            }
+        }
+
+        // 执行基金监控检查
+        async function checkFund() {
+            const fundCode = document.getElementById('checkFundCode').value;
+            
+            if (!fundCode) {
+                showResult('checkResult', false, '请填写基金代码');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/check?fundCode=${encodeURIComponent(fundCode)}`, {
+                    method: 'POST'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showResult('checkResult', true, `监控检查完成！`);
+                } else {
+                    showResult('checkResult', false, `监控检查失败: ${result.message}`);
+                }
+            } catch (error) {
+                showResult('checkResult', false, `请求失败: ${error.message}`);
+            }
+        }
+
+        // 查询基金净值
+        async function queryFundNav() {
+            const fundCode = document.getElementById('queryFundCode').value;
+            const days = document.getElementById('queryDays').value || 30;
+            
+            if (!fundCode) {
+                showResult('queryResult', false, '请填写基金代码');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/nav?fundCode=${encodeURIComponent(fundCode)}&days=${days}`);
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    renderNavTable(result.data);
+                    showResult('queryResult', true, `查询成功！共找到 ${result.count} 条记录`);
+                } else {
+                    showResult('queryResult', false, `查询失败: ${result.message}`);
+                }
+            } catch (error) {
+                showResult('queryResult', false, `请求失败: ${error.message}`);
+            }
+        }
+
+        // 渲染净值表格
+        function renderNavTable(data) {
+            const container = document.getElementById('navTableContainer');
+            
+            if (!data || data.length === 0) {
+                container.innerHTML = '<p>暂无数据</p>';
+                return;
+            }
+            
+            let html = `
+                <table class="nav-table">
+                    <thead>
+                        <tr>
+                            <th>净值日期</th>
+                            <th>单位净值</th>
+                            <th>日涨跌幅</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            data.forEach(item => {
+                const dailyReturn = item.dailyReturn !== null ? 
+                    `<span class="${item.dailyReturn >= 0 ? 'positive' : 'negative'}">
+                        ${item.dailyReturn >= 0 ? '+' : ''}${parseFloat(item.dailyReturn).toFixed(2)}%
+                    </span>` : '-';
+                
+                html += `
+                    <tr>
+                        <td>${item.navDate}</td>
+                        <td>${parseFloat(item.unitNav).toFixed(4)}</td>
+                        <td>${dailyReturn}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                    </tbody>
+                </table>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        // 添加监控基金
+        async function addMonitorFund() {
+            const fundCode = document.getElementById('monitorFundCode').value;
+            const fundName = document.getElementById('monitorFundName').value;
+            
+            if (!fundCode || !fundName) {
+                showResult('monitorResult', false, '请填写基金代码和基金名称');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/monitor-fund`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `fundCode=${encodeURIComponent(fundCode)}&fundName=${encodeURIComponent(fundName)}`
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showResult('monitorResult', true, '监控基金添加成功！');
+                    document.getElementById('monitorFundCode').value = '';
+                    document.getElementById('monitorFundName').value = '';
+                    loadMonitorFunds(); // 刷新列表
+                } else {
+                    showResult('monitorResult', false, `添加失败: ${result.message}`);
+                }
+            } catch (error) {
+                showResult('monitorResult', false, `请求失败: ${error.message}`);
+            }
+        }
+
+        // 加载监控基金列表
+        async function loadMonitorFunds() {
+            try {
+                const response = await fetch(`${API_BASE}/monitor-funds`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    renderMonitorFundsTable(result.data);
+                } else {
+                    console.error('加载监控基金列表失败:', result.message);
+                }
+            } catch (error) {
+                console.error('加载监控基金列表失败:', error);
+            }
+        }
+
+        // 渲染监控基金表格
+        function renderMonitorFundsTable(data) {
+            const container = document.getElementById('monitorFundsTableContainer');
+            
+            if (!data || data.length === 0) {
+                container.innerHTML = '<p class="text-muted">暂无监控基金</p>';
+                return;
+            }
+            
+            let html = `
+                <table class="nav-table">
+                    <thead>
+                        <tr>
+                            <th>基金代码</th>
+                            <th>基金名称</th>
+                            <th>状态</th>
+                            <th>创建时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            data.forEach(item => {
+                const statusText = item.enabled ? 
+                    '<span class="badge bg-success">启用</span>' : 
+                    '<span class="badge bg-secondary">禁用</span>';
+                
+                html += `
+                    <tr>
+                        <td>${item.fundCode}</td>
+                        <td>${item.fundName}</td>
+                        <td>${statusText}</td>
+                        <td>${item.createTime ? new Date(item.createTime).toLocaleString() : '-'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteMonitorFund('${item.id}')">删除</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                    </tbody>
+                </table>
+            `;
+            
+            container.innerHTML = html;
+        }
+
+        // 删除监控基金
+        async function deleteMonitorFund(id) {
+            if (!confirm(`确定要删除这个监控基金吗？`)) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/monitor-fund/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showResult('monitorResult', true, '监控基金删除成功！');
+                    loadMonitorFunds(); // 刷新列表
+                } else {
+                    showResult('monitorResult', false, `删除失败: ${result.message}`);
+                }
+            } catch (error) {
+                showResult('monitorResult', false, `请求失败: ${error.message}`);
+            }
         }
     </script>
 </body>
