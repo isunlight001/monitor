@@ -366,8 +366,26 @@
         async function loadRecipients() {
             try {
                 const response = await fetch(API_BASE);
-                const recipients = await response.json();
                 
+                let recipients = [];
+                
+                // 尝试解析响应
+                try {
+                    const result = await response.json();
+                    // 处理新格式 {success: true, data: [...]}
+                    if (result && typeof result === 'object' && result.success && Array.isArray(result.data)) {
+                        recipients = result.data;
+                    } 
+                    // 处理旧格式直接返回数组
+                    else if (Array.isArray(result)) {
+                        recipients = result;
+                    }
+                } catch (jsonError) {
+                    // 如果JSON解析失败，记录错误但不中断流程
+                    console.warn('响应不是JSON格式:', jsonError);
+                }
+                
+                // 渲染表格
                 const tbody = document.getElementById('recipientsTableBody');
                 tbody.innerHTML = '';
                 
@@ -425,11 +443,32 @@
                     method: 'DELETE'
                 });
                 
-                if (response.ok) {
+                // 获取响应文本，然后尝试解析为JSON
+                let result;
+                let responseText = '';
+                try {
+                    responseText = await response.text();
+                    if (responseText) {
+                        result = JSON.parse(responseText);
+                    } else {
+                        // 如果响应为空，创建一个默认的成功响应
+                        result = {
+                            success: response.ok,
+                            message: response.ok ? '删除成功' : '删除失败'
+                        };
+                    }
+                } catch (jsonError) {
+                    // 如果不是有效的JSON，将其作为消息文本处理
+                    result = {
+                        success: response.ok,
+                        message: responseText || (response.ok ? '删除成功' : '删除失败')
+                    };
+                }
+                
+                if (response.ok && result.success) {
                     showResult('formResult', true, '删除成功');
                     loadRecipients(); // 刷新列表
                 } else {
-                    const result = await response.json();
                     showResult('formResult', false, result.message || '删除失败');
                 }
             } catch (error) {
@@ -489,7 +528,27 @@
                     });
                 }
                 
-                const result = await response.json();
+                // 获取响应文本，然后尝试解析为JSON
+                let result;
+                let responseText = '';
+                try {
+                    responseText = await response.text();
+                    if (responseText) {
+                        result = JSON.parse(responseText);
+                    } else {
+                        // 如果响应为空，创建一个默认的成功响应
+                        result = {
+                            success: response.ok,
+                            message: response.ok ? (id ? '更新成功' : '添加成功') : (id ? '更新失败' : '添加失败')
+                        };
+                    }
+                } catch (jsonError) {
+                    // 如果不是有效的JSON，将其作为消息文本处理
+                    result = {
+                        success: response.ok,
+                        message: responseText || (response.ok ? (id ? '更新成功' : '添加成功') : (id ? '更新失败' : '添加失败'))
+                    };
+                }
                 
                 if (response.ok && result.success) {
                     showResult('formResult', true, id ? '更新成功' : '添加成功');
