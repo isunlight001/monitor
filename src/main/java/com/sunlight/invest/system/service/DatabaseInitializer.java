@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -14,7 +15,9 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
+import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -41,6 +44,18 @@ public class DatabaseInitializer {
     @Value("classpath:init.sql")
     private Resource initResource;
 
+    @Value("${spring.datasource.url}")
+    private String dbUrl;
+
+    @Value("${spring.datasource.username}")
+    private String dbUsername;
+
+    @Value("${spring.datasource.password}")
+    private String dbPassword;
+
+    @Value("${spring.datasource.driver-class-name}")
+    private String dbDriver;
+
     /**
      * 应用启动时初始化数据库
      */
@@ -48,6 +63,11 @@ public class DatabaseInitializer {
     public void initializeDatabase() {
         try {
             log.info("开始初始化数据库...");
+
+            // 检查并创建数据库（如果是MySQL）
+            if (dbUrl.contains("mysql")) {
+                createDatabaseIfNotExists();
+            }
 
             // 执行表结构初始化
             if (schemaResource.exists()) {
@@ -67,6 +87,75 @@ public class DatabaseInitializer {
         } catch (Exception e) {
             log.error("数据库初始化失败", e);
         }
+    }
+
+    /**
+     * 检查并创建数据库（仅适用于MySQL）
+     */
+    private void createDatabaseIfNotExists() {
+        try {
+            // 解析数据库名称
+            String dbName = extractDatabaseName(dbUrl);
+            if (dbName == null) {
+                log.warn("无法从URL中提取数据库名称: {}", dbUrl);
+                return;
+            }
+
+            // 创建不带数据库名的连接URL
+            String baseDbUrl = dbUrl.substring(0, dbUrl.indexOf(dbName));
+            
+            log.info("检查数据库 {} 是否存在...", dbName);
+            
+            // 使用不带数据库名的URL连接
+            try (Connection connection = DriverManager.getConnection(baseDbUrl, dbUsername, dbPassword)) {
+                // 检查数据库是否存在
+                if (!databaseExists(connection, dbName)) {
+                    log.info("数据库 {} 不存在，正在创建...", dbName);
+                    try (Statement stmt = connection.createStatement()) {
+                        stmt.executeUpdate("CREATE DATABASE IF NOT EXISTS `" + dbName + "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+                        log.info("数据库 {} 创建成功", dbName);
+                    }
+                } else {
+                    log.info("数据库 {} 已存在", dbName);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("检查或创建数据库时出错: {}", e.getMessage());
+            // 不中断应用程序启动
+        }
+    }
+
+    /**
+     * 从数据库URL中提取数据库名称
+     */
+    private String extractDatabaseName(String url) {
+        try {
+            // 匹配jdbc:mysql://host:port/databaseName格式
+            Pattern pattern = Pattern.compile("jdbc:mysql://[^/]+/([^?]+)");
+            Matcher matcher = pattern.matcher(url);
+            if (matcher.find()) {
+                return matcher.group(1);
+            }
+        } catch (Exception e) {
+            log.warn("解析数据库名称时出错: {}", e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * 检查数据库是否存在
+     */
+    private boolean databaseExists(Connection connection, String dbName) {
+        try (ResultSet rs = connection.getMetaData().getCatalogs()) {
+            while (rs.next()) {
+                if (dbName.equals(rs.getString("TABLE_CAT"))) {
+                    return true;
+                }
+            }
+        } catch (Exception e) {
+            log.warn("检查数据库是否存在时出错: {}", e.getMessage());
+        }
+        return false;
     }
 
     /**
