@@ -205,6 +205,44 @@ public class FundCrawlerService {
     }
 
     /**
+     * 检查是否需要爬取数据
+     * 
+     * @param fundCode 基金代码
+     * @param endDate  结束日期
+     * @return true表示需要爬取，false表示不需要爬取
+     */
+    public boolean shouldCrawl(String fundCode, LocalDate endDate) {
+        // 首先检查是否有最新的数据
+        FundNav latestNav = fundNavMapper.selectLatest(fundCode);
+        
+        // 如果没有最新数据，则需要爬取
+        if (latestNav == null) {
+            return true;
+        }
+        
+        // 如果有最新数据，检查数据是否足够新
+        LocalDate latestDate = latestNav.getNavDate();
+        LocalDate today = LocalDate.now();
+        LocalDate yesterday = today.minusDays(1);
+        
+        // 如果最新数据是今天或昨天，则不需要重新爬取
+        if (latestDate.equals(today) || latestDate.equals(yesterday)) {
+            log.info("基金{}已有最新数据，无需重新爬取: latestDate={}", fundCode, latestDate);
+            return false;
+        }
+        
+        // 如果最新数据是前天或更早，但结束日期早于最新数据日期，则也不需要爬取
+        if (endDate.isBefore(latestDate)) {
+            log.info("基金{}的结束日期早于最新数据日期，无需爬取: endDate={}, latestDate={}", 
+                     fundCode, endDate, latestDate);
+            return false;
+        }
+        
+        // 其他情况下需要爬取
+        return true;
+    }
+
+    /**
      * 爬取并保存基金数据到数据库
      *
      * @param fundCode  基金代码
@@ -214,6 +252,12 @@ public class FundCrawlerService {
      * @return 保存成功的记录数
      */
     public int crawlAndSave(String fundCode, String fundName, LocalDate startDate, LocalDate endDate) {
+        // 检查是否需要爬取数据
+        if (!shouldCrawl(fundCode, endDate)) {
+            return 0;
+        }
+        
+        // 如果需要爬取，则进行爬取
         List<FundNav> navList = crawlFundNav(fundCode, fundName, startDate, endDate);
         if (navList.isEmpty()) {
             log.warn("未爬取到数据: fundCode={}", fundCode);
