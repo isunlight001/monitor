@@ -48,4 +48,5 @@ INSERT INTO `system_config` VALUES (2, 'threshold_4_percent', '4.0', '4%阈值',
 INSERT INTO `system_config` VALUES (3, 'monitor_days', '5', '监控天数', 1, '2025-12-04 15:04:28', '2025-12-04 15:08:54');
 INSERT INTO `system_config` VALUES (4, 'schedule_cron', '0 0 14 * * ?', '定时任务cron表达式', 1, '2025-12-04 15:04:28', '2025-12-04 15:12:29');
 
+INSERT INTO `fund`.`user`(`id`, `username`, `password`, `email`, `real_name`, `enabled`, `create_time`, `update_time`) VALUES (1, 'admin', 'admin', 'admin@example.com', '系统管理员', 1, '2025-12-06 09:48:28', '2025-12-06 09:50:42');
 
