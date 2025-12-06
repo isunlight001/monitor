@@ -5,28 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>指数数据监控</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             padding: 20px;
-            background-color: #f5f5f5;
         }
-        
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
         }
-        
-        h1 {
-            color: #333;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
+
         .form-section {
             background-color: #f8f9fa;
             padding: 20px;
@@ -98,15 +98,22 @@
         
         .data-table th, .data-table td {
             border: 1px solid #ddd;
-            padding: 12px;
+            padding: 12px 15px;
             text-align: left;
         }
         
         .data-table th {
-            background-color: #f2f2f2;
-            font-weight: bold;
-            position: sticky;
-            top: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 500;
+        }
+        
+        .data-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .data-table tr:hover {
+            background-color: #e3f2fd;
         }
         
         .positive {
@@ -150,29 +157,6 @@
             margin-bottom: 20px;
         }
         
-        /* 返回首页按钮样式 */
-        .top-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .back-home {
-            padding: 8px 16px;
-            background: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-        
-        .back-home:hover {
-            background: #0056b3;
-            transform: translateY(-2px);
-        }
-        
         @media (max-width: 768px) {
             .form-group {
                 flex-direction: column;
@@ -198,24 +182,13 @@
             }
         }
     </style>
+    <!-- 引入公共header样式 -->
+    <link rel="stylesheet" href="css/header.css">
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>💹 指数数据监控</h1>
-            <p>获取和监控主要股指的历史数据</p>
-            <div class="nav-links">
-                <a href="index.html" class="nav-link">🏠 首页</a>
-                <a href="fund-monitor.html" class="nav-link">📊 基金监控</a>
-                <a href="index-data.html" class="nav-link">💹 指数数据</a>
-                <a href="fund-backtest.html" class="nav-link">🧪 基金回测</a>
-                <a href="alert-records.html" class="nav-link">🔔 告警记录</a>
-                <a href="notification-test.html" class="nav-link">📧 通知测试</a>
-                <a href="fund-report-test.html" class="nav-link">📈 报告测试</a>
-                <a href="email-recipient-management.html" class="nav-link">👥 邮件接收人</a>
-                <a href="system-config.html" class="nav-link">⚙️ 系统配置</a>
-            </div>
-        </div>
+        <!-- 引入公共header -->
+        <div id="header-placeholder"></div>
         
         <div class="form-section">
             <h2>📊 指数数据获取</h2>
@@ -261,6 +234,7 @@
     <script>
         // 页面加载时设置默认日期
         document.addEventListener('DOMContentLoaded', function() {
+            loadHeader(); // 加载公共header
             const today = new Date();
             const thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(today.getDate() - 30);
@@ -269,192 +243,21 @@
             document.getElementById('endDate').valueAsDate = today;
         });
         
-        // 显示消息
-        function showMessage(message, isSuccess) {
-            const resultDiv = document.getElementById('resultMessage');
-            resultDiv.innerHTML = `<div class="result-message ${isSuccess ? 'result-success' : 'result-error'}">${message}</div>`;
-        }
-        
-        // 清除消息
-        function clearMessage() {
-            document.getElementById('resultMessage').innerHTML = '';
-        }
-        
-        // 显示指数信息
-        function showIndexInfo(indexCode, indexName) {
-            const infoDiv = document.getElementById('indexInfo');
-            infoDiv.innerHTML = `
-                <div class="index-info">
-                    <strong>指数信息:</strong> ${indexCode} - ${indexName}
-                </div>
-            `;
-        }
-        
-        // 获取指定指数数据
-        function fetchIndexData() {
-            clearMessage();
-            
-            const indexCode = document.getElementById('indexCode').value;
-            const startDate = document.getElementById('startDate').value;
-            const endDate = document.getElementById('endDate').value;
-            
-            if (!startDate || !endDate) {
-                showMessage('请选择开始日期和结束日期', false);
-                return;
-            }
-            
-            const dataTable = document.getElementById('dataTable');
-            dataTable.innerHTML = '<div class="loading">正在获取数据...</div>';
-            
-            fetch(`/api/index/fetch?indexCode=${indexCode}&startDate=${startDate}&endDate=${endDate}`, {
-                method: 'POST'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showMessage(`数据获取并保存成功，共 ${data.count} 条记录`, true);
-                    dataTable.innerHTML = '';
-                } else {
-                    showMessage(`数据获取失败: ${data.message}`, false);
-                    dataTable.innerHTML = '';
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showMessage('请求失败，请查看控制台了解详情', false);
-                dataTable.innerHTML = '';
-            });
-        }
-        
-        // 获取所有指数数据
-        function fetchAllIndexData() {
-            clearMessage();
-            
-            const startDate = document.getElementById('startDate').value;
-            const endDate = document.getElementById('endDate').value;
-            
-            if (!startDate || !endDate) {
-                showMessage('请选择开始日期和结束日期', false);
-                return;
-            }
-            
-            const dataTable = document.getElementById('dataTable');
-            dataTable.innerHTML = '<div class="loading">正在获取所有指数数据...</div>';
-            
-            fetch(`/api/index/fetch-all?startDate=${startDate}&endDate=${endDate}`, {
-                method: 'POST'
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showMessage(`所有指数数据获取并保存成功，共 ${data.count} 条记录`, true);
-                    dataTable.innerHTML = '';
-                } else {
-                    showMessage(`所有指数数据获取失败: ${data.message}`, false);
-                    dataTable.innerHTML = '';
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showMessage('请求失败，请查看控制台了解详情', false);
-                dataTable.innerHTML = '';
-            });
-        }
-        
-        // 查询指数行情
-        function queryIndexData() {
-            clearMessage();
-            
-            const indexCode = document.getElementById('indexCode').value;
-            const startDate = document.getElementById('startDate').value;
-            const endDate = document.getElementById('endDate').value;
-            
-            if (!startDate || !endDate) {
-                showMessage('请选择开始日期和结束日期', false);
-                return;
-            }
-            
-            const dataTable = document.getElementById('dataTable');
-            dataTable.innerHTML = '<div class="loading">正在查询数据...</div>';
-            
-            fetch(`/api/index/data?indexCode=${indexCode}&startDate=${startDate}&endDate=${endDate}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    showIndexInfo(data.indexCode, data.indexName);
-                    renderDataTable(data.data);
-                } else {
-                    showMessage(`查询失败: ${data.message}`, false);
-                    dataTable.innerHTML = '';
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showMessage('请求失败，请查看控制台了解详情', false);
-                dataTable.innerHTML = '';
-            });
-        }
-        
-        // 渲染数据表格
-        function renderDataTable(data) {
-            const dataTable = document.getElementById('dataTable');
-            
-            if (!data || data.length === 0) {
-                dataTable.innerHTML = '<div class="loading">暂无数据</div>';
-                return;
-            }
-            
-            let html = `
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>交易日期</th>
-                            <th>开盘价</th>
-                            <th>收盘价</th>
-                            <th>最高价</th>
-                            <th>最低价</th>
-                            <th>涨跌幅(%)</th>
-                            <th>成交量(手)</th>
-                            <th>成交额(亿元)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-            
-            data.forEach(item => {
-                // 根据涨跌幅设置样式
-                const changePercentClass = item.changePercent >= 0 ? 'positive' : 'negative';
-                const changePercentText = item.changePercent !== null ? 
-                    `${item.changePercent >= 0 ? '+' : ''}${item.changePercent.toFixed(2)}` : '-';
-                
-                html += `
-                    <tr>
-                        <td>${item.tradeDate}</td>
-                        <td>${item.openPrice.toFixed(2)}</td>
-                        <td>${item.closePrice.toFixed(2)}</td>
-                `;
-                
-                // 最高价和最低价也根据与昨日收盘价的比较着色
-                const highClass = item.highPrice >= item.preClosePrice ? 'positive' : 'negative';
-                const lowClass = item.lowPrice >= item.preClosePrice ? 'positive' : 'negative';
-                
-                html += `
-                        <td class="${highClass}">${item.highPrice.toFixed(2)}</td>
-                        <td class="${lowClass}">${item.lowPrice.toFixed(2)}</td>
-                        <td class="${changePercentClass}">${changePercentText}%</td>
-                        <td>${item.volume}</td>
-                        <td>${(item.amount / 100000000).toFixed(2)}</td>
-                    </tr>
-                `;
-            });
-            
-            html += `
-                    </tbody>
-                </table>
-            `;
-            
-            dataTable.innerHTML = html;
+        // 加载公共header
+        function loadHeader() {
+            fetch('components/header.html')
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('header-placeholder').innerHTML = html;
+                    // 检查登录状态
+                    checkLoginStatus();
+                })
+                .catch(error => {
+                    console.error('加载公共header失败:', error);
+                });
         }
     </script>
+    <!-- 引入公共认证脚本 -->
+    <script src="js/auth.js"></script>
 </body>
 </html>

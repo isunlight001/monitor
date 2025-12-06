@@ -5,27 +5,40 @@
     <title>基金回测系统</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            font-family: 'Microsoft YaHei', Arial, sans-serif;
             min-height: 100vh;
             padding: 20px;
         }
+
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
         }
+
         .header {
             text-align: center;
-            color: #fff;
-            padding: 30px 0;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
         }
+
         .header h1 {
-            font-size: 2.5em;
+            font-size: 2em;
             margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
+
         .header p {
             font-size: 1.1em;
             opacity: 0.9;
@@ -160,9 +173,9 @@
             border-collapse: collapse;
         }
         .detail-table th {
-            background: #667eea;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: #fff;
-            padding: 12px 8px;
+            padding: 12px 15px;
             text-align: left;
             position: sticky;
             top: 0;
@@ -170,12 +183,15 @@
             font-size: 0.9em;
         }
         .detail-table td {
-            padding: 10px 8px;
+            padding: 12px 15px;
             border-bottom: 1px solid #e0e0e0;
             font-size: 0.85em;
         }
+        .detail-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
         .detail-table tr:hover {
-            background: #f0f0f0;
+            background-color: #e3f2fd;
         }
         /* 操作类型颜色配置 - 遵循金融市场惯例 */
         .action-buy {
@@ -232,29 +248,6 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
         
-        /* 返回首页按钮样式 */
-        .top-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .back-home {
-            padding: 8px 16px;
-            background: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-        
-        .back-home:hover {
-            background: #0056b3;
-            transform: translateY(-2px);
-        }
-        
         @media (max-width: 900px) {
             .main-content {
                 grid-template-columns: 1fr;
@@ -267,24 +260,13 @@
             }
         }
     </style>
+    <!-- 引入公共header样式 -->
+    <link rel="stylesheet" href="css/header.css">
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🧪 基金智能回测系统</h1>
-            <p>基于上证指数涨跌幅的动态仓位调整策略回测</p>
-            <div class="nav-links">
-                <a href="index.html" class="nav-link">🏠 首页</a>
-                <a href="fund-monitor.html" class="nav-link">📊 基金监控</a>
-                <a href="index-data.html" class="nav-link">💹 指数数据</a>
-                <a href="fund-backtest.html" class="nav-link">🧪 基金回测</a>
-                <a href="alert-records.html" class="nav-link">🔔 告警记录</a>
-                <a href="notification-test.html" class="nav-link">📧 通知测试</a>
-                <a href="fund-report-test.html" class="nav-link">📈 报告测试</a>
-                <a href="email-recipient-management.html" class="nav-link">👥 邮件接收人</a>
-                <a href="system-config.html" class="nav-link">⚙️ 系统配置</a>
-            </div>
-        </div>
+        <!-- 引入公共header -->
+        <div id="header-placeholder"></div>
         
         <div class="main-content">
             <!-- 左侧参数面板 -->
@@ -436,19 +418,41 @@
             }
         });
 
-        // 页面加载完成后初始化
+        // 页面加载完成后初始化日期和绑定事件
         document.addEventListener('DOMContentLoaded', function() {
-            // 设置默认日期范围（最近12个月）
+            loadHeader(); // 加载公共header
+            initializeDates();
+            bindEvents();
+        });
+
+        // 加载公共header
+        function loadHeader() {
+            fetch('components/header.html')
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('header-placeholder').innerHTML = html;
+                    // 检查登录状态
+                    checkLoginStatus();
+                })
+                .catch(error => {
+                    console.error('加载公共header失败:', error);
+                });
+        }
+
+        // 初始化日期范围
+        function initializeDates() {
             const endDate = new Date();
             const startDate = new Date();
             startDate.setMonth(startDate.getMonth() - 12);
             
             document.getElementById('startDate').valueAsDate = startDate;
             document.getElementById('endDate').valueAsDate = endDate;
-            
-            // 绑定回测按钮事件
+        }
+
+        // 绑定事件
+        function bindEvents() {
             document.getElementById('runBtn').addEventListener('click', runBacktest);
-        });
+        }
 
         // 运行回测
         async function runBacktest() {
@@ -646,5 +650,7 @@
             });
         }
     </script>
+    <!-- 引入公共认证脚本 -->
+    <script src="js/auth.js"></script>
 </body>
 </html>

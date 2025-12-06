@@ -28,49 +28,6 @@
             overflow: hidden;
         }
 
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 32px;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            font-size: 16px;
-            opacity: 0.9;
-        }
-
-        .nav-links {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .nav-link {
-            padding: 12px 25px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s;
-            color: white;
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .nav-link:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
         .content {
             padding: 30px;
         }
@@ -141,35 +98,19 @@
         }
 
         @media (max-width: 768px) {
-            .nav-links {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .nav-link {
-                width: 80%;
-                text-align: center;
+            .card-header h5 {
+                font-size: 18px;
             }
         }
     </style>
+    <!-- 引入公共header样式 -->
+    <link rel="stylesheet" href="css/header.css">
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🔔 告警记录</h1>
-            <p>查看和管理系统产生的所有告警记录</p>
-            <div class="nav-links">
-                <a href="index.html" class="nav-link">🏠 首页</a>
-                <a href="fund-monitor.html" class="nav-link">📊 基金监控</a>
-                <a href="index-data.html" class="nav-link">💹 指数数据</a>
-                <a href="fund-backtest.html" class="nav-link">🧪 基金回测</a>
-                <a href="alert-records.html" class="nav-link">🔔 告警记录</a>
-                <a href="notification-test.html" class="nav-link">📧 通知测试</a>
-                <a href="fund-report-test.html" class="nav-link">📈 报告测试</a>
-                <a href="email-recipient-management.html" class="nav-link">👥 邮件接收人</a>
-                <a href="system-config.html" class="nav-link">⚙️ 系统配置</a>
-            </div>
-        </div>
+        <!-- 引入公共header -->
+        <div id="header-placeholder"></div>
+        
         <div class="content">
                 
                 <div class="card">
@@ -247,8 +188,23 @@
         
         // 页面加载完成后获取告警记录
         document.addEventListener('DOMContentLoaded', function() {
+            loadHeader(); // 加载公共header
             loadAlertRecords(currentPage);
         });
+
+        // 加载公共header
+        function loadHeader() {
+            fetch('components/header.html')
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('header-placeholder').innerHTML = html;
+                    // 检查登录状态
+                    checkLoginStatus();
+                })
+                .catch(error => {
+                    console.error('加载公共header失败:', error);
+                });
+        }
 
         // 加载告警记录
         function loadAlertRecords(page) {
@@ -456,5 +412,7 @@
                 });
         }
     </script>
+    <!-- 引入公共认证脚本 -->
+    <script src="js/auth.js"></script>
 </body>
 </html>

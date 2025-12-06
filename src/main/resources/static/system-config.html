@@ -18,7 +18,6 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
-            background-color: #f8f9fa;
         }
 
         .container {
@@ -28,49 +27,6 @@
             border-radius: 15px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 32px;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            font-size: 16px;
-            opacity: 0.9;
-        }
-
-        .nav-links {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .nav-link {
-            padding: 12px 25px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 500;
-            transition: all 0.3s;
-            color: white;
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .nav-link:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
 
         .content {
@@ -88,7 +44,22 @@
         }
         
         .table th {
-            font-weight: 600;
+            font-weight: 500;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 15px;
+        }
+        
+        .table td {
+            padding: 12px 15px;
+        }
+        
+        .table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .table tr:hover {
+            background-color: #e3f2fd;
         }
         
         .form-control:focus {
@@ -107,35 +78,18 @@
         }
         
         @media (max-width: 768px) {
-            .nav-links {
-                flex-direction: column;
-                align-items: center;
-            }
-            
-            .nav-link {
-                width: 80%;
-                text-align: center;
+            .card-header h4 {
+                font-size: 1.2em;
             }
         }
     </style>
+    <!-- 引入公共header样式 -->
+    <link rel="stylesheet" href="css/header.css">
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>⚙️ 系统配置管理</h1>
-            <p>管理系统各项配置参数</p>
-            <div class="nav-links">
-                <a href="index.html" class="nav-link">🏠 首页</a>
-                <a href="fund-monitor.html" class="nav-link">📊 基金监控</a>
-                <a href="index-data.html" class="nav-link">💹 指数数据</a>
-                <a href="fund-backtest.html" class="nav-link">🧪 基金回测</a>
-                <a href="alert-records.html" class="nav-link">🔔 告警记录</a>
-                <a href="notification-test.html" class="nav-link">📧 通知测试</a>
-                <a href="fund-report-test.html" class="nav-link">📈 报告测试</a>
-                <a href="email-recipient-management.html" class="nav-link">👥 邮件接收人</a>
-                <a href="system-config.html" class="nav-link">⚙️ 系统配置</a>
-            </div>
-        </div>
+        <!-- 引入公共header -->
+        <div id="header-placeholder"></div>
         
         <div class="content">
             <div class="card">
@@ -218,11 +172,26 @@
         
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', function() {
+            loadHeader(); // 加载公共header
             loadConfigs();
             
             // 绑定保存按钮事件
             document.getElementById('saveConfigBtn').addEventListener('click', saveConfig);
         });
+        
+        // 加载公共header
+        function loadHeader() {
+            fetch('components/header.html')
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('header-placeholder').innerHTML = html;
+                    // 检查登录状态
+                    checkLoginStatus();
+                })
+                .catch(error => {
+                    console.error('加载公共header失败:', error);
+                });
+        }
         
         // 加载所有配置项
         function loadConfigs() {
@@ -370,5 +339,7 @@
             });
         }
     </script>
+    <!-- 引入公共认证脚本 -->
+    <script src="js/auth.js"></script>
 </body>
 </html>
