@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-@SpringBootApplication
+//@SpringBootApplication
 public class BeanFieldScanner {
 
     // JDK 1.8 兼容：使用 Arrays.asList + HashSet
