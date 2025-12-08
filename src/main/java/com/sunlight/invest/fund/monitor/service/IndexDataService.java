@@ -48,23 +48,23 @@ public class IndexDataService {
 
     static {
         // 上证指数系列
-        INDEX_CODE_MAP.put("000001", "cn_000001"); // 上证指数
-        INDEX_CODE_MAP.put("000016", "cn_000016"); // 上证50
-        INDEX_CODE_MAP.put("000300", "cn_000300"); // 沪深300
-        INDEX_CODE_MAP.put("000905", "cn_000905"); // 中证500
-        INDEX_CODE_MAP.put("000852", "cn_000852"); // 中证1000
+        INDEX_CODE_MAP.put("000001", "zs_000001"); // 上证指数
+        INDEX_CODE_MAP.put("000016", "zs_000016"); // 上证50
+        INDEX_CODE_MAP.put("000300", "zs_000300"); // 沪深300
+        INDEX_CODE_MAP.put("000905", "zs_000905"); // 中证500
+        INDEX_CODE_MAP.put("000852", "zs_000852"); // 中证1000
         
         // 深证指数系列
-        INDEX_CODE_MAP.put("399001", "cn_399001"); // 深证成指
-        INDEX_CODE_MAP.put("399005", "cn_399005"); // 中小板指
-        INDEX_CODE_MAP.put("399006", "cn_399006"); // 创业板指
-        INDEX_CODE_MAP.put("399673", "cn_399673"); // 创业板50
+        INDEX_CODE_MAP.put("399001", "sz_399001"); // 深证成指
+        INDEX_CODE_MAP.put("399005", "sz_399005"); // 中小板指
+        INDEX_CODE_MAP.put("399006", "sz_399006"); // 创业板指
+        INDEX_CODE_MAP.put("399673", "sz_399673"); // 创业板50
         
         // 科创板指数
-        INDEX_CODE_MAP.put("000688", "cn_000688"); // 科创50
+        INDEX_CODE_MAP.put("000688", "zs_000688"); // 科创50
         
         // 北交所指数
-        INDEX_CODE_MAP.put("899050", "cn_899050"); // 北证50
+        INDEX_CODE_MAP.put("899050", "bj_899050"); // 北证50
 
         // 指数名称映射
         INDEX_NAME_MAP.put("000001", "上证指数");
@@ -115,7 +115,7 @@ public class IndexDataService {
         }
         
         // 移除百分号和其他非数字字符（保留数字、小数点、负号）
-        String cleanedValue = value.trim().replaceAll("[^0-9.\\\\-]", "");
+        String cleanedValue = value.trim().replaceAll("[^0-9.\\-]", "");
         if (cleanedValue.isEmpty() || "-".equals(cleanedValue)) {
             return BigDecimal.ZERO;
         }
@@ -189,6 +189,115 @@ public class IndexDataService {
         String startStr = startDate.format(DATE_FORMATTER);
         String endStr = endDate.format(DATE_FORMATTER);
         
+        // 使用东方财富API获取数据，更稳定可靠
+        String url = "http://push2his.eastmoney.com/api/qt/stock/kline/get?" +
+                    "secid=" + sinaCode + "&" +
+                    "klt=101&" +  // 日线
+                    "fqt=1&" +    // 前复权
+                    "beg=" + startStr + "&" +
+                    "end=" + endStr + "&" +
+                    "lmt=1000";   // 最大返回条数
+
+        try {
+            Request request = new Request.Builder()
+                    .url(url)
+                    .addHeader("User-Agent", USER_AGENT)
+                    .addHeader("Referer", "http://quote.eastmoney.com/")
+                    .build();
+
+            try (Response response = httpClient.newCall(request).execute()) {
+                if (!response.isSuccessful()) {
+                    throw new RuntimeException("HTTP请求失败: " + response.code());
+                }
+
+                String jsonResponse = response.body().string();
+                Map<String, Object> resultMap = MAPPER.readValue(jsonResponse, 
+                        new TypeReference<Map<String, Object>>() {});
+                
+                // 检查API返回状态
+                Object rc = resultMap.get("rc");
+                if (rc == null || !"0".equals(String.valueOf(rc))) {
+                    throw new RuntimeException("API返回错误: " + resultMap.get("rt"));
+                }
+                
+                // 解析数据
+                Map<String, Object> data = (Map<String, Object>) resultMap.get("data");
+                if (data == null) {
+                    return new ArrayList<>();
+                }
+                
+                List<List<Object>> klines = (List<List<Object>>) data.get("klines");
+                if (klines == null || klines.isEmpty()) {
+                    return new ArrayList<>();
+                }
+                
+                String indexName = INDEX_NAME_MAP.getOrDefault(indexCode, "未知指数");
+                
+                return klines.stream().map(kline -> {
+                    try {
+                        IndexData dataObj = new IndexData();
+                        dataObj.setIndexCode(indexCode);
+                        dataObj.setIndexName(indexName);
+                        
+                        // 解析日期 (格式: "2023-12-01")
+                        String dateStr = String.valueOf(kline.get(0));
+                        dataObj.setTradeDate(LocalDate.parse(dateStr, ISO_FORMATTER));
+                        
+                        // 解析开盘价、收盘价、最高价、最低价
+                        BigDecimal open = new BigDecimal(String.valueOf(kline.get(1)));
+                        BigDecimal close = new BigDecimal(String.valueOf(kline.get(2)));
+                        BigDecimal high = new BigDecimal(String.valueOf(kline.get(3)));
+                        BigDecimal low = new BigDecimal(String.valueOf(kline.get(4)));
+                        
+                        dataObj.setOpenPrice(open);
+                        dataObj.setClosePrice(close);
+                        dataObj.setHighPrice(high);
+                        dataObj.setLowPrice(low);
+                        
+                        // 成交量和成交额
+                        Long volume = Long.valueOf(String.valueOf(kline.get(5)));
+                        BigDecimal amount = new BigDecimal(String.valueOf(kline.get(6)));
+                        dataObj.setVolume(volume);
+                        dataObj.setAmount(amount);
+                        
+                        // 计算涨跌幅百分比
+                        BigDecimal change = close.subtract(open);
+                        BigDecimal pct = open.compareTo(BigDecimal.ZERO) != 0 ? 
+                                change.divide(open, 4, BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(100)) :
+                                BigDecimal.ZERO;
+                        dataObj.setDailyReturn(pct);
+                        
+                        return dataObj;
+                    } catch (Exception e) {
+                        log.warn("解析单条数据失败: {}", e.getMessage());
+                        return null;
+                    }
+                }).filter(java.util.Objects::nonNull).collect(Collectors.toList());
+            }
+        } catch (Exception e) {
+            log.error("获取指数数据失败，指数代码: {}, 错误: {}", indexCode, e.getMessage(), e);
+            // 如果东方财富API失败，尝试回退到搜狐API
+            return fetchIndexDataFromSohu(indexCode, startDate, endDate);
+        }
+    }
+    
+    /**
+     * 从搜狐API获取指数数据（备用方案）
+     *
+     * @param indexCode 指数代码
+     * @param startDate 开始日期
+     * @param endDate   结束日期
+     * @return 指数数据列表
+     */
+    private List<IndexData> fetchIndexDataFromSohu(String indexCode, LocalDate startDate, LocalDate endDate) {
+        String sinaCode = INDEX_CODE_MAP.get(indexCode);
+        if (sinaCode == null) {
+            throw new IllegalArgumentException("不支持的指数代码: " + indexCode);
+        }
+
+        String startStr = startDate.format(DATE_FORMATTER);
+        String endStr = endDate.format(DATE_FORMATTER);
+        
         String url = "https://q.stock.sohu.com/hisHq?code=" + sinaCode + 
                     "&start=" + startStr + "&end=" + endStr +
                     "&stat=1&order=D&period=d&callback=historySearchHandler&rt=jsonp";
@@ -236,15 +345,16 @@ public class IndexDataService {
                     data.setAmount(parseBigDecimal(arr.get(8)));     // 成交额
                     
                     // 计算涨跌幅百分比
-                    BigDecimal pct = change.divide(open, 4, BigDecimal.ROUND_HALF_UP)
-                            .multiply(BigDecimal.valueOf(100));
+                    BigDecimal pct = open.compareTo(BigDecimal.ZERO) != 0 ?
+                            change.divide(open, 4, BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(100)) :
+                            BigDecimal.ZERO;
                     data.setDailyReturn(pct);
                     
                     return data;
                 }).collect(Collectors.toList());
             }
         } catch (Exception e) {
-            log.error("获取指数数据失败，指数代码: {}, 错误: {}", indexCode, e.getMessage(), e);
+            log.error("从搜狐API获取指数数据失败，指数代码: {}, 错误: {}", indexCode, e.getMessage(), e);
             throw new RuntimeException("获取指数数据失败: " + e.getMessage(), e);
         }
     }

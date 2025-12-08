@@ -80,7 +80,10 @@ public class IndexData {
     private LocalDate updateTime;
 
     // Constructors
-    public IndexData() {}
+    public IndexData() {
+        this.createTime = LocalDate.now();
+        this.updateTime = LocalDate.now();
+    }
 
     public IndexData(String indexCode, String indexName, LocalDate tradeDate, BigDecimal openPrice, 
                      BigDecimal closePrice, BigDecimal highPrice, BigDecimal lowPrice, BigDecimal dailyReturn) {
@@ -92,6 +95,8 @@ public class IndexData {
         this.highPrice = highPrice;
         this.lowPrice = lowPrice;
         this.dailyReturn = dailyReturn;
+        this.createTime = LocalDate.now();
+        this.updateTime = LocalDate.now();
     }
 
     // Getters and Setters
