@@ -1,6 +1,6 @@
 package com.sunlight.invest.fund.monitor.controller;
 
-import com.sunlight.invest.fund.monitor.task.FundDataReportTask;
+import com.sunlight.invest.fund.monitor.schedule.FundDataReportTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

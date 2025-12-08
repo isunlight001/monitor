@@ -1,4 +1,4 @@
-package com.sunlight.invest.fund.monitor.task;
+package com.sunlight.invest.fund.monitor.schedule;
 
 import com.sunlight.invest.fund.monitor.entity.FundNav;
 import com.sunlight.invest.fund.monitor.entity.MonitorFund;
