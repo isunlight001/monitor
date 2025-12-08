@@ -5,4 +5,5 @@
 /logs/app.log
 /.idea/workspace.xml
 !/bin/
+!/logs/
 
