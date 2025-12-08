@@ -164,7 +164,7 @@ public class FundDataReportTask {
                 htmlBuilder.append("<h2>").append(fund2.getFundName()).append(" (").append(fund2.getFundCode()).append(")</h2>");
                 
                 // 获取近5日数据
-                List<FundNav> recentNavs2 = fundNavMapper.selectRecentDays(fund2.getFundCode(), 5);
+                List<FundNav> recentNavs2 = fundNavMapper.selectRecentDays(fund2.getFundCode(), 7);
                 
                 if (recentNavs2 == null || recentNavs2.isEmpty()) {
                     htmlBuilder.append("<p>暂无数据</p>");
