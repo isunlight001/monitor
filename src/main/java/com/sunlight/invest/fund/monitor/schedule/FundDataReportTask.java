@@ -80,19 +80,20 @@ public class FundDataReportTask {
         htmlBuilder.append("<meta charset='UTF-8'>");
         htmlBuilder.append("<title>基金数据日报</title>");
         htmlBuilder.append("<style>");
-        htmlBuilder.append("body { font-family: 'Microsoft YaHei', Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 20px; }");
-        htmlBuilder.append(".container { max-width: 1000px; margin: 0 auto; background-color: #ffffff; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }");
-        htmlBuilder.append("h1 { color: #1976d2; text-align: center; border-bottom: 2px solid #1976d2; padding-bottom: 10px; }");
-        htmlBuilder.append("h2 { color: #388e3c; margin-top: 30px; border-bottom: 1px dashed #388e3c; padding-bottom: 5px; }");
-        htmlBuilder.append(".summary { background-color: #e3f2fd; padding: 15px; border-radius: 5px; margin-bottom: 20px; text-align: center; }");
-        htmlBuilder.append(".fund-section { background-color: #fafafa; padding: 20px; margin-bottom: 30px; border-radius: 8px; border-left: 5px solid #1976d2; }");
-        htmlBuilder.append(".data-table { width: 100%; border-collapse: collapse; margin-top: 15px; }");
-        htmlBuilder.append(".data-table th, .data-table td { border: 1px solid #ddd; padding: 12px; text-align: center; }");
-        htmlBuilder.append(".data-table th { background-color: #1976d2; color: white; }");
+        htmlBuilder.append("body { font-family: 'Microsoft YaHei', Arial, sans-serif; background-color: #f9f9f9; margin: 0; padding: 10px; font-size: 12px; }");
+        htmlBuilder.append(".container { max-width: 800px; margin: 0 auto; background-color: #ffffff; padding: 15px; border-radius: 5px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }");
+        htmlBuilder.append("h1 { color: #1976d2; text-align: center; border-bottom: 1px solid #1976d2; padding-bottom: 5px; font-size: 18px; margin: 10px 0; }");
+        htmlBuilder.append("h2 { color: #388e3c; margin: 15px 0 5px; border-bottom: 1px dashed #388e3c; padding-bottom: 3px; font-size: 14px; }");
+        htmlBuilder.append(".summary { background-color: #e3f2fd; padding: 8px; border-radius: 3px; margin-bottom: 10px; text-align: center; }");
+        htmlBuilder.append(".fund-row { display: flex; gap: 10px; margin-bottom: 10px; }");
+        htmlBuilder.append(".fund-section { flex: 1; background-color: #fafafa; padding: 10px; border-radius: 4px; border-left: 3px solid #1976d2; }");
+        htmlBuilder.append(".data-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 11px; }");
+        htmlBuilder.append(".data-table th, .data-table td { border: 1px solid #ddd; padding: 6px; text-align: center; }");
+        htmlBuilder.append(".data-table th { background-color: #1976d2; color: white; font-size: 11px; }");
         htmlBuilder.append(".data-table tr:nth-child(even) { background-color: #f2f2f2; }");
         htmlBuilder.append(".positive { color: #d32f2f; font-weight: bold; }");
         htmlBuilder.append(".negative { color: #388e3c; font-weight: bold; }");
-        htmlBuilder.append(".footer { text-align: center; margin-top: 30px; color: #757575; font-size: 14px; }");
+        htmlBuilder.append(".footer { text-align: center; margin-top: 15px; color: #757575; font-size: 10px; }");
         htmlBuilder.append("</style>");
         htmlBuilder.append("</head>");
         htmlBuilder.append("<body>");
@@ -101,20 +102,23 @@ public class FundDataReportTask {
         
         // 报告摘要
         htmlBuilder.append("<div class='summary'>");
-        htmlBuilder.append("<h2>报告摘要</h2>");
-        htmlBuilder.append("<p>报告日期: ").append(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy年MM月dd日"))).append("</p>");
-        htmlBuilder.append("<p>监控基金数量: ").append(monitorFunds.size()).append(" 只</p>");
+        htmlBuilder.append("<p>报告日期: ").append(LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy年MM月dd日"))).append(" | ");
+        htmlBuilder.append("监控基金数量: ").append(monitorFunds.size()).append(" 只</p>");
         htmlBuilder.append("</div>");
         
-        // 每个基金的数据
-        for (MonitorFund fund : monitorFunds) {
+        // 每行两个基金的数据
+        for (int i = 0; i < monitorFunds.size(); i += 2) {
+            htmlBuilder.append("<div class='fund-row'>");
+            
+            // 处理第一个基金
+            MonitorFund fund1 = monitorFunds.get(i);
             htmlBuilder.append("<div class='fund-section'>");
-            htmlBuilder.append("<h2>").append(fund.getFundName()).append(" (").append(fund.getFundCode()).append(")</h2>");
+            htmlBuilder.append("<h2>").append(fund1.getFundName()).append(" (").append(fund1.getFundCode()).append(")</h2>");
             
             // 获取近5日数据
-            List<FundNav> recentNavs = fundNavMapper.selectRecentDays(fund.getFundCode(), 5);
+            List<FundNav> recentNavs1 = fundNavMapper.selectRecentDays(fund1.getFundCode(), 7);
             
-            if (recentNavs == null || recentNavs.isEmpty()) {
+            if (recentNavs1 == null || recentNavs1.isEmpty()) {
                 htmlBuilder.append("<p>暂无数据</p>");
             } else {
                 // 构建数据表格
@@ -129,8 +133,8 @@ public class FundDataReportTask {
                 htmlBuilder.append("<tbody>");
                 
                 // 按日期升序排列显示
-                for (int i = recentNavs.size() - 1; i >= 0; i--) {
-                    FundNav nav = recentNavs.get(i);
+                for (int j = recentNavs1.size() - 1; j >= 0; j--) {
+                    FundNav nav = recentNavs1.get(j);
                     htmlBuilder.append("<tr>");
                     htmlBuilder.append("<td>").append(nav.getNavDate().format(DATE_FORMATTER)).append("</td>");
                     htmlBuilder.append("<td>").append(String.format("%.4f", nav.getUnitNav())).append("</td>");
@@ -152,11 +156,61 @@ public class FundDataReportTask {
             }
             
             htmlBuilder.append("</div>");
+            
+            // 处理第二个基金（如果存在）
+            if (i + 1 < monitorFunds.size()) {
+                MonitorFund fund2 = monitorFunds.get(i + 1);
+                htmlBuilder.append("<div class='fund-section'>");
+                htmlBuilder.append("<h2>").append(fund2.getFundName()).append(" (").append(fund2.getFundCode()).append(")</h2>");
+                
+                // 获取近5日数据
+                List<FundNav> recentNavs2 = fundNavMapper.selectRecentDays(fund2.getFundCode(), 5);
+                
+                if (recentNavs2 == null || recentNavs2.isEmpty()) {
+                    htmlBuilder.append("<p>暂无数据</p>");
+                } else {
+                    // 构建数据表格
+                    htmlBuilder.append("<table class='data-table'>");
+                    htmlBuilder.append("<thead>");
+                    htmlBuilder.append("<tr>");
+                    htmlBuilder.append("<th>日期</th>");
+                    htmlBuilder.append("<th>单位净值</th>");
+                    htmlBuilder.append("<th>日涨跌幅</th>");
+                    htmlBuilder.append("</tr>");
+                    htmlBuilder.append("</thead>");
+                    htmlBuilder.append("<tbody>");
+                    
+                    // 按日期升序排列显示
+                    for (int j = recentNavs2.size() - 1; j >= 0; j--) {
+                        FundNav nav = recentNavs2.get(j);
+                        htmlBuilder.append("<tr>");
+                        htmlBuilder.append("<td>").append(nav.getNavDate().format(DATE_FORMATTER)).append("</td>");
+                        htmlBuilder.append("<td>").append(String.format("%.4f", nav.getUnitNav())).append("</td>");
+                        
+                        if (nav.getDailyReturn() != null) {
+                            String returnStr = String.format("%.2f%%", nav.getDailyReturn());
+                            String cssClass = nav.getDailyReturn().compareTo(BigDecimal.ZERO) > 0 ? "positive" : 
+                                             nav.getDailyReturn().compareTo(BigDecimal.ZERO) < 0 ? "negative" : "";
+                            htmlBuilder.append("<td class='").append(cssClass).append("'>").append(returnStr).append("</td>");
+                        } else {
+                            htmlBuilder.append("<td>--</td>");
+                        }
+                        
+                        htmlBuilder.append("</tr>");
+                    }
+                    
+                    htmlBuilder.append("</tbody>");
+                    htmlBuilder.append("</table>");
+                }
+                
+                htmlBuilder.append("</div>");
+            }
+            
+            htmlBuilder.append("</div>");
         }
         
         htmlBuilder.append("<div class='footer'>");
-        htmlBuilder.append("本报告由基金监控系统自动生成，请勿直接回复。<br>");
-        htmlBuilder.append("数据来源：天天基金网");
+        htmlBuilder.append("本报告由基金监控系统自动生成，请勿直接回复。数据来源：天天基金网");
         htmlBuilder.append("</div>");
         
         htmlBuilder.append("</div>");
