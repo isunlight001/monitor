@@ -1,9 +1,29 @@
+# 编译输出目录
+target/
+
+# 日志文件
+logs/
+*.log
+
+# IDE相关文件
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# 编辑器备份文件
+*~
+*.swp
+*.swo
+
+# 操作系统文件
+.DS_Store
+Thumbs.db
+
+# Maven相关
+.mvn/wrapper/maven-wrapper.properties
+
+# 应用程序特定文件
 !/上证指数历史数据.csv
 !/国金量化多因子_2020-2025净值.xlsx
-!/target/
-!/.idea/
-/logs/app.log
-/.idea/workspace.xml
 !/bin/
-!/logs/
-
