@@ -5,6 +5,7 @@
 本项目是一个综合性的监控系统，包含两个主要功能模块：
 
 1. **基金监控系统** - 自动抓取基金净值数据并监控异常波动
+2. **AI智能助手** - 集成DeepSeek大模型，提供智能问答功能
 
 ## 🏗️ 技术栈
 
@@ -16,6 +17,7 @@
 - **HTTP客户端**: OkHttp3, Jsoup
 - **Excel处理**: Apache POI
 - **监控**: Spring Boot Actuator, Micrometer Prometheus
+- **AI服务**: DeepSeek大模型
 - **构建工具**: Maven
 - **Java版本**: Java 8
 
@@ -76,11 +78,22 @@ src/main/java/com/sunlight/invest/
 └── service/
     └── UserService.java              # 用户服务
 
+src/main/java/com/sunlight/ai/
+├── config/
+│   └── DeepSeekConfig.java          # DeepSeek配置类
+├── controller/
+│   └── AIController.java            # AI控制器
+├── service/
+│   └── DeepSeekService.java         # DeepSeek服务类
+└── test/
+    └── AIServiceTest.java           # AI服务测试类
+
 src/main/resources/
 ├── static/
 │   ├── fund-backtest.html            # 基金回测页面
 │   ├── fund-monitor.html             # 基金监控页面
 │   ├── notification-test.html        # 通知测试页面
+│   ├── ai-test.html                  # AI测试页面
 │   └── index.html                    # 首页
 ├── application.yml                   # 应用配置文件
 └── schema.sql                       # 数据库表结构
@@ -148,6 +161,21 @@ src/main/resources/
 - `PUT /api/email-recipients` - 更新邮件接收人
 - `DELETE /api/email-recipients/{id}` - 删除邮件接收人
 
+### 4. AI智能助手
+
+#### 核心功能
+- **智能问答**: 集成DeepSeek大模型，提供自然语言问答能力
+- **API接口**: 提供RESTful API接口供其他模块调用
+- **Web界面**: 提供友好的Web聊天界面进行测试
+- **配置管理**: 支持通过配置文件管理API密钥等参数
+
+#### API接口
+- `POST /api/ai/chat` - 发送问题并获取AI回答（表单参数）
+- `POST /api/ai/chat/json` - 发送问题并获取AI回答（JSON参数）
+
+#### Web界面
+- **AI测试页面**: http://localhost:8080/ai-test.html
+
 ## ⚙️ 配置说明
 
 ### 数据库配置
@@ -168,6 +196,14 @@ spring:
     port: 587
     username: your-email@qq.com
     password: your-auth-code
+```
+
+### DeepSeek AI配置
+```yaml
+deepseek:
+  api-key: your_api_key
+  api-url: https://api.deepseek.com/v1/chat/completions
+  model: deepseek-chat
 ```
 
 ### 基金监控配置
@@ -191,7 +227,7 @@ notification:
 系统支持通过Web界面或API接口管理邮件接收人列表，可以添加、编辑、删除和查询邮件接收人信息。
 所有启用的邮件接收人都会在基金预警时收到通知邮件。
 
-访问地址: http://localhost:8081/email-recipient-management.html
+访问地址: http://localhost:8080/email-recipient-management.html
 
 ## 🛠️ 构建与运行
 
@@ -226,18 +262,19 @@ docker-compose up -d
 docker build -t fund-monitor .
 
 # 运行容器
-docker run -d -p 8081:8081 fund-monitor
+docker run -d -p 8080:8080 fund-monitor
 ```
 
 ## 🌐 访问地址
 
 启动应用后，可通过以下URL访问：
 
-- **首页**: http://localhost:8081/
-- **基金回测**: http://localhost:8081/fund-backtest.html
-- **基金监控**: http://localhost:8081/fund-monitor.html
-- **通知测试**: http://localhost:8081/notification-test.html
-- **邮件接收人管理**: http://localhost:8081/email-recipient-management.html
+- **首页**: http://localhost:8080/
+- **基金回测**: http://localhost:8080/fund-backtest.html
+- **基金监控**: http://localhost:8080/fund-monitor.html
+- **通知测试**: http://localhost:8080/notification-test.html
+- **邮件接收人管理**: http://localhost:8080/email-recipient-management.html
+- **AI测试**: http://localhost:8080/ai-test.html
 
 ## 🧪 测试
 
@@ -334,8 +371,9 @@ CREATE TABLE IF NOT EXISTS `email_recipient` (
 
 1. 数据库连接是否正常
 2. 邮件配置是否正确
-3. 网络是否可以访问相关网站
-4. 查看应用日志中的错误信息
+3. DeepSeek AI配置是否正确
+4. 网络是否可以访问相关网站
+5. 查看应用日志中的错误信息
 
 ## 📈 系统特点
 
@@ -350,3 +388,4 @@ CREATE TABLE IF NOT EXISTS `email_recipient` (
 - ✅ 支持Docker容器化部署
 - ✅ 数据库存储，持久化配置
 - ✅ 响应式邮件设计，支持移动端浏览
+- ✅ 集成AI智能助手，提供自然语言交互能力

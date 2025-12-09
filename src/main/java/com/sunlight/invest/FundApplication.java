@@ -20,7 +20,7 @@ import java.time.format.DateTimeFormatter;
  * @author System
  * @since 2024-12-02
  */
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"com.sunlight.invest", "com.sunlight.ai"})
 @EnableScheduling
 public class FundApplication {
     
@@ -88,6 +88,7 @@ public class FundApplication {
                 "\t💹 指数监控: \thttp://localhost:" + port + "/index-data.html\n" +
                 "\t📈 报告测试: \thttp://localhost:" + port + "/fund-report-test.html\n" +
                 "\t👥 邮件接收人: \thttp://localhost:" + port + "/email-recipient-management.html\n" +
+                "\t🤖 AI服务: \thttp://localhost:" + port + "/api/ai/chat?question=你好\n" +
                 "----------------------------------------------------------"
         );
         
