@@ -64,7 +64,7 @@ logging:
     org.springframework.jdbc: debug
     
 server:
-  port: 8081
+  port: 8080
   
 # 启用定时任务
 scheduled:
