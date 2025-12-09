@@ -96,6 +96,8 @@ src/main/resources/
 │   ├── ai-test.html                  # AI测试页面
 │   └── index.html                    # 首页
 ├── application.yml                   # 应用配置文件
+├── application-secrets.yml          # 敏感信息配置文件（需自行创建）
+├── application-secrets-example.yml  # 敏感信息配置文件示例
 └── schema.sql                       # 数据库表结构
 ```
 
@@ -178,13 +180,20 @@ src/main/resources/
 
 ## ⚙️ 配置说明
 
+### 环境配置
+为了保护敏感信息，本项目将敏感配置独立出来。请按以下步骤配置：
+
+1. 复制 `src/main/resources/application-secrets-example.yml` 文件
+2. 将复制的文件重命名为 `application-secrets.yml`
+3. 在 `application-secrets.yml` 中填写实际的敏感信息
+
 ### 数据库配置
 ```yaml
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false
-    username: root
-    password: root123456
+    url: jdbc:mysql://localhost:3306/fund?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false
+    username: your_database_username
+    password: your_database_password
     driver-class-name: com.mysql.cj.jdbc.Driver
 ```
 
@@ -194,14 +203,14 @@ spring:
   mail:
     host: smtp.qq.com
     port: 587
-    username: your-email@qq.com
-    password: your-auth-code
+    username: your_email@example.com
+    password: your_email_password
 ```
 
 ### DeepSeek AI配置
 ```yaml
 deepseek:
-  api-key: your_api_key
+  api-key: your_deepseek_api_key
   api-url: https://api.deepseek.com/v1/chat/completions
   model: deepseek-chat
 ```
@@ -389,3 +398,4 @@ CREATE TABLE IF NOT EXISTS `email_recipient` (
 - ✅ 数据库存储，持久化配置
 - ✅ 响应式邮件设计，支持移动端浏览
 - ✅ 集成AI智能助手，提供自然语言交互能力
+- ✅ 敏感信息隔离，提高安全性

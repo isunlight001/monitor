@@ -1,8 +1,7 @@
 spring:
   datasource:
     url: jdbc:mysql://localhost:3306/fund?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false
-    username: fund
-    password: Root@123456  # 使用简单明文密码便于调试
+    # username和password已移至application-secrets.yml
     driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource
     druid:
@@ -22,6 +21,8 @@ spring:
           merge-sql: true
         wall:
           enabled: true
+      # 移除加密相关的配置
+          
   h2:
     console:
       enabled: true
@@ -35,10 +36,7 @@ spring:
     # SMTP服务器地址（QQ邮箱示例）
     host: smtp.qq.com
     port: 587
-    # 发送方邮箱账号
-    username: 57954282@qq.com
-    # 邮箱授权码（不是邮箱密码）
-    password: pjglzpdieisebggb
+    # username和password已移至application-secrets.yml
     properties:
       mail:
         smtp:
@@ -52,8 +50,7 @@ spring:
 
 # DeepSeek AI配置
 deepseek:
-  # 请在实际使用时替换为您的真实API Key
-  api-key: sk-374ff975065c4ca5aceeacb9b130ac5f
+  # api-key已移至application-secrets.yml
   api-url: https://api.deepseek.com/v1/chat/completions
   model: deepseek-chat
 
@@ -64,8 +61,13 @@ logging:
     org.springframework.jdbc: debug
     
 server:
-  port: 8081
+  port: 8080
   
 # 启用定时任务
 scheduled:
   enabled: true
+
+# 导入敏感信息配置文件
+spring:
+  profiles:
+    include: secrets
