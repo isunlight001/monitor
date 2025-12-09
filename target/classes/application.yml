@@ -1,0 +1,66 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/fund?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false
+    username: fund
+    password: isi78sMc9cIOF6iJfYgsPwrsDWKzZTKI3EI+jumoQXY/VMr/efNZA5HePLeYoxiaOYLoCtoqLyKqxmYAwiF8iQ==
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      initial-size: 5
+      min-idle: 5
+      max-active: 20
+      stat-view-servlet:
+        enabled: true
+        url-pattern: /druid/*
+        login-username: admin
+        login-password: admin
+      filter:
+        stat:
+          enabled: true
+          log-slow-sql: true
+          slow-sql-millis: 1000
+          merge-sql: true
+        wall:
+          enabled: true
+      connection-properties: config.decrypt=true;config.decrypt.key= MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAJERh4GQ7EICd8FQwlwc8ULm5H/ut0Ra1+NRE2xRImlvIXrOJCctBtzVCxVCKiyiBut6VOpa+5Wj9cpPcKWaTN0CAwEAAQ==
+          
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+      
+  sql:
+    init:
+      mode: never  # 禁用Spring Boot默认的SQL初始化，我们使用自定义的初始化服务
+
+  mail:
+    # SMTP服务器地址（QQ邮箱示例）
+    host: smtp.qq.com
+    port: 587
+    # 发送方邮箱账号
+    username: 57954282@qq.com
+    # 邮箱授权码（不是邮箱密码）
+    password: pjglzpdieisebggb
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
+logging:
+  level:
+    com.sunlight: debug
+    org.springframework.web: debug
+    org.springframework.jdbc: debug
+    
+server:
+  port: 8080
+  
+# 启用定时任务
+scheduled:
+  enabled: true

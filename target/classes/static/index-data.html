@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>指数数据监控</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .form-section {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .form-group label {
+            width: 120px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .form-group input, .form-group select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-right: 10px;
+            flex: 1;
+            max-width: 200px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        
+        .btn-success {
+            background-color: #28a745;
+        }
+        
+        .btn-success:hover {
+            background-color: #218838;
+        }
+        
+        .btn-warning {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        .btn-warning:hover {
+            background-color: #e0a800;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        
+        .data-table th, .data-table td {
+            border: 1px solid #ddd;
+            padding: 12px 15px;
+            text-align: left;
+        }
+        
+        .data-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 500;
+        }
+        
+        .data-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .data-table tr:hover {
+            background-color: #e3f2fd;
+        }
+        
+        .positive {
+            color: #d63638;
+            font-weight: bold;
+        }
+        
+        .negative {
+            color: #008a20;
+            font-weight: bold;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        
+        .result-message {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .result-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .result-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .index-info {
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .form-group {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .form-group label {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+            
+            .form-group input, .form-group select {
+                width: 100%;
+                max-width: none;
+            }
+            
+            .data-table {
+                font-size: 12px;
+            }
+            
+            .data-table th, .data-table td {
+                padding: 8px 6px;
+            }
+        }
+    </style>
+    <!-- 引入公共header样式 -->
+    <link rel="stylesheet" href="css/header.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 引入公共header -->
+        <div id="header-placeholder"></div>
+        
+        <div class="form-section">
+            <h2>📊 指数数据获取</h2>
+            
+            <div class="form-group">
+                <label for="indexCode">指数代码:</label>
+                <select id="indexCode">
+                    <option value="000001">000001 - 上证指数</option>
+                    <option value="000016">000016 - 上证50</option>
+                    <option value="000300">000300 - 沪深300</option>
+                    <option value="000905">000905 - 中证500</option>
+                    <option value="000852">000852 - 中证1000</option>
+                    <option value="399001">399001 - 深证成指</option>
+                    <option value="399005">399005 - 中小板指</option>
+                    <option value="399006">399006 - 创业板指</option>
+                    <option value="399673">399673 - 创业板50</option>
+                    <option value="000688">000688 - 科创50</option>
+                    <option value="899050">899050 - 北证50</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="startDate">开始日期:</label>
+                <input type="date" id="startDate">
+                <label for="endDate">结束日期:</label>
+                <input type="date" id="endDate">
+            </div>
+            
+            <button class="btn" onclick="fetchIndexData()">获取指定指数数据</button>
+            <button class="btn btn-success" onclick="fetchAllIndexData()">获取所有指数数据</button>
+            <button class="btn btn-warning" onclick="queryIndexData()">查询指数行情</button>
+        </div>
+        
+        <div id="resultMessage"></div>
+        <div id="indexInfo"></div>
+        <div id="dataTable"></div>
+        
+        <div class="footer" style="text-align: center; padding: 20px; color: #666; border-top: 1px solid #eee; margin-top: 30px;">
+            <p>© 2025 基金监控系统 - 专业的基金数据分析平台</p>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载时设置默认日期
+        document.addEventListener('DOMContentLoaded', function() {
+            loadHeader(); // 加载公共header
+            const today = new Date();
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(today.getDate() - 30);
+            
+            document.getElementById('startDate').valueAsDate = thirtyDaysAgo;
+            document.getElementById('endDate').valueAsDate = today;
+        });
+        
+        // 加载公共header
+        function loadHeader() {
+            fetch('components/header.html')
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('header-placeholder').innerHTML = html;
+                    // 检查登录状态
+                    checkLoginStatus();
+                })
+                .catch(error => {
+                    console.error('加载公共header失败:', error);
+                });
+        }
+    </script>
+    <!-- 引入公共认证脚本 -->
+    <script src="js/auth.js"></script>
+</body>
+</html>

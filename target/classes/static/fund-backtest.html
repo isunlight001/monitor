@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>基金回测系统</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        .main-content {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .panel {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            padding: 25px;
+        }
+        .panel-title {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        .form-group {
+            margin-bottom: 18px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #333;
+            font-weight: 500;
+            font-size: 0.95em;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.95em;
+            transition: all 0.3s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .result-area {
+            display: none;
+        }
+        .result-area.show {
+            display: block;
+        }
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        .summary-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .summary-card .label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+        .summary-card .value {
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+        .summary-card.success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        .summary-card.warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        .chart-container {
+            background: #f9f9f9;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .chart-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        #assetsChart {
+            width: 100%;
+            height: 40vh;
+        }
+        .detail-table-wrapper {
+            max-height: 400px;
+            overflow-y: auto;
+            border-radius: 12px;
+            background: #f9f9f9;
+            padding: 15px;
+        }
+        .detail-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .detail-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            padding: 12px 15px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            font-weight: 500;
+            font-size: 0.9em;
+        }
+        .detail-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 0.85em;
+        }
+        .detail-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .detail-table tr:hover {
+            background-color: #e3f2fd;
+        }
+        /* 操作类型颜色配置 - 遵循金融市场惯例 */
+        .action-buy {
+            color: #22c55e; /* 绿色 - 加仓（买入） */
+            font-weight: bold;
+        }
+        .action-sell {
+            color: #ef4444; /* 红色 - 减仓（卖出） */
+            font-weight: bold;
+        }
+        .action-hold {
+            color: #999;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #667eea;
+            font-size: 1.2em;
+        }
+        .loading::after {
+            content: '...';
+            animation: dots 1.5s infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+        .error-msg {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #c62828;
+        }
+        .back-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255,255,255,0.9);
+            color: #667eea;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .back-link:hover {
+            background: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        @media (max-width: 900px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            .header h1 {
+                font-size: 1.8em;
+            }
+            .summary-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+    <!-- 引入公共header样式 -->
+    <link rel="stylesheet" href="css/header.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 引入公共header -->
+        <div id="header-placeholder"></div>
+        
+        <div class="main-content">
+            <!-- 左侧参数面板 -->
+            <div class="panel">
+                <div class="panel-title">🎯 回测参数配置</div>
+                
+                <div class="form-group">
+                    <label>初始资金（元）</label>
+                    <input type="number" id="initialCapital" value="100000" step="10000">
+                </div>
+                
+                <div class="form-group">
+                    <label>初始持仓（元）</label>
+                    <input type="number" id="initialHoldings" value="100000" step="10000">
+                </div>
+                
+                <div class="form-group">
+                    <label>加仓金额（元）</label>
+                    <input type="number" id="upPositionChange" value="10000" step="1000">
+                </div>
+                
+                <div class="form-group">
+                    <label>减仓金额（元）</label>
+                    <input type="number" id="downPositionChange" value="10000" step="1000">
+                </div>
+                
+                <div class="form-group">
+                    <label>涨幅阈值（%）</label>
+                    <input type="number" id="upThreshold" value="2.0" step="0.1">
+                </div>
+                
+                <div class="form-group">
+                    <label>跌幅阈值（%）</label>
+                    <input type="number" id="downThreshold" value="0.5" step="0.1">
+                </div>
+                
+                <div class="form-group">
+                    <label>回测开始日期</label>
+                    <input type="date" id="startDate" value="">
+                </div>
+                
+                <div class="form-group">
+                    <label>回测结束日期</label>
+                    <input type="date" id="endDate" value="">
+                </div>
+                
+                <div class="form-group">
+                    <label>回测月数（或使用日期范围）</label>
+                    <input type="number" id="backtestMonths" value="12" min="1" max="60">
+                </div>
+                
+                <button class="btn" id="runBtn">开始回测</button>
+                <div id="debugInfo" style="margin-top: 15px; padding: 10px; background: #f5f5f5; border-radius: 8px; font-size: 0.85em; color: #666; display: none;">
+                    <strong>调试信息:</strong>
+                    <div id="debugMsg"></div>
+                </div>
+            </div>
+            
+            <!-- 右侧结果面板 -->
+            <div class="panel">
+                <div class="panel-title">📊 回测结果分析</div>
+                
+                <div id="loadingArea" class="loading" style="display: none;">
+                    正在执行回测
+                </div>
+                
+                <div id="errorArea" style="display: none;"></div>
+                
+                <div id="resultArea" class="result-area">
+                    <!-- 概览卡片 -->
+                    <div class="summary-cards">
+                        <div class="summary-card">
+                            <div class="label">总资产</div>
+                            <div class="value" id="totalAssets">-</div>
+                        </div>
+                        <div class="summary-card success">
+                            <div class="label">总收益率</div>
+                            <div class="value" id="returnRate">-</div>
+                        </div>
+                        <div class="summary-card warning">
+                            <div class="label">最大回撤</div>
+                            <div class="value" id="maxDrawdown">-</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="label">交易日数</div>
+                            <div class="value" id="tradingDays">-</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="label">加仓次数</div>
+                            <div class="value" id="upChanges">-</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="label">减仓次数</div>
+                            <div class="value" id="downChanges">-</div>
+                        </div>
+                    </div>
+                    
+                    <!-- 资产曲线图 -->
+                    <div class="chart-container">
+                        <div class="chart-title">📈 资产变化曲线</div>
+                        <canvas id="assetsChart"></canvas>
+                    </div>
+                    
+                    <!-- 详细数据表 -->
+                    <div class="chart-container">
+                        <div class="chart-title">📋 每日交易明细</div>
+                        <div class="detail-table-wrapper">
+                            <table class="detail-table" id="detailTable">
+                                <thead>
+                                    <tr>
+                                        <th>日期</th>
+                                        <th>指数涨跌%</th>
+                                        <th>基金净值</th>
+                                        <th>现金</th>
+                                        <th>持仓份额</th>
+                                        <th>总资产</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="detailTableBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer" style="text-align: center; padding: 20px; color: #666; border-top: 1px solid #eee; margin-top: 30px;">
+            <p>© 2025 基金监控系统 - 专业的基金数据分析平台</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script>
+        // 等待 Chart.js 库加载完成
+        let Chart;
+        const scriptPromise = new Promise((resolve) => {
+            if (window.Chart) {
+                resolve(window.Chart);
+            } else {
+                const script = document.createElement('script');
+                script.src = 'https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js';
+                script.onload = () => {
+                    Chart = window.Chart;
+                    resolve(window.Chart);
+                };
+                document.head.appendChild(script);
+            }
+        });
+
+        // 页面加载完成后初始化日期和绑定事件
+        document.addEventListener('DOMContentLoaded', function() {
+            loadHeader(); // 加载公共header
+            initializeDates();
+            bindEvents();
+        });
+
+        // 加载公共header
+        function loadHeader() {
+            fetch('components/header.html')
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('header-placeholder').innerHTML = html;
+                    // 检查登录状态
+                    checkLoginStatus();
+                })
+                .catch(error => {
+                    console.error('加载公共header失败:', error);
+                });
+        }
+
+        // 初始化日期范围
+        function initializeDates() {
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setMonth(startDate.getMonth() - 12);
+            
+            document.getElementById('startDate').valueAsDate = startDate;
+            document.getElementById('endDate').valueAsDate = endDate;
+        }
+
+        // 绑定事件
+        function bindEvents() {
+            document.getElementById('runBtn').addEventListener('click', runBacktest);
+        }
+
+        // 运行回测
+        async function runBacktest() {
+            // 获取参数
+            const params = {
+                initialCapital: parseFloat(document.getElementById('initialCapital').value),
+                initialHoldings: parseFloat(document.getElementById('initialHoldings').value),
+                upPositionChange: parseFloat(document.getElementById('upPositionChange').value),
+                downPositionChange: parseFloat(document.getElementById('downPositionChange').value),
+                upThreshold: parseFloat(document.getElementById('upThreshold').value),
+                downThreshold: parseFloat(document.getElementById('downThreshold').value),
+                startDate: document.getElementById('startDate').value,
+                endDate: document.getElementById('endDate').value,
+                backtestMonths: parseInt(document.getElementById('backtestMonths').value)
+            };
+
+            // 验证参数
+            if (!params.startDate || !params.endDate) {
+                showError('请选择回测日期范围');
+                return;
+            }
+
+            // 显示加载状态
+            document.getElementById('loadingArea').style.display = 'block';
+            document.getElementById('resultArea').classList.remove('show');
+            document.getElementById('errorArea').style.display = 'none';
+
+            try {
+                // 发送请求到后端API
+                const response = await fetch('/api/backtest/run', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(params)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // 显示结果
+                    displayResults(result.data);
+                } else {
+                    showError(result.message || '回测执行失败');
+                }
+            } catch (error) {
+                console.error('Backtest error:', error);
+                showError('回测执行出错: ' + error.message);
+            } finally {
+                // 隐藏加载状态
+                document.getElementById('loadingArea').style.display = 'none';
+            }
+        }
+
+        // 显示错误信息
+        function showError(message) {
+            const errorArea = document.getElementById('errorArea');
+            errorArea.innerHTML = `<div class="error-msg">${message}</div>`;
+            errorArea.style.display = 'block';
+        }
+
+        // 显示回测结果
+        async function displayResults(data) {
+            // 等待 Chart.js 加载完成
+            await scriptPromise;
+
+            // 更新概览卡片
+            document.getElementById('totalAssets').textContent = formatCurrency(data.totalAssets);
+            document.getElementById('returnRate').textContent = formatPercentage(data.returnRate);
+            document.getElementById('maxDrawdown').textContent = formatPercentage(data.maxDrawdown);
+            document.getElementById('tradingDays').textContent = data.tradingDays;
+            document.getElementById('upChanges').textContent = data.upChanges;
+            document.getElementById('downChanges').textContent = data.downChanges;
+
+            // 渲染资产曲线图
+            renderAssetsChart(data.assetsHistory);
+
+            // 渲染详细数据表
+            renderDetailTable(data.detailList);
+
+            // 显示结果区域
+            document.getElementById('resultArea').classList.add('show');
+        }
+
+        // 格式化货币
+        function formatCurrency(value) {
+            return '¥' + value.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+        }
+
+        // 格式化百分比
+        function formatPercentage(value) {
+            return (value * 100).toFixed(2) + '%';
+        }
+
+        // 渲染资产曲线图
+        function renderAssetsChart(assetsHistory) {
+            const ctx = document.getElementById('assetsChart').getContext('2d');
+            
+            // 销毁之前的图表实例（如果存在）
+            if (window.assetsChartInstance) {
+                window.assetsChartInstance.destroy();
+            }
+
+            // 准备图表数据
+            const dates = assetsHistory.map(item => item.date);
+            const assets = assetsHistory.map(item => item.totalAssets);
+            const benchmarks = assetsHistory.map(item => item.benchmarkAssets);
+
+            // 创建新图表
+            window.assetsChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: '策略资产',
+                            data: assets,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.1
+                        },
+                        {
+                            label: '基准资产（上证指数）',
+                            data: benchmarks,
+                            borderColor: '#11998e',
+                            backgroundColor: 'rgba(17, 153, 142, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ¥' + context.parsed.y.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                callback: function(value) {
+                                    return '¥' + value.toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 渲染详细数据表
+        function renderDetailTable(detailList) {
+            const tbody = document.getElementById('detailTableBody');
+            tbody.innerHTML = '';
+
+            detailList.forEach(item => {
+                const row = document.createElement('tr');
+                
+                // 根据操作类型设置样式
+                let actionClass = 'action-hold';
+                if (item.action === 'BUY') {
+                    actionClass = 'action-buy';
+                } else if (item.action === 'SELL') {
+                    actionClass = 'action-sell';
+                }
+
+                row.innerHTML = `
+                    <td>${item.date}</td>
+                    <td>${formatPercentage(item.indexChange)}</td>
+                    <td>${item.fundNav.toFixed(4)}</td>
+                    <td>${formatCurrency(item.cash)}</td>
+                    <td>${item.holdings.toFixed(2)}</td>
+                    <td>${formatCurrency(item.totalAssets)}</td>
+                    <td class="${actionClass}">${item.action === 'BUY' ? '加仓' : item.action === 'SELL' ? '减仓' : '持有'}</td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+    </script>
+    <!-- 引入公共认证脚本 -->
+    <script src="js/auth.js"></script>
+</body>
+</html>
