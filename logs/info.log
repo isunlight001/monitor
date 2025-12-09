@@ -626,3 +626,49 @@ Error starting ApplicationContext. To display the conditions report re-run your 
 2025-12-09 15:32:39.666 [main] INFO  o.s.b.a.l.ConditionEvaluationReportLoggingListener - 
 
 Error starting ApplicationContext. To display the conditions report re-run your application with 'debug' enabled.
+2025-12-09 20:22:50.342 [main] INFO  com.sunlight.invest.FundApplication - Starting FundApplication using Java 1.8.0_152 on sunlight with PID 43544 (D:\javaAI\monitor\target\classes started by Administrator in D:\javaAI\monitor)
+2025-12-09 20:22:50.345 [main] INFO  com.sunlight.invest.FundApplication - No active profile set, falling back to 1 default profile: "default"
+2025-12-09 20:22:52.114 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port(s): 8081 (http)
+2025-12-09 20:22:52.121 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8081"]
+2025-12-09 20:22:52.123 [main] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2025-12-09 20:22:52.123 [main] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/9.0.83]
+2025-12-09 20:22:52.286 [main] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2025-12-09 20:22:52.286 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 1889 ms
+2025-12-09 20:22:52.372 [main] INFO  c.a.d.s.b.a.DruidDataSourceAutoConfigure - Init DruidDataSource
+2025-12-09 20:22:53.018 [main] INFO  c.alibaba.druid.pool.DruidDataSource - {dataSource-1} inited
+2025-12-09 20:22:53.431 [main] INFO  c.s.i.s.service.DatabaseInitializer - 开始初始化数据库...
+2025-12-09 20:22:53.432 [main] INFO  c.s.i.s.service.DatabaseInitializer - 检查数据库 fund 是否存在...
+2025-12-09 20:22:54.225 [main] INFO  c.s.i.s.service.DatabaseInitializer - 数据库 fund 已存在
+2025-12-09 20:22:54.226 [main] INFO  c.s.i.s.service.DatabaseInitializer - 开始执行SQL脚本: schema.sql
+2025-12-09 20:22:54.236 [main] INFO  c.s.i.s.service.DatabaseInitializer - 表 fund_nav 已存在，跳过创建
+2025-12-09 20:22:54.237 [main] INFO  c.s.i.s.service.DatabaseInitializer - 表 fund_monitor 已存在，跳过创建
+2025-12-09 20:22:54.238 [main] INFO  c.s.i.s.service.DatabaseInitializer - 表 index_data 已存在，跳过创建
+2025-12-09 20:22:54.239 [main] INFO  c.s.i.s.service.DatabaseInitializer - 表 alarm_record 已存在，跳过创建
+2025-12-09 20:22:54.240 [main] INFO  c.s.i.s.service.DatabaseInitializer - 表 email_recipient 已存在，跳过创建
+2025-12-09 20:22:54.241 [main] INFO  c.s.i.s.service.DatabaseInitializer - 表 system_config 已存在，跳过创建
+2025-12-09 20:22:54.242 [main] INFO  c.s.i.s.service.DatabaseInitializer - 表 user 已存在，跳过创建
+2025-12-09 20:22:54.308 [main] INFO  c.s.i.s.service.DatabaseInitializer - SQL脚本 schema.sql 执行完成
+2025-12-09 20:22:54.309 [main] INFO  c.s.i.s.service.DatabaseInitializer - 开始执行SQL脚本: init.sql
+2025-12-09 20:22:54.329 [main] INFO  c.s.i.s.service.DatabaseInitializer - SQL脚本 init.sql 执行完成
+2025-12-09 20:22:54.329 [main] INFO  c.s.i.s.service.DatabaseInitializer - 数据库初始化完成
+2025-12-09 20:22:54.506 [main] INFO  c.s.invest.common.SqlCostInterceptor - SQL执行耗时: 12 ms, SQL: SELECT * FROM system_config WHERE enabled = 1 ORDER BY create_time ASC
+2025-12-09 20:22:54.507 [main] INFO  c.s.i.s.service.SystemConfigService - 系统配置缓存加载完成，共加载 4 个配置项
+2025-12-09 20:22:54.895 [main] INFO  o.s.b.a.w.s.WelcomePageHandlerMapping - Adding welcome page: class path resource [static/index.html]
+2025-12-09 20:22:55.256 [main] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint(s) beneath base path '/actuator'
+2025-12-09 20:22:55.277 [main] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8081"]
+2025-12-09 20:22:55.292 [main] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port(s): 8081 (http) with context path ''
+2025-12-09 20:22:55.308 [main] INFO  com.sunlight.invest.FundApplication - Started FundApplication in 5.423 seconds (JVM running for 5.837)
+2025-12-09 20:22:55.313 [main] INFO  c.s.i.system.service.UserInitializer - 开始初始化默认用户...
+2025-12-09 20:22:55.317 [main] INFO  c.s.invest.common.SqlCostInterceptor - SQL执行耗时: 1 ms, SQL: SELECT * FROM user WHERE username = 'admin'
+2025-12-09 20:22:55.317 [main] INFO  c.s.i.system.service.UserInitializer - 默认管理员用户已存在
+2025-12-09 20:22:55.317 [main] INFO  c.s.i.system.service.UserInitializer - 用户初始化完成
+2025-12-09 20:22:55.317 [main] INFO  c.s.i.s.s.SystemConfigInitializer - 开始初始化系统配置...
+2025-12-09 20:22:55.319 [main] INFO  c.s.invest.common.SqlCostInterceptor - SQL执行耗时: 1 ms, SQL: SELECT * FROM system_config WHERE config_key = 'threshold_5_percent'
+2025-12-09 20:22:55.319 [main] INFO  c.s.i.s.s.SystemConfigInitializer - 配置项已存在，跳过: threshold_5_percent
+2025-12-09 20:22:55.321 [main] INFO  c.s.invest.common.SqlCostInterceptor - SQL执行耗时: 0 ms, SQL: SELECT * FROM system_config WHERE config_key = 'threshold_4_percent'
+2025-12-09 20:22:55.321 [main] INFO  c.s.i.s.s.SystemConfigInitializer - 配置项已存在，跳过: threshold_4_percent
+2025-12-09 20:22:55.322 [main] INFO  c.s.invest.common.SqlCostInterceptor - SQL执行耗时: 1 ms, SQL: SELECT * FROM system_config WHERE config_key = 'monitor_days'
+2025-12-09 20:22:55.322 [main] INFO  c.s.i.s.s.SystemConfigInitializer - 配置项已存在，跳过: monitor_days
+2025-12-09 20:22:55.324 [main] INFO  c.s.invest.common.SqlCostInterceptor - SQL执行耗时: 1 ms, SQL: SELECT * FROM system_config WHERE config_key = 'schedule_cron'
+2025-12-09 20:22:55.324 [main] INFO  c.s.i.s.s.SystemConfigInitializer - 配置项已存在，跳过: schedule_cron
+2025-12-09 20:22:55.324 [main] INFO  c.s.i.s.s.SystemConfigInitializer - 系统配置初始化完成
