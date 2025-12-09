@@ -67,7 +67,3 @@ server:
 scheduled:
   enabled: true
 
-# 导入敏感信息配置文件
-spring:
-  profiles:
-    include: secrets
