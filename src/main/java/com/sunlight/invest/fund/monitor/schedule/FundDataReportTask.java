@@ -27,7 +27,8 @@ import java.util.List;
 public class FundDataReportTask {
 
     private static final Logger log = LoggerFactory.getLogger(FundDataReportTask.class);
-    
+    public static final int DAYS = 5;
+
     @Autowired
     private MonitorFundMapper monitorFundMapper;
     
@@ -116,7 +117,7 @@ public class FundDataReportTask {
             htmlBuilder.append("<h2>").append(fund1.getFundName()).append(" (").append(fund1.getFundCode()).append(")</h2>");
             
             // 获取近5日数据
-            List<FundNav> recentNavs1 = fundNavMapper.selectRecentDays(fund1.getFundCode(), 7);
+            List<FundNav> recentNavs1 = fundNavMapper.selectRecentDays(fund1.getFundCode(), DAYS);
             
             if (recentNavs1 == null || recentNavs1.isEmpty()) {
                 htmlBuilder.append("<p>暂无数据</p>");
@@ -133,7 +134,7 @@ public class FundDataReportTask {
                 htmlBuilder.append("<tbody>");
                 
                 // 按日期升序排列显示
-                for (int j = recentNavs1.size() - 1; j >= 0; j--) {
+                for (int j = 0; j <recentNavs1.size() ; j++) {
                     FundNav nav = recentNavs1.get(j);
                     htmlBuilder.append("<tr>");
                     htmlBuilder.append("<td>").append(nav.getNavDate().format(DATE_FORMATTER)).append("</td>");
@@ -164,7 +165,7 @@ public class FundDataReportTask {
                 htmlBuilder.append("<h2>").append(fund2.getFundName()).append(" (").append(fund2.getFundCode()).append(")</h2>");
                 
                 // 获取近5日数据
-                List<FundNav> recentNavs2 = fundNavMapper.selectRecentDays(fund2.getFundCode(), 7);
+                List<FundNav> recentNavs2 = fundNavMapper.selectRecentDays(fund2.getFundCode(), DAYS);
                 
                 if (recentNavs2 == null || recentNavs2.isEmpty()) {
                     htmlBuilder.append("<p>暂无数据</p>");
@@ -181,7 +182,7 @@ public class FundDataReportTask {
                     htmlBuilder.append("<tbody>");
                     
                     // 按日期升序排列显示
-                    for (int j = recentNavs2.size() - 1; j >= 0; j--) {
+                    for (int j = 0; j <recentNavs2.size(); j++) {
                         FundNav nav = recentNavs2.get(j);
                         htmlBuilder.append("<tr>");
                         htmlBuilder.append("<td>").append(nav.getNavDate().format(DATE_FORMATTER)).append("</td>");
