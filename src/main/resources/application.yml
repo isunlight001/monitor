@@ -52,7 +52,6 @@ spring:
 
 # DeepSeek AI配置
 deepseek:
-  # 请在实际使用时替换为您的真实API Key
   api-key: sk-374ff975065c4ca5aceeacb9b130ac5f
   api-url: https://api.deepseek.com/v1/chat/completions
   model: deepseek-chat
