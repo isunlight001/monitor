@@ -29,4 +29,4 @@ src/main/resources/application-secrets.yml
 # 应用程序特定文件
 !/上证指数历史数据.csv
 !/国金量化多因子_2020-2025净值.xlsx
-!/bin/
+!/bin/!/logs/
