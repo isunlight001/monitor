@@ -103,7 +103,8 @@ public class StockService {
         // 构建提示词
         StringBuilder prompt = new StringBuilder();
         prompt.append("角色：你是一名经验丰富的股票投资分析专家，擅长技术面和基本面结合分析。\n");
-        prompt.append("任务：请分析以下A股股票的历史数据。数据格式为：每行包含\"交易日期、开盘价、收盘价、最高价、最低价\"。\n");
+        prompt.append("任务：请分析以下A股股票的历史数据，股票代码：").append(stockCode).append("。\n");
+        prompt.append("数据格式为：每行包含\"交易日期、开盘价、收盘价、最高价、最低价\"。\n");
         prompt.append("数据：\n");
         
         // 添加数据
@@ -120,7 +121,7 @@ public class StockService {
         prompt.append("关键位置：近期的支撑位和压力位大致在哪里？\n");
         prompt.append("风险提示：当前主要的风险点是什么？\n");
         prompt.append("操作建议：给出短期（1-3天）的操作策略建议（如观望、分批建仓、减仓）及理由。\n");
-        log.info("提示词：{}", prompt);
+        
         // 调用AI服务
         return deepSeekService.getAIResponse(prompt.toString());
     }
