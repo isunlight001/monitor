@@ -71,6 +71,23 @@ CREATE TABLE IF NOT EXISTS `email_recipient` (
     UNIQUE KEY uk_email (email)
 ) COMMENT '邮件接收人表';
 
+-- 股票数据表
+CREATE TABLE IF NOT EXISTS `stock_data` (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    stock_code VARCHAR(20) NOT NULL COMMENT '股票代码',
+    stock_name VARCHAR(100) NOT NULL COMMENT '股票名称',
+    trade_date DATE NOT NULL COMMENT '交易日期',
+    open_price DECIMAL(10,4) COMMENT '开盘价',
+    close_price DECIMAL(10,4) COMMENT '收盘价',
+    high_price DECIMAL(10,4) COMMENT '最高价',
+    low_price DECIMAL(10,4) COMMENT '最低价',
+    volume BIGINT COMMENT '成交量',
+    amount DECIMAL(15,4) COMMENT '成交额',
+    create_time DATE COMMENT '创建时间',
+    update_time DATE COMMENT '更新时间',
+    UNIQUE KEY uk_stock_date (stock_code, trade_date)
+) COMMENT '股票数据表';
+
 -- 系统配置表
 CREATE TABLE IF NOT EXISTS `system_config` (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,

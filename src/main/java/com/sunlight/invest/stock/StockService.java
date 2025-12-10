@@ -1,9 +1,12 @@
 package com.sunlight.invest.stock;
 
 import com.sunlight.ai.service.DeepSeekService;
+import com.sunlight.invest.stock.service.StockDataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 @Service
@@ -18,6 +21,9 @@ public class StockService {
     @Autowired
     private DeepSeekService deepSeekService;
     
+    @Autowired
+    private StockDataService stockDataService;
+    
     /**
      * 获取股票历史数据
      * @param stockCode 股票代码
@@ -26,8 +32,30 @@ public class StockService {
      * @return 股票数据列表
      */
     public List<StockData> getStockHistory(String stockCode, String startDate, String endDate) {
+        // 先尝试从数据库获取数据
+        try {
+            LocalDate start = LocalDate.parse(startDate, DateTimeFormatter.BASIC_ISO_DATE);
+            LocalDate end = LocalDate.parse(endDate, DateTimeFormatter.BASIC_ISO_DATE);
+            
+            // 检查数据库中是否已有数据
+            List<StockData> dbData = stockDataService.getStockDataByDateRangeFromDB(stockCode, start, end);
+            if (!dbData.isEmpty()) {
+                return dbData;
+            }
+        } catch (Exception e) {
+            // 解析日期失败，继续从网络获取
+        }
+        
+        // 从网络获取数据
         String jsonData = stockDataFetcher.fetchStockHistoryData(stockCode, startDate, endDate);
-        return stockDataParser.parseStockData(jsonData);
+        List<StockData> stockData = stockDataParser.parseStockData(jsonData);
+        
+        // 保存到数据库
+        if (stockData != null && !stockData.isEmpty()) {
+            stockDataService.saveStockData(stockData, stockCode, "未知股票");
+        }
+        
+        return stockData;
     }
     
     /**
@@ -37,8 +65,22 @@ public class StockService {
      * @return 股票数据列表
      */
     public List<StockData> getRecentStockData(String stockCode, int days) {
+        // 先尝试从数据库获取数据
+        List<StockData> dbData = stockDataService.getRecentStockDataFromDB(stockCode, days);
+        if (!dbData.isEmpty()) {
+            return dbData;
+        }
+        
+        // 从网络获取数据
         String jsonData = stockDataFetcher.fetchRecentStockData(stockCode, days);
-        return stockDataParser.parseStockData(jsonData);
+        List<StockData> stockData = stockDataParser.parseStockData(jsonData);
+        
+        // 保存到数据库
+        if (stockData != null && !stockData.isEmpty()) {
+            stockDataService.saveStockData(stockData, stockCode, "未知股票");
+        }
+        
+        return stockData;
     }
     
     /**
