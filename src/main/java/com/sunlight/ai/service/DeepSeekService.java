@@ -29,16 +29,19 @@ public class DeepSeekService {
      * @return AI回复内容
      */
     public String getAIResponse(String question) {
-        logger.info("用户提问: {}", question);
         try {
             OkHttpClient client = new OkHttpClient.Builder()
-                    .connectTimeout(30, TimeUnit.SECONDS)
-                    .writeTimeout(30, TimeUnit.SECONDS)
-                    .readTimeout(30, TimeUnit.SECONDS)
+                    .connectTimeout(60, TimeUnit.SECONDS)  // 增加连接超时时间
+                    .writeTimeout(60, TimeUnit.SECONDS)    // 增加写入超时时间
+                    .readTimeout(60, TimeUnit.SECONDS)     // 增加读取超时时间
                     .build();
             
             // 构建请求参数
             JSONObject requestBody = buildRequestBody(question);
+            
+            // 打印请求内容和估算的token数量
+            int requestTokens = estimateTokenCount(question);
+            logger.info("AI请求: 问题长度={}字符, 估算token数量={}", question.length(), requestTokens);
             
             Request request = new Request.Builder()
                     .url(deepSeekConfig.getApiUrl())
@@ -64,12 +67,23 @@ public class DeepSeekService {
                 String responseString = responseBody.string();
                 JSONObject responseObject = JSON.parseObject(responseString);
                 
+                // 打印响应内容和token使用情况
+                JSONObject usage = responseObject.getJSONObject("usage");
+                if (usage != null) {
+                    int promptTokens = usage.getIntValue("prompt_tokens");
+                    int completionTokens = usage.getIntValue("completion_tokens");
+                    int totalTokens = usage.getIntValue("total_tokens");
+                    logger.info("AI响应: 提示token={}, 完成token={}, 总token={}", promptTokens, completionTokens, totalTokens);
+                }
+                
                 JSONArray choices = responseObject.getJSONArray("choices");
                 if (choices != null && !choices.isEmpty()) {
                     JSONObject choice = choices.getJSONObject(0);
                     JSONObject message = choice.getJSONObject("message");
                     if (message != null) {
-                        return message.getString("content");
+                        String content = message.getString("content");
+                        logger.info("AI响应内容长度={}字符", content != null ? content.length() : 0);
+                        return content;
                     }
                 }
                 logger.info("DeepSeek API响应: {}", responseString);
@@ -79,6 +93,22 @@ public class DeepSeekService {
             logger.error("调用DeepSeek AI接口失败", e);
             return "抱歉，AI服务暂时不可用";
         }
+    }
+    
+    /**
+     * 估算文本的token数量（简单估算）
+     * 
+     * @param text 文本内容
+     * @return 估算的token数量
+     */
+    private int estimateTokenCount(String text) {
+        if (text == null || text.isEmpty()) {
+            return 0;
+        }
+        // 简单估算：英文单词约1个token，中文字符约0.6个token
+        int englishWords = text.split("\\s+").length;
+        int chineseChars = text.replaceAll("[^\\u4e00-\\u9fa5]", "").length();
+        return englishWords + (int)(chineseChars * 0.6);
     }
     
     /**
