@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#667eea">
+    <link rel="manifest" href="../manifest.json">
+    <link rel="apple-touch-icon" href="../icons/icon-192x192.png">
+    <title>AI测试 - 基金监控系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --light-bg: #f8f9fa;
+            --dark-text: #333;
+            --gray-text: #6c757d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            min-height: 100vh;
+            padding: 10px;
+            color: var(--dark-text);
+        }
+
+        .mobile-container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .mobile-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 20px 15px;
+            text-align: center;
+            position: relative;
+        }
+
+        .mobile-header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .mobile-header p {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-bottom: 15px;
+        }
+
+        .user-info-mobile {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 6px 12px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+        }
+
+        .logout-btn-mobile {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 4px 10px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+
+        .nav-menu-btn {
+            position: absolute;
+            top: 20px;
+            left: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .mobile-nav-drawer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 80%;
+            height: 100%;
+            background: white;
+            z-index: 1000;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.2);
+            overflow-y: auto;
+        }
+
+        .mobile-nav-drawer.open {
+            transform: translateX(0);
+        }
+
+        .nav-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .nav-overlay.open {
+            display: block;
+        }
+
+        .close-nav-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--dark-text);
+        }
+
+        .nav-drawer-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+        }
+
+        .nav-drawer-header h2 {
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+        }
+
+        .nav-links-mobile {
+            padding: 20px 0;
+        }
+
+        .nav-link-mobile {
+            display: block;
+            padding: 15px 20px;
+            text-decoration: none;
+            color: var(--dark-text);
+            border-bottom: 1px solid #eee;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-link-mobile:hover {
+            background-color: var(--light-bg);
+        }
+
+        .nav-link-mobile i {
+            width: 24px;
+            text-align: center;
+        }
+
+        .mobile-content {
+            padding: 20px 15px;
+        }
+
+        .section-mobile {
+            background: var(--light-bg);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-mobile h3 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: var(--dark-text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group-mobile {
+            margin-bottom: 15px;
+        }
+
+        .form-group-mobile label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--gray-text);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .form-control-mobile {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+            min-height: 100px;
+        }
+
+        .form-control-mobile:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-mobile {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary-mobile {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+        }
+
+        .btn-success-mobile {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-info-mobile {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+        }
+
+        .btn-danger-mobile {
+            background: linear-gradient(135deg, var(--danger-color) 0%, #ff4b2b 100%);
+            color: white;
+        }
+
+        .btn-mobile:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .result-mobile {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            display: none;
+            font-size: 0.9rem;
+        }
+
+        .result-mobile.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result-mobile.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .result-mobile.show {
+            display: block;
+            animation: slideInMobile 0.3s ease;
+        }
+
+        @keyframes slideInMobile {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chat-container-mobile {
+            display: flex;
+            flex-direction: column;
+            height: 400px;
+        }
+
+        .chat-messages-mobile {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #e0e0e0;
+            max-height: 300px;
+        }
+
+        .message-mobile {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .user-message-mobile {
+            background-color: #e3f2fd;
+            margin-left: 20px;
+            text-align: right;
+        }
+
+        .ai-message-mobile {
+            background-color: var(--light-bg);
+            margin-right: 20px;
+        }
+
+        .message-mobile strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .typing-indicator-mobile {
+            display: none;
+            text-align: center;
+            padding: 10px;
+            color: var(--gray-text);
+        }
+
+        .typing-indicator-mobile.show {
+            display: block;
+        }
+
+        .footer-mobile {
+            text-align: center;
+            padding: 15px;
+            color: var(--gray-text);
+            border-top: 1px solid #eee;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航抽屉遮罩 -->
+    <div class="nav-overlay" id="navOverlay"></div>
+    
+    <!-- 移动端导航抽屉 -->
+    <div class="mobile-nav-drawer" id="mobileNavDrawer">
+        <button class="close-nav-btn" id="closeNavBtn">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <div class="nav-drawer-header">
+            <h2>基金监控系统</h2>
+            <p>专业的基金数据分析平台</p>
+        </div>
+        <div class="nav-links-mobile">
+            <a href="index.html" class="nav-link-mobile">
+                <i class="bi bi-house-door"></i>
+                <span>首页</span>
+            </a>
+            <a href="fund-monitor.html" class="nav-link-mobile">
+                <i class="bi bi-bar-chart"></i>
+                <span>基金监控</span>
+            </a>
+            <a href="index-data.html" class="nav-link-mobile">
+                <i class="bi bi-graph-up"></i>
+                <span>指数数据</span>
+            </a>
+            <a href="fund-backtest.html" class="nav-link-mobile">
+                <i class="bi bi-beaker"></i>
+                <span>基金回测</span>
+            </a>
+            <a href="alert-records.html" class="nav-link-mobile">
+                <i class="bi bi-bell"></i>
+                <span>告警记录</span>
+            </a>
+            <a href="notification-test.html" class="nav-link-mobile">
+                <i class="bi bi-envelope"></i>
+                <span>通知测试</span>
+            </a>
+            <a href="fund-report-test.html" class="nav-link-mobile">
+                <i class="bi bi-file-earmark-bar-graph"></i>
+                <span>报告测试</span>
+            </a>
+            <a href="email-recipient-management.html" class="nav-link-mobile">
+                <i class="bi bi-people"></i>
+                <span>邮件接收人</span>
+            </a>
+            <a href="system-config.html" class="nav-link-mobile">
+                <i class="bi bi-gear"></i>
+                <span>系统配置</span>
+            </a>
+            <a href="ai-test.html" class="nav-link-mobile">
+                <i class="bi bi-robot"></i>
+                <span>AI测试</span>
+            </a>
+            <a href="stock-management.html" class="nav-link-mobile">
+                <i class="bi bi-currency-exchange"></i>
+                <span>股票管理</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="mobile-container">
+        <!-- 移动端头部 -->
+        <div class="mobile-header">
+            <button class="nav-menu-btn" id="navMenuBtn">
+                <i class="bi bi-list"></i>
+            </button>
+            <h1><i class="bi bi-robot"></i> AI测试</h1>
+            <p>与AI进行自然语言对话</p>
+            <div class="user-info-mobile" id="userInfoMobile" style="display: none;">
+                <span>欢迎, <span id="currentUserNameMobile"></span></span>
+                <button class="logout-btn-mobile" onclick="logout()">退出</button>
+            </div>
+        </div>
+        
+        <div class="mobile-content">
+            <!-- AI测试 -->
+            <div class="section-mobile">
+                <h3><i class="bi bi-chat-dots"></i> AI智能助手</h3>
+                <p style="margin-bottom: 15px;">与AI进行自然语言对话，获取所需信息和帮助</p>
+                
+                <div class="chat-container-mobile">
+                    <div class="chat-messages-mobile" id="chatMessagesMobile">
+                        <div class="message-mobile ai-message-mobile">
+                            <strong>🤖 AI助手</strong>
+                            <div>您好！我是AI助手</div>
+                            <div style="font-size: 0.85rem; margin-top: 5px; color: var(--gray-text);">请问有什么可以帮助您的吗？</div>
+                        </div>
+                    </div>
+                    
+                    <div class="typing-indicator-mobile" id="typingIndicatorMobile">
+                        <div style="display: inline-block;">
+                            <span style="display: inline-block; width: 6px; height: 6px; background-color: var(--primary-color); border-radius: 50%; margin: 0 2px; animation: bounce 1.5s infinite;"></span>
+                            <span style="display: inline-block; width: 6px; height: 6px; background-color: var(--primary-color); border-radius: 50%; margin: 0 2px; animation: bounce 1.5s infinite 0.2s;"></span>
+                            <span style="display: inline-block; width: 6px; height: 6px; background-color: var(--primary-color); border-radius: 50%; margin: 0 2px; animation: bounce 1.5s infinite 0.4s;"></span>
+                        </div>
+                        <span style="margin-left: 8px;">AI正在思考中...</span>
+                    </div>
+                </div>
+                
+                <div class="form-group-mobile">
+                    <label for="userQuestionMobile">您的问题</label>
+                    <textarea class="form-control-mobile" id="userQuestionMobile" placeholder="请输入您的问题..."></textarea>
+                </div>
+                <button class="btn-mobile btn-primary-mobile" onclick="sendQuestion()">
+                    <i class="bi bi-send"></i> 发送
+                </button>
+                <button class="btn-mobile btn-info-mobile" onclick="clearChat()">
+                    <i class="bi bi-trash"></i> 清空对话
+                </button>
+                <div class="result-mobile" id="aiResultMobile"></div>
+            </div>
+            
+            <!-- 示例问题 -->
+            <div class="section-mobile">
+                <h3><i class="bi bi-lightbulb"></i> 示例问题</h3>
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                    <button class="btn-mobile btn-success-mobile" onclick="setExampleQuestion('基金006195最近表现如何？')" style="font-size: 0.8rem; padding: 8px;">
+                        基金表现分析
+                    </button>
+                    <button class="btn-mobile btn-success-mobile" onclick="setExampleQuestion('如何选择适合长期投资的基金？')" style="font-size: 0.8rem; padding: 8px;">
+                        投资建议
+                    </button>
+                    <button class="btn-mobile btn-success-mobile" onclick="setExampleQuestion('基金定投有什么优势？')" style="font-size: 0.8rem; padding: 8px;">
+                        定投优势
+                    </button>
+                    <button class="btn-mobile btn-success-mobile" onclick="setExampleQuestion('如何分散投资风险？')" style="font-size: 0.8rem; padding: 8px;">
+                        风险分散
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-mobile">
+            <p>© 2025 基金监控系统 - 专业的基金数据分析平台</p>
+        </div>
+    </div>
+
+    <script>
+        // DOM元素引用
+        const navMenuBtn = document.getElementById('navMenuBtn');
+        const closeNavBtn = document.getElementById('closeNavBtn');
+        const mobileNavDrawer = document.getElementById('mobileNavDrawer');
+        const navOverlay = document.getElementById('navOverlay');
+        const chatMessagesMobile = document.getElementById('chatMessagesMobile');
+        
+        // 打开导航抽屉
+        navMenuBtn.addEventListener('click', function() {
+            mobileNavDrawer.classList.add('open');
+            navOverlay.classList.add('open');
+            document.body.style.overflow = 'hidden'; // 防止背景滚动
+        });
+        
+        // 关闭导航抽屉
+        closeNavBtn.addEventListener('click', function() {
+            mobileNavDrawer.classList.remove('open');
+            navOverlay.classList.remove('open');
+            document.body.style.overflow = ''; // 恢复背景滚动
+        });
+        
+        // 点击遮罩关闭导航抽屉
+        navOverlay.addEventListener('click', function() {
+            mobileNavDrawer.classList.remove('open');
+            navOverlay.classList.remove('open');
+            document.body.style.overflow = '';
+        });
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 模拟用户登录状态
+            document.getElementById('userInfoMobile').style.display = 'flex';
+            document.getElementById('currentUserNameMobile').textContent = '张三';
+        });
+        
+        // 模拟登出功能
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                alert('已退出登录');
+                document.getElementById('userInfoMobile').style.display = 'none';
+            }
+        }
+        
+        // 设置示例问题
+        function setExampleQuestion(question) {
+            document.getElementById('userQuestionMobile').value = question;
+        }
+        
+        // 发送问题
+        function sendQuestion() {
+            const question = document.getElementById('userQuestionMobile').value.trim();
+            
+            if (!question) {
+                showMessage('aiResultMobile', '请输入您的问题', false);
+                return;
+            }
+            
+            // 添加用户消息到聊天窗口
+            addMessageToChat('user', question);
+            
+            // 清空输入框
+            document.getElementById('userQuestionMobile').value = '';
+            
+            // 显示正在输入指示器
+            document.getElementById('typingIndicatorMobile').classList.add('show');
+            
+            // 模拟AI响应
+            setTimeout(() => {
+                // 隐藏正在输入指示器
+                document.getElementById('typingIndicatorMobile').classList.remove('show');
+                
+                // 生成模拟AI响应
+                const responses = [
+                    "根据您的问题，我可以提供以下分析：这是一个很好的问题。基金投资需要考虑多个因素，包括风险承受能力、投资期限和市场环境。建议您在投资前充分了解基金的历史表现和基金经理的投资策略。",
+                    "关于您提到的问题，我的建议如下：基金投资是一项长期活动，短期波动是正常的。重要的是坚持投资纪律，定期评估投资组合的表现，并根据市场变化和个人情况适时调整。",
+                    "针对您的疑问，我分析如下：分散投资是降低风险的有效方法。建议您不要把所有资金投入单一基金，而是构建一个包含不同类型基金的投资组合，以平衡风险和收益。",
+                    "根据当前市场情况，我的看法是：基金定投是一种适合普通投资者的策略，它可以平滑市场波动的影响。建议您选择业绩稳定、费用较低的基金进行定投，并坚持长期投资理念。"
+                ];
+                
+                const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                addMessageToChat('ai', randomResponse);
+            }, 2000);
+        }
+        
+        // 添加消息到聊天窗口
+        function addMessageToChat(sender, message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message-mobile ${sender}-message-mobile`;
+            
+            const senderName = sender === 'user' ? '👤 您' : '🤖 AI助手';
+            messageDiv.innerHTML = `
+                <strong>${senderName}</strong>
+                <div>${message}</div>
+            `;
+            
+            chatMessagesMobile.appendChild(messageDiv);
+            
+            // 滚动到底部
+            chatMessagesMobile.scrollTop = chatMessagesMobile.scrollHeight;
+        }
+        
+        // 清空对话
+        function clearChat() {
+            if (confirm('确定要清空对话记录吗？')) {
+                chatMessagesMobile.innerHTML = `
+                    <div class="message-mobile ai-message-mobile">
+                        <strong>🤖 AI助手</strong>
+                        <div>您好！我是AI助手</div>
+                        <div style="font-size: 0.85rem; margin-top: 5px; color: var(--gray-text);">请问有什么可以帮助您的吗？</div>
+                    </div>
+                `;
+                document.getElementById('userQuestionMobile').value = '';
+                document.getElementById('typingIndicatorMobile').classList.remove('show');
+                showMessage('aiResultMobile', '对话记录已清空', true);
+            }
+        }
+        
+        // 显示消息
+        function showMessage(elementId, message, isSuccess) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = 'result-mobile show ' + (isSuccess ? 'success' : 'error');
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                element.classList.remove('show');
+            }, 3000);
+        }
+        
+        // 注册 Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('../sw.js')
+                    .then(function(registration) {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(function(registrationError) {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>

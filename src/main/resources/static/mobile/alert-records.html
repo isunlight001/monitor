@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#667eea">
+    <link rel="manifest" href="../manifest.json">
+    <link rel="apple-touch-icon" href="../icons/icon-192x192.png">
+    <title>告警记录 - 基金监控系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --light-bg: #f8f9fa;
+            --dark-text: #333;
+            --gray-text: #6c757d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            min-height: 100vh;
+            padding: 10px;
+            color: var(--dark-text);
+        }
+
+        .mobile-container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .mobile-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 20px 15px;
+            text-align: center;
+            position: relative;
+        }
+
+        .mobile-header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .mobile-header p {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-bottom: 15px;
+        }
+
+        .user-info-mobile {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 6px 12px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+        }
+
+        .logout-btn-mobile {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 4px 10px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+
+        .nav-menu-btn {
+            position: absolute;
+            top: 20px;
+            left: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .mobile-nav-drawer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 80%;
+            height: 100%;
+            background: white;
+            z-index: 1000;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.2);
+            overflow-y: auto;
+        }
+
+        .mobile-nav-drawer.open {
+            transform: translateX(0);
+        }
+
+        .nav-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .nav-overlay.open {
+            display: block;
+        }
+
+        .close-nav-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--dark-text);
+        }
+
+        .nav-drawer-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+        }
+
+        .nav-drawer-header h2 {
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+        }
+
+        .nav-links-mobile {
+            padding: 20px 0;
+        }
+
+        .nav-link-mobile {
+            display: block;
+            padding: 15px 20px;
+            text-decoration: none;
+            color: var(--dark-text);
+            border-bottom: 1px solid #eee;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-link-mobile:hover {
+            background-color: var(--light-bg);
+        }
+
+        .nav-link-mobile i {
+            width: 24px;
+            text-align: center;
+        }
+
+        .mobile-content {
+            padding: 20px 15px;
+        }
+
+        .section-mobile {
+            background: var(--light-bg);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-mobile h3 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: var(--dark-text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-mobile {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 6px;
+            margin-bottom: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .btn-primary-mobile {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+        }
+
+        .btn-success-mobile {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-info-mobile {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+        }
+
+        .btn-danger-mobile {
+            background: linear-gradient(135deg, var(--danger-color) 0%, #ff4b2b 100%);
+            color: white;
+        }
+
+        .btn-mobile:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .table-responsive-mobile {
+            overflow-x: auto;
+        }
+
+        .mobile-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+
+        .mobile-table th,
+        .mobile-table td {
+            padding: 6px 5px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .mobile-table th {
+            background-color: var(--light-bg);
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+
+        .rule-badge-mobile {
+            font-size: 0.7rem;
+            padding: 3px 6px;
+            border-radius: 4px;
+        }
+
+        .badge-primary-mobile {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .pagination-mobile {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .page-btn-mobile {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .page-btn-mobile.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .footer-mobile {
+            text-align: center;
+            padding: 15px;
+            color: var(--gray-text);
+            border-top: 1px solid #eee;
+            font-size: 0.8rem;
+        }
+
+        .detail-modal-mobile {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1001;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .detail-modal-mobile.open {
+            display: flex;
+        }
+
+        .detail-modal-content-mobile {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .close-modal-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: var(--dark-text);
+        }
+
+        .detail-item-mobile {
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+        }
+
+        .detail-label-mobile {
+            font-weight: 600;
+            color: var(--gray-text);
+            display: inline-block;
+            width: 80px;
+        }
+
+        .detail-value-mobile {
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航抽屉遮罩 -->
+    <div class="nav-overlay" id="navOverlay"></div>
+    
+    <!-- 移动端导航抽屉 -->
+    <div class="mobile-nav-drawer" id="mobileNavDrawer">
+        <button class="close-nav-btn" id="closeNavBtn">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <div class="nav-drawer-header">
+            <h2>基金监控系统</h2>
+            <p>专业的基金数据分析平台</p>
+        </div>
+        <div class="nav-links-mobile">
+            <a href="index.html" class="nav-link-mobile">
+                <i class="bi bi-house-door"></i>
+                <span>首页</span>
+            </a>
+            <a href="fund-monitor.html" class="nav-link-mobile">
+                <i class="bi bi-bar-chart"></i>
+                <span>基金监控</span>
+            </a>
+            <a href="index-data.html" class="nav-link-mobile">
+                <i class="bi bi-graph-up"></i>
+                <span>指数数据</span>
+            </a>
+            <a href="fund-backtest.html" class="nav-link-mobile">
+                <i class="bi bi-beaker"></i>
+                <span>基金回测</span>
+            </a>
+            <a href="alert-records.html" class="nav-link-mobile">
+                <i class="bi bi-bell"></i>
+                <span>告警记录</span>
+            </a>
+            <a href="notification-test.html" class="nav-link-mobile">
+                <i class="bi bi-envelope"></i>
+                <span>通知测试</span>
+            </a>
+            <a href="fund-report-test.html" class="nav-link-mobile">
+                <i class="bi bi-file-earmark-bar-graph"></i>
+                <span>报告测试</span>
+            </a>
+            <a href="email-recipient-management.html" class="nav-link-mobile">
+                <i class="bi bi-people"></i>
+                <span>邮件接收人</span>
+            </a>
+            <a href="system-config.html" class="nav-link-mobile">
+                <i class="bi bi-gear"></i>
+                <span>系统配置</span>
+            </a>
+            <a href="ai-test.html" class="nav-link-mobile">
+                <i class="bi bi-robot"></i>
+                <span>AI测试</span>
+            </a>
+            <a href="stock-management.html" class="nav-link-mobile">
+                <i class="bi bi-currency-exchange"></i>
+                <span>股票管理</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- 告警详情模态框 -->
+    <div class="detail-modal-mobile" id="detailModalMobile">
+        <div class="detail-modal-content-mobile">
+            <button class="close-modal-btn" id="closeModalBtn">
+                <i class="bi bi-x-lg"></i>
+            </button>
+            <h3 style="margin-bottom: 15px; text-align: center;"><i class="bi bi-info-circle"></i> 告警详情</h3>
+            <div id="alertDetailContentMobile">
+                <!-- 详情内容将通过JavaScript动态加载 -->
+            </div>
+        </div>
+    </div>
+
+    <div class="mobile-container">
+        <!-- 移动端头部 -->
+        <div class="mobile-header">
+            <button class="nav-menu-btn" id="navMenuBtn">
+                <i class="bi bi-list"></i>
+            </button>
+            <h1><i class="bi bi-bell"></i> 告警记录</h1>
+            <p>查看基金监控告警历史</p>
+            <div class="user-info-mobile" id="userInfoMobile" style="display: none;">
+                <span>欢迎, <span id="currentUserNameMobile"></span></span>
+                <button class="logout-btn-mobile" onclick="logout()">退出</button>
+            </div>
+        </div>
+        
+        <div class="mobile-content">
+            <!-- 告警记录列表 -->
+            <div class="section-mobile">
+                <h3><i class="bi bi-list-ul"></i> 告警记录列表</h3>
+                <div class="table-responsive-mobile">
+                    <table class="mobile-table">
+                        <thead>
+                            <tr>
+                                <th>基金代码</th>
+                                <th>基金名称</th>
+                                <th>规则代码</th>
+                                <th>涨跌幅</th>
+                                <th>时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="alertRecordsTableMobile">
+                            <tr>
+                                <td>006195</td>
+                                <td>国金量化</td>
+                                <td><span class="badge badge-primary-mobile rule-badge-mobile">A</span></td>
+                                <td class="positive-mobile">+5.2%</td>
+                                <td>12-08</td>
+                                <td>
+                                    <button class="btn-mobile btn-info-mobile" onclick="viewAlertDetail(1)" style="padding: 4px 6px; font-size: 0.75rem;">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>002170</td>
+                                <td>东吴移动</td>
+                                <td><span class="badge badge-primary-mobile rule-badge-mobile">B</span></td>
+                                <td class="negative-mobile">-3.8%</td>
+                                <td>12-07</td>
+                                <td>
+                                    <button class="btn-mobile btn-info-mobile" onclick="viewAlertDetail(2)" style="padding: 4px 6px; font-size: 0.75rem;">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>161725</td>
+                                <td>招商白酒</td>
+                                <td><span class="badge badge-primary-mobile rule-badge-mobile">C</span></td>
+                                <td class="positive-mobile">+4.1%</td>
+                                <td>12-06</td>
+                                <td>
+                                    <button class="btn-mobile btn-info-mobile" onclick="viewAlertDetail(3)" style="padding: 4px 6px; font-size: 0.75rem;">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- 分页控件 -->
+                <div class="pagination-mobile">
+                    <button class="page-btn-mobile active">1</button>
+                    <button class="page-btn-mobile">2</button>
+                    <button class="page-btn-mobile">3</button>
+                    <button class="page-btn-mobile">下一页</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-mobile">
+            <p>© 2025 基金监控系统 - 专业的基金数据分析平台</p>
+        </div>
+    </div>
+
+    <script>
+        // DOM元素引用
+        const navMenuBtn = document.getElementById('navMenuBtn');
+        const closeNavBtn = document.getElementById('closeNavBtn');
+        const mobileNavDrawer = document.getElementById('mobileNavDrawer');
+        const navOverlay = document.getElementById('navOverlay');
+        const detailModalMobile = document.getElementById('detailModalMobile');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        
+        // 打开导航抽屉
+        navMenuBtn.addEventListener('click', function() {
+            mobileNavDrawer.classList.add('open');
+            navOverlay.classList.add('open');
+            document.body.style.overflow = 'hidden'; // 防止背景滚动
+        });
+        
+        // 关闭导航抽屉
+        closeNavBtn.addEventListener('click', function() {
+            mobileNavDrawer.classList.remove('open');
+            navOverlay.classList.remove('open');
+            document.body.style.overflow = ''; // 恢复背景滚动
+        });
+        
+        // 点击遮罩关闭导航抽屉
+        navOverlay.addEventListener('click', function() {
+            mobileNavDrawer.classList.remove('open');
+            navOverlay.classList.remove('open');
+            document.body.style.overflow = '';
+        });
+        
+        // 打开详情模态框
+        function viewAlertDetail(id) {
+            // 模拟加载详情数据
+            const detailData = {
+                1: {
+                    fundCode: '006195',
+                    fundName: '国金量化多因子',
+                    ruleCode: 'A',
+                    ruleDescription: '连续5天或以上上涨/下跌',
+                    consecutiveDays: '5天',
+                    cumulativeReturn: '+5.2%',
+                    navDate: '2025-12-08',
+                    unitNav: '1.2564',
+                    createTime: '2025-12-08 23:05:12',
+                    updateTime: '2025-12-08 23:05:12',
+                    alarmContent: '基金国金量化多因子连续5天上涨，累计涨幅5.2%，请关注。'
+                },
+                2: {
+                    fundCode: '002170',
+                    fundName: '东吴移动互联',
+                    ruleCode: 'B',
+                    ruleDescription: '单日涨跌幅绝对值≥5%',
+                    consecutiveDays: '-',
+                    dailyReturn: '-3.8%',
+                    navDate: '2025-12-07',
+                    unitNav: '1.1856',
+                    createTime: '2025-12-07 23:02:45',
+                    updateTime: '2025-12-07 23:02:45',
+                    alarmContent: '基金东吴移动互联单日跌幅3.8%，请关注。'
+                },
+                3: {
+                    fundCode: '161725',
+                    fundName: '招商中证白酒指数',
+                    ruleCode: 'C',
+                    ruleDescription: '连续2天累计涨跌幅绝对值≥4%',
+                    consecutiveDays: '2天',
+                    cumulativeReturn: '+4.1%',
+                    navDate: '2025-12-06',
+                    unitNav: '1.3245',
+                    createTime: '2025-12-06 23:10:33',
+                    updateTime: '2025-12-06 23:10:33',
+                    alarmContent: '基金招商中证白酒指数连续2天上涨，累计涨幅4.1%，请关注。'
+                }
+            };
+            
+            const data = detailData[id];
+            if (data) {
+                const detailContent = `
+                    <div class="detail-item-mobile">
+                        <span class="detail-label-mobile">基金代码:</span>
+                        <span class="detail-value-mobile">${data.fundCode}</span>
+                    </div>
+                    <div class="detail-item-mobile">
+                        <span class="detail-label-mobile">基金名称:</span>
+                        <span class="detail-value-mobile">${data.fundName}</span>
+                    </div>
+                    <div class="detail-item-mobile">
+                        <span class="detail-label-mobile">规则代码:</span>
+                        <span class="detail-value-mobile"><span class="badge badge-primary-mobile rule-badge-mobile">${data.ruleCode}</span></span>
+                    </div>
+                    <div class="detail-item-mobile">
+                        <span class="detail-label-mobile">规则描述:</span>
+                        <span class="detail-value-mobile">${data.ruleDescription}</span>
+                    </div>
+                    <div class="detail-item-mobile">
+                        <span class="detail-label-mobile">连续天数:</span>
+                        <span class="detail-value-mobile">${data.consecutiveDays}</span>
+                    </div>
+                    <div class="detail-item-mobile">
+                        <span class="detail-label-mobile">涨跌幅:</span>
+                        <span class="detail-value-mobile ${data.cumulativeReturn && data.cumulativeReturn.includes('+') ? 'positive-mobile' : 'negative-mobile'}">${data.cumulativeReturn || data.dailyReturn}</span>
+                    </div>
+                    <div class="detail-item-mobile">
+                        <span class="detail-label-mobile">净值日期:</span>
+                        <span class="detail-value-mobile">${data.navDate}</span>
+                    </div>
+                    <div class="detail-item-mobile">
+                        <span class="detail-label-mobile">单位净值:</span>
+                        <span class="detail-value-mobile">${data.unitNav}</span>
+                    </div>
+                    <div class="detail-item-mobile">
+                        <span class="detail-label-mobile">创建时间:</span>
+                        <span class="detail-value-mobile">${data.createTime}</span>
+                    </div>
+                    <div class="detail-item-mobile">
+                        <span class="detail-label-mobile">更新时间:</span>
+                        <span class="detail-value-mobile">${data.updateTime}</span>
+                    </div>
+                    <div class="detail-item-mobile">
+                        <span class="detail-label-mobile">告警内容:</span>
+                        <span class="detail-value-mobile">${data.alarmContent}</span>
+                    </div>
+                `;
+                
+                document.getElementById('alertDetailContentMobile').innerHTML = detailContent;
+                detailModalMobile.classList.add('open');
+                document.body.style.overflow = 'hidden'; // 防止背景滚动
+            }
+        }
+        
+        // 关闭详情模态框
+        closeModalBtn.addEventListener('click', function() {
+            detailModalMobile.classList.remove('open');
+            document.body.style.overflow = ''; // 恢复背景滚动
+        });
+        
+        // 点击遮罩关闭详情模态框
+        detailModalMobile.addEventListener('click', function(e) {
+            if (e.target === detailModalMobile) {
+                detailModalMobile.classList.remove('open');
+                document.body.style.overflow = '';
+            }
+        });
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 模拟用户登录状态
+            document.getElementById('userInfoMobile').style.display = 'flex';
+            document.getElementById('currentUserNameMobile').textContent = '张三';
+        });
+        
+        // 模拟登出功能
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                alert('已退出登录');
+                document.getElementById('userInfoMobile').style.display = 'none';
+            }
+        }
+        
+        // 注册 Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('../sw.js')
+                    .then(function(registration) {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(function(registrationError) {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>

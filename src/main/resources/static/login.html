@@ -101,10 +101,21 @@
         .result.show {
             display: block;
         }
+        
+        /* 设备检测提示 */
+        .device-detection {
+            text-align: center;
+            padding: 20px;
+            color: white;
+        }
     </style>
 </head>
 <body>
-    <div class="login-container">
+    <div class="device-detection" id="deviceDetection">
+        <p><i class="bi bi-phone"></i> 正在检测您的设备类型...</p>
+    </div>
+
+    <div class="login-container" id="loginContainer" style="display: none;">
         <div class="login-header">
             <h1>🔐 用户登录</h1>
             <p>基金监控系统</p>
@@ -133,9 +144,26 @@
     <script>
         // API基础路径
         const API_BASE = '/api/users';
-
-        // 页面加载完成后检查登录状态
+        
+        // 设备检测函数
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+        
+        // 页面加载完成后检查设备类型和登录状态
         document.addEventListener('DOMContentLoaded', function() {
+            // 检测设备类型
+            if (isMobileDevice()) {
+                // 移动设备，重定向到移动端登录页面
+                window.location.href = 'mobile/login.html';
+                return;
+            }
+            
+            // PC设备，显示登录表单
+            document.getElementById('deviceDetection').style.display = 'none';
+            document.getElementById('loginContainer').style.display = 'block';
+            
+            // 检查登录状态
             checkLoginStatus();
         });
 

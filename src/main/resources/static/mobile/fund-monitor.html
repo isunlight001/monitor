@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#667eea">
+    <link rel="manifest" href="../manifest.json">
+    <link rel="apple-touch-icon" href="../icons/icon-192x192.png">
+    <title>基金监控 - 基金监控系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --secondary-color: #764ba2;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --light-bg: #f8f9fa;
+            --dark-text: #333;
+            --gray-text: #6c757d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            min-height: 100vh;
+            padding: 10px;
+            color: var(--dark-text);
+        }
+
+        .mobile-container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .mobile-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 20px 15px;
+            text-align: center;
+            position: relative;
+        }
+
+        .mobile-header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .mobile-header p {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-bottom: 15px;
+        }
+
+        .user-info-mobile {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 6px 12px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+        }
+
+        .logout-btn-mobile {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 4px 10px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+
+        .nav-menu-btn {
+            position: absolute;
+            top: 20px;
+            left: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        .mobile-nav-drawer {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 80%;
+            height: 100%;
+            background: white;
+            z-index: 1000;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.2);
+            overflow-y: auto;
+        }
+
+        .mobile-nav-drawer.open {
+            transform: translateX(0);
+        }
+
+        .nav-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .nav-overlay.open {
+            display: block;
+        }
+
+        .close-nav-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--dark-text);
+        }
+
+        .nav-drawer-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 25px 20px;
+            text-align: center;
+        }
+
+        .nav-drawer-header h2 {
+            font-size: 1.3rem;
+            margin-bottom: 5px;
+        }
+
+        .nav-links-mobile {
+            padding: 20px 0;
+        }
+
+        .nav-link-mobile {
+            display: block;
+            padding: 15px 20px;
+            text-decoration: none;
+            color: var(--dark-text);
+            border-bottom: 1px solid #eee;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-link-mobile:hover {
+            background-color: var(--light-bg);
+        }
+
+        .nav-link-mobile i {
+            width: 24px;
+            text-align: center;
+        }
+
+        .mobile-content {
+            padding: 20px 15px;
+        }
+
+        .section-mobile {
+            background: var(--light-bg);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-mobile h3 {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            color: var(--dark-text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .form-group-mobile {
+            margin-bottom: 15px;
+        }
+
+        .form-group-mobile label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--gray-text);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .form-control-mobile {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .form-control-mobile:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-mobile {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 8px;
+            margin-bottom: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .btn-primary-mobile {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+        }
+
+        .btn-success-mobile {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-info-mobile {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+        }
+
+        .btn-danger-mobile {
+            background: linear-gradient(135deg, var(--danger-color) 0%, #ff4b2b 100%);
+            color: white;
+        }
+
+        .btn-mobile:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .result-mobile {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 8px;
+            display: none;
+            font-size: 0.9rem;
+        }
+
+        .result-mobile.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result-mobile.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .result-mobile.show {
+            display: block;
+            animation: slideInMobile 0.3s ease;
+        }
+
+        @keyframes slideInMobile {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .table-responsive-mobile {
+            overflow-x: auto;
+        }
+
+        .mobile-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .mobile-table th,
+        .mobile-table td {
+            padding: 8px 6px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .mobile-table th {
+            background-color: var(--light-bg);
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .positive-mobile {
+            color: var(--danger-color);
+            font-weight: bold;
+        }
+
+        .negative-mobile {
+            color: var(--success-color);
+            font-weight: bold;
+        }
+
+        .footer-mobile {
+            text-align: center;
+            padding: 15px;
+            color: var(--gray-text);
+            border-top: 1px solid #eee;
+            font-size: 0.8rem;
+        }
+
+        /* 针对小屏幕的进一步优化 */
+        @media (max-width: 360px) {
+            .btn-mobile {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+        }
+
+        .config-info-mobile {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .config-info-mobile h4 {
+            margin-bottom: 10px;
+            color: #1976d2;
+            font-size: 1rem;
+        }
+
+        .config-info-mobile ul {
+            margin-left: 15px;
+            line-height: 1.6;
+            font-size: 0.85rem;
+        }
+
+        .config-info-mobile li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航抽屉遮罩 -->
+    <div class="nav-overlay" id="navOverlay"></div>
+    
+    <!-- 移动端导航抽屉 -->
+    <div class="mobile-nav-drawer" id="mobileNavDrawer">
+        <button class="close-nav-btn" id="closeNavBtn">
+            <i class="bi bi-x-lg"></i>
+        </button>
+        <div class="nav-drawer-header">
+            <h2>基金监控系统</h2>
+            <p>专业的基金数据分析平台</p>
+        </div>
+        <div class="nav-links-mobile">
+            <a href="index.html" class="nav-link-mobile">
+                <i class="bi bi-house-door"></i>
+                <span>首页</span>
+            </a>
+            <a href="fund-monitor.html" class="nav-link-mobile">
+                <i class="bi bi-bar-chart"></i>
+                <span>基金监控</span>
+            </a>
+            <a href="index-data.html" class="nav-link-mobile">
+                <i class="bi bi-graph-up"></i>
+                <span>指数数据</span>
+            </a>
+            <a href="fund-backtest.html" class="nav-link-mobile">
+                <i class="bi bi-beaker"></i>
+                <span>基金回测</span>
+            </a>
+            <a href="alert-records.html" class="nav-link-mobile">
+                <i class="bi bi-bell"></i>
+                <span>告警记录</span>
+            </a>
+            <a href="notification-test.html" class="nav-link-mobile">
+                <i class="bi bi-envelope"></i>
+                <span>通知测试</span>
+            </a>
+            <a href="fund-report-test.html" class="nav-link-mobile">
+                <i class="bi bi-file-earmark-bar-graph"></i>
+                <span>报告测试</span>
+            </a>
+            <a href="email-recipient-management.html" class="nav-link-mobile">
+                <i class="bi bi-people"></i>
+                <span>邮件接收人</span>
+            </a>
+            <a href="system-config.html" class="nav-link-mobile">
+                <i class="bi bi-gear"></i>
+                <span>系统配置</span>
+            </a>
+            <a href="ai-test.html" class="nav-link-mobile">
+                <i class="bi bi-robot"></i>
+                <span>AI测试</span>
+            </a>
+            <a href="stock-management.html" class="nav-link-mobile">
+                <i class="bi bi-currency-exchange"></i>
+                <span>股票管理</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="mobile-container">
+        <!-- 移动端头部 -->
+        <div class="mobile-header">
+            <button class="nav-menu-btn" id="navMenuBtn">
+                <i class="bi bi-list"></i>
+            </button>
+            <h1><i class="bi bi-bar-chart"></i> 基金监控</h1>
+            <p>实时监控基金走势，智能预警提醒</p>
+            <div class="user-info-mobile" id="userInfoMobile" style="display: none;">
+                <span>欢迎, <span id="currentUserNameMobile"></span></span>
+                <button class="logout-btn-mobile" onclick="logout()">退出</button>
+            </div>
+        </div>
+        
+        <div class="mobile-content">
+            <!-- 系统说明 -->
+            <div class="config-info-mobile">
+                <h4><i class="bi bi-info-circle"></i> 系统说明</h4>
+                <ul>
+                    <li><strong>定时任务：</strong>每晚11点自动抓取基金数据并执行监控</li>
+                    <li><strong>监控规则：</strong>
+                        <ul>
+                            <li>规则A：连续5天或以上上涨/下跌</li>
+                            <li>规则B：单日涨跌幅绝对值≥5%</li>
+                            <li>规则C：连续2天累计涨跌幅绝对值≥4%</li>
+                            <li>规则D：连续3天累计涨跌幅绝对值≥5%</li>
+                            <li>规则E：连续4天累计涨跌幅绝对值≥5%</li>
+                        </ul>
+                    </li>
+                    <li><strong>告警方式：</strong>邮件通知（收件人：默认收件人）</li>
+                </ul>
+            </div>
+            
+            <!-- 手工触发预警 -->
+            <div class="section-mobile">
+                <h3><i class="bi bi-lightning"></i> 手工触发预警</h3>
+                <p>立即对所有启用的监控基金执行数据更新和预警检查</p>
+                <button class="btn-mobile btn-danger-mobile" onclick="triggerAllMonitorFunds()">
+                    <i class="bi bi-exclamation-triangle"></i> 立即执行预警
+                </button>
+                <div class="result-mobile" id="triggerResultMobile"></div>
+            </div>
+            
+            <!-- 基金数据抓取 -->
+            <div class="section-mobile">
+                <h3><i class="bi bi-download"></i> 基金数据抓取</h3>
+                <div class="form-group-mobile">
+                    <label for="fundCodeMobile">基金代码*</label>
+                    <input type="text" class="form-control-mobile" id="fundCodeMobile" placeholder="例如: 006195" value="006195">
+                </div>
+                <div class="form-group-mobile">
+                    <label for="fundNameMobile">基金名称*</label>
+                    <input type="text" class="form-control-mobile" id="fundNameMobile" placeholder="例如: 国金量化多因子" value="国金量化多因子">
+                </div>
+                <div class="form-group-mobile">
+                    <label for="startDateMobile">开始日期（可选）</label>
+                    <input type="date" class="form-control-mobile" id="startDateMobile">
+                </div>
+                <div class="form-group-mobile">
+                    <label for="endDateMobile">结束日期（可选）</label>
+                    <input type="date" class="form-control-mobile" id="endDateMobile">
+                </div>
+                <button class="btn-mobile btn-primary-mobile" onclick="crawlFundData()">
+                    <i class="bi bi-cloud-download"></i> 抓取基金数据
+                </button>
+                <button class="btn-mobile btn-info-mobile" onclick="incrementalUpdate()">
+                    <i class="bi bi-arrow-repeat"></i> 增量更新
+                </button>
+                <div class="result-mobile" id="crawlResultMobile"></div>
+            </div>
+            
+            <!-- 基金监控检查 -->
+            <div class="section-mobile">
+                <h3><i class="bi bi-search"></i> 基金监控检查</h3>
+                <div class="form-group-mobile">
+                    <label for="checkFundCodeMobile">基金代码*</label>
+                    <input type="text" class="form-control-mobile" id="checkFundCodeMobile" placeholder="例如: 006195" value="006195">
+                </div>
+                <button class="btn-mobile btn-success-mobile" onclick="checkFund()">
+                    <i class="bi bi-check-circle"></i> 执行监控检查
+                </button>
+                <div class="result-mobile" id="checkResultMobile"></div>
+            </div>
+            
+            <!-- 查询基金净值 -->
+            <div class="section-mobile">
+                <h3><i class="bi bi-graph-up"></i> 查询基金净值</h3>
+                <div class="form-group-mobile">
+                    <label for="queryFundCodeMobile">基金代码*</label>
+                    <input type="text" class="form-control-mobile" id="queryFundCodeMobile" placeholder="例如: 006195" value="006195">
+                </div>
+                <div class="form-group-mobile">
+                    <label for="queryDaysMobile">查询天数</label>
+                    <input type="number" class="form-control-mobile" id="queryDaysMobile" placeholder="例如: 30" value="30" min="1" max="365">
+                </div>
+                <button class="btn-mobile btn-info-mobile" onclick="queryFundNav()">
+                    <i class="bi bi-search"></i> 查询净值数据
+                </button>
+                <div class="result-mobile" id="queryResultMobile"></div>
+                <div class="table-responsive-mobile" id="navTableContainerMobile">
+                    <p style="text-align: center; color: var(--gray-text);">查询结果将显示在这里</p>
+                </div>
+            </div>
+            
+            <!-- 监控基金管理 -->
+            <div class="section-mobile">
+                <h3><i class="bi bi-list-check"></i> 监控基金管理</h3>
+                <div class="form-group-mobile">
+                    <label for="monitorFundCodeMobile">基金代码*</label>
+                    <input type="text" class="form-control-mobile" id="monitorFundCodeMobile" placeholder="例如: 006195">
+                </div>
+                <div class="form-group-mobile">
+                    <label for="monitorFundNameMobile">基金名称*</label>
+                    <input type="text" class="form-control-mobile" id="monitorFundNameMobile" placeholder="例如: 国金量化多因子">
+                </div>
+                <button class="btn-mobile btn-primary-mobile" onclick="addMonitorFund()">
+                    <i class="bi bi-plus-circle"></i> 添加监控基金
+                </button>
+                <button class="btn-mobile btn-info-mobile" onclick="loadMonitorFunds()">
+                    <i class="bi bi-arrow-clockwise"></i> 刷新监控列表
+                </button>
+                <div class="result-mobile" id="monitorResultMobile"></div>
+                <div class="table-responsive-mobile" id="monitorFundsTableContainerMobile">
+                    <p style="text-align: center; color: var(--gray-text);">监控基金列表将显示在这里</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer-mobile">
+            <p>© 2025 基金监控系统 - 专业的基金数据分析平台</p>
+        </div>
+    </div>
+
+    <script>
+        // DOM元素引用
+        const navMenuBtn = document.getElementById('navMenuBtn');
+        const closeNavBtn = document.getElementById('closeNavBtn');
+        const mobileNavDrawer = document.getElementById('mobileNavDrawer');
+        const navOverlay = document.getElementById('navOverlay');
+        
+        // API基础路径
+        const API_BASE = '/api/fund/monitor';
+        
+        // 打开导航抽屉
+        navMenuBtn.addEventListener('click', function() {
+            mobileNavDrawer.classList.add('open');
+            navOverlay.classList.add('open');
+            document.body.style.overflow = 'hidden'; // 防止背景滚动
+        });
+        
+        // 关闭导航抽屉
+        closeNavBtn.addEventListener('click', function() {
+            mobileNavDrawer.classList.remove('open');
+            navOverlay.classList.remove('open');
+            document.body.style.overflow = ''; // 恢复背景滚动
+        });
+        
+        // 点击遮罩关闭导航抽屉
+        navOverlay.addEventListener('click', function() {
+            mobileNavDrawer.classList.remove('open');
+            navOverlay.classList.remove('open');
+            document.body.style.overflow = '';
+        });
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 模拟用户登录状态
+            document.getElementById('userInfoMobile').style.display = 'flex';
+            document.getElementById('currentUserNameMobile').textContent = '张三';
+        });
+        
+        // 模拟登出功能
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                alert('已退出登录');
+                document.getElementById('userInfoMobile').style.display = 'none';
+            }
+        }
+        
+        // 显示结果消息
+        function showMessage(elementId, message, isSuccess) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = 'result-mobile show ' + (isSuccess ? 'success' : 'error');
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                element.classList.remove('show');
+            }, 3000);
+        }
+        
+        // 模拟手工触发所有监控基金预警
+        function triggerAllMonitorFunds() {
+            if (!confirm('确定要立即执行所有基金的预警检查吗？')) {
+                return;
+            }
+            
+            showMessage('triggerResultMobile', '正在执行预警检查...', true);
+            
+            // 模拟异步操作
+            setTimeout(() => {
+                showMessage('triggerResultMobile', '预警检查完成，发现2条异常', true);
+            }, 2000);
+        }
+        
+        // 模拟抓取基金数据
+        function crawlFundData() {
+            const fundCode = document.getElementById('fundCodeMobile').value.trim();
+            const fundName = document.getElementById('fundNameMobile').value.trim();
+            
+            if (!fundCode || !fundName) {
+                showMessage('crawlResultMobile', '请填写基金代码和基金名称', false);
+                return;
+            }
+            
+            showMessage('crawlResultMobile', `正在抓取基金 ${fundCode} 的数据...`, true);
+            
+            // 模拟异步操作
+            setTimeout(() => {
+                showMessage('crawlResultMobile', '基金数据抓取成功', true);
+            }, 2000);
+        }
+        
+        // 模拟增量更新
+        function incrementalUpdate() {
+            const fundCode = document.getElementById('fundCodeMobile').value.trim();
+            const fundName = document.getElementById('fundNameMobile').value.trim();
+            
+            if (!fundCode || !fundName) {
+                showMessage('crawlResultMobile', '请填写基金代码和基金名称', false);
+                return;
+            }
+            
+            showMessage('crawlResultMobile', `正在增量更新基金 ${fundCode}...`, true);
+            
+            // 模拟异步操作
+            setTimeout(() => {
+                showMessage('crawlResultMobile', '增量更新完成', true);
+            }, 2000);
+        }
+        
+        // 模拟执行监控检查
+        function checkFund() {
+            const fundCode = document.getElementById('checkFundCodeMobile').value.trim();
+            
+            if (!fundCode) {
+                showMessage('checkResultMobile', '请填写基金代码', false);
+                return;
+            }
+            
+            showMessage('checkResultMobile', `正在检查基金 ${fundCode}...`, true);
+            
+            // 模拟异步操作
+            setTimeout(() => {
+                showMessage('checkResultMobile', '监控检查完成，未发现异常', true);
+            }, 1500);
+        }
+        
+        // 模拟查询基金净值
+        function queryFundNav() {
+            const fundCode = document.getElementById('queryFundCodeMobile').value.trim();
+            const days = document.getElementById('queryDaysMobile').value || 30;
+            
+            if (!fundCode) {
+                showMessage('queryResultMobile', '请填写基金代码', false);
+                return;
+            }
+            
+            showMessage('queryResultMobile', `正在查询基金 ${fundCode} 的净值数据...`, true);
+            
+            // 模拟异步操作和表格渲染
+            setTimeout(() => {
+                showMessage('queryResultMobile', `查询成功，共 ${days} 条记录`, true);
+                
+                // 模拟渲染表格
+                const tableHtml = `
+                    <table class="mobile-table">
+                        <thead>
+                            <tr>
+                                <th>日期</th>
+                                <th>单位净值</th>
+                                <th>涨跌幅</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2025-12-08</td>
+                                <td>1.2564</td>
+                                <td class="positive-mobile">+2.35%</td>
+                            </tr>
+                            <tr>
+                                <td>2025-12-07</td>
+                                <td>1.2276</td>
+                                <td class="positive-mobile">+1.82%</td>
+                            </tr>
+                            <tr>
+                                <td>2025-12-06</td>
+                                <td>1.2056</td>
+                                <td class="negative-mobile">-0.95%</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
+                
+                document.getElementById('navTableContainerMobile').innerHTML = tableHtml;
+            }, 1500);
+        }
+        
+        // 模拟添加监控基金
+        function addMonitorFund() {
+            const fundCode = document.getElementById('monitorFundCodeMobile').value.trim();
+            const fundName = document.getElementById('monitorFundNameMobile').value.trim();
+            
+            if (!fundCode || !fundName) {
+                showMessage('monitorResultMobile', '请填写基金代码和基金名称', false);
+                return;
+            }
+            
+            showMessage('monitorResultMobile', `正在添加监控基金 ${fundCode}...`, true);
+            
+            // 模拟异步操作
+            setTimeout(() => {
+                showMessage('monitorResultMobile', '监控基金添加成功', true);
+                
+                // 清空输入框
+                document.getElementById('monitorFundCodeMobile').value = '';
+                document.getElementById('monitorFundNameMobile').value = '';
+                
+                // 模拟刷新监控列表
+                loadMonitorFunds();
+            }, 1500);
+        }
+        
+        // 模拟加载监控基金列表
+        function loadMonitorFunds() {
+            showMessage('monitorResultMobile', '正在加载监控基金列表...', true);
+            
+            // 模拟异步操作和表格渲染
+            setTimeout(() => {
+                showMessage('monitorResultMobile', '监控基金列表加载成功', true);
+                
+                // 模拟渲染表格
+                const tableHtml = `
+                    <table class="mobile-table">
+                        <thead>
+                            <tr>
+                                <th>基金</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>006195<br>国金量化</td>
+                                <td><span style="color: var(--success-color);">启用</span></td>
+                                <td>
+                                    <button class="btn-mobile btn-info-mobile" style="padding: 4px 8px; font-size: 0.8rem;">
+                                        <i class="bi bi-toggle-on"></i>
+                                    </button>
+                                    <button class="btn-mobile btn-danger-mobile" style="padding: 4px 8px; font-size: 0.8rem;">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>002170<br>东吴移动</td>
+                                <td><span style="color: var(--success-color);">启用</span></td>
+                                <td>
+                                    <button class="btn-mobile btn-info-mobile" style="padding: 4px 8px; font-size: 0.8rem;">
+                                        <i class="bi bi-toggle-on"></i>
+                                    </button>
+                                    <button class="btn-mobile btn-danger-mobile" style="padding: 4px 8px; font-size: 0.8rem;">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                `;
+                
+                document.getElementById('monitorFundsTableContainerMobile').innerHTML = tableHtml;
+            }, 1500);
+        }
+        
+        // 注册 Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('../sw.js')
+                    .then(function(registration) {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(function(registrationError) {
+                        console.log('SW registration failed: ', registrationError);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
