@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>股票管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .page-title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        .page-title h2 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-title p {
+            color: #666;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        .back-to-home {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .back-to-home a {
+            display: inline-block;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .back-to-home a:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+        }
+
+        .form-section h3 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-control {
+            padding: 12px 20px !important;
+            border: 1px solid #e0e0e0 !important;
+            border-radius: 30px 0 0 30px !important;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea !important;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(56, 239, 125, 0.4);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+        }
+
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .result.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .nav-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-table th,
+        .nav-table td {
+            border: none;
+            padding: 12px 15px;
+            text-align: left;
+        }
+
+        .nav-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 500;
+        }
+
+        .nav-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .nav-table tr:hover {
+            background-color: #e3f2fd;
+        }
+
+        #stockDataContainer {
+            margin-top: 20px;
+        }
+
+        #analysisResult {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            border: 1px solid #e9ecef;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            line-height: 1.6;
+        }
+
+        .quick-nav {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .quick-nav h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .quick-nav-links {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .quick-nav-link {
+            padding: 8px 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .quick-nav-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+    <!-- 引入公共header样式 -->
+    <link rel="stylesheet" href="css/header.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 引入公共header -->
+        <div id="header-placeholder"></div>
+        
+        <div class="content">
+            <div class="page-title">
+                <h2>📈 股票管理</h2>
+                <p>获取股票数据并进行AI智能分析</p>
+            </div>
+            
+            <div class="back-to-home">
+                <a href="index.html">🏠 返回首页</a>
+            </div>
+            
+            <!-- 股票数据查询 -->
+            <div class="form-section">
+                <h3>🔍 股票数据查询</h3>
+                <div class="form-group">
+                    <label>股票代码*</label>
+                    <input type="text" id="stockCode" class="form-control" placeholder="例如: 000001" value="000001">
+                </div>
+                <div class="form-group">
+                    <label>查询天数</label>
+                    <input type="number" id="queryDays" class="form-control" placeholder="例如: 30" value="30" min="1" max="365">
+                </div>
+                <button class="btn btn-primary" onclick="queryStockData()">查询股票数据</button>
+                <button class="btn btn-info" onclick="analyzeStock()">AI智能分析</button>
+                <div class="result" id="queryResult"></div>
+                <div id="stockDataContainer"></div>
+            </div>
+            
+            <!-- AI分析结果 -->
+            <div class="form-section">
+                <h3>🤖 AI分析结果</h3>
+                <div id="analysisContainer">
+                    <div id="analysisResult">请先查询股票数据并点击AI智能分析按钮</div>
+                </div>
+            </div>
+            
+            <!-- 快速导航 -->
+            <div class="quick-nav">
+                <h3>🚀 快速导航</h3>
+                <div class="quick-nav-links">
+                    <a href="index.html" class="quick-nav-link">🏠 首页</a>
+                    <a href="fund-monitor.html" class="quick-nav-link">📊 基金监控</a>
+                    <a href="index-data.html" class="quick-nav-link">💹 指数数据</a>
+                    <a href="alert-records.html" class="quick-nav-link">🔔 告警记录</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const STOCK_API_BASE = '/api/stock';
+        
+        // 页面加载时检查登录状态
+        document.addEventListener('DOMContentLoaded', function() {
+            loadHeader();
+        });
+        
+        // 加载公共header
+        function loadHeader() {
+            fetch('components/header.html')
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('header-placeholder').innerHTML = html;
+                    // 检查登录状态
+                    checkLoginStatus();
+                })
+                .catch(error => {
+                    console.error('加载公共header失败:', error);
+                });
+        }
+        
+        // 显示结果消息
+        function showMessage(elementId, message, isSuccess) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = 'result show ' + (isSuccess ? 'success' : 'error');
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                element.classList.remove('show');
+            }, 3000);
+        }
+        
+        // 查询股票数据
+        function queryStockData() {
+            const stockCode = document.getElementById('stockCode').value.trim();
+            const days = document.getElementById('queryDays').value || 30;
+            
+            if (!stockCode) {
+                showMessage('queryResult', '请填写股票代码', false);
+                return;
+            }
+            
+            // 显示加载状态
+            document.getElementById('stockDataContainer').innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    正在获取股票数据...
+                </div>
+            `;
+            
+            const params = new URLSearchParams({
+                stockCode: stockCode,
+                days: days
+            });
+            
+            fetch(`${STOCK_API_BASE}/recent?${params}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        renderStockTable(data.data);
+                        showMessage('queryResult', `查询成功，共 ${data.data.length} 条记录`, true);
+                    } else {
+                        showMessage('queryResult', data.message, false);
+                        document.getElementById('stockDataContainer').innerHTML = '';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showMessage('queryResult', '查询失败: ' + error.message, false);
+                    document.getElementById('stockDataContainer').innerHTML = '';
+                });
+        }
+        
+        // 渲染股票数据表格
+        function renderStockTable(stockData) {
+            const container = document.getElementById('stockDataContainer');
+            
+            if (!stockData || stockData.length === 0) {
+                container.innerHTML = '<p>暂无数据</p>';
+                return;
+            }
+            
+            let tableHtml = `
+                <table class="nav-table">
+                    <thead>
+                        <tr>
+                            <th>交易日期</th>
+                            <th>开盘价</th>
+                            <th>收盘价</th>
+                            <th>最高价</th>
+                            <th>最低价</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            // 反转数组以按时间顺序显示（最新的在前面）
+            stockData.reverse().forEach(item => {
+                tableHtml += `
+                    <tr>
+                        <td>${item.date}</td>
+                        <td>${item.openPrice}</td>
+                        <td>${item.closePrice}</td>
+                        <td>${item.highPrice}</td>
+                        <td>${item.lowPrice}</td>
+                    </tr>
+                `;
+            });
+            
+            tableHtml += `
+                    </tbody>
+                </table>
+            `;
+            
+            container.innerHTML = tableHtml;
+        }
+        
+        // AI智能分析
+        function analyzeStock() {
+            const stockCode = document.getElementById('stockCode').value.trim();
+            const days = document.getElementById('queryDays').value || 30;
+            
+            if (!stockCode) {
+                showMessage('queryResult', '请先填写股票代码并查询数据', false);
+                return;
+            }
+            
+            // 显示加载状态
+            document.getElementById('analysisResult').innerHTML = `
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    AI正在分析中，请稍候...
+                </div>
+            `;
+            
+            const params = new URLSearchParams({
+                stockCode: stockCode,
+                days: days
+            });
+            
+            fetch(`${STOCK_API_BASE}/analysis?${params}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('analysisResult').textContent = data.data;
+                    } else {
+                        document.getElementById('analysisResult').textContent = '分析失败: ' + data.message;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('analysisResult').textContent = '分析失败: ' + error.message;
+                });
+        }
+    </script>
+    <!-- 引入公共认证脚本 -->
+    <script src="js/auth.js"></script>
+</body>
+</html>

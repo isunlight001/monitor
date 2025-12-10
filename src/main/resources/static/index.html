@@ -96,6 +96,41 @@
             font-size: 14px;
         }
 
+        .quick-access {
+            margin: 30px 0;
+            text-align: center;
+        }
+
+        .quick-access h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .quick-links {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .quick-link {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .quick-link:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
         @media (max-width: 768px) {
             .dashboard-stats {
                 grid-template-columns: 1fr;
@@ -128,12 +163,26 @@
                     <h3>系统状态</h3>
                     <div class="number" id="systemStatus">🟢</div>
                 </div>
+                <div class="stat-card">
+                    <h3>股票数据</h3>
+                    <div class="number" id="stockCount">-</div>
+                </div>
             </div>
             
             <div class="recent-alerts">
                 <h2>🔔 最近告警</h2>
                 <div id="alertsContainer">
                     <!-- 告警将通过JavaScript动态加载 -->
+                </div>
+            </div>
+
+            <!-- 快速访问 -->
+            <div class="quick-access">
+                <h2>⚡ 快速访问</h2>
+                <div class="quick-links">
+                    <a href="fund-monitor.html" class="quick-link">📊 基金监控</a>
+                    <a href="stock-management.html" class="quick-link">📈 股票管理</a>
+                    <a href="alert-records.html" class="quick-link">🔔 告警记录</a>
                 </div>
             </div>
         </div>
@@ -207,6 +256,10 @@
                     document.getElementById('todayAlerts').textContent = data.todayAlerts;
                     document.getElementById('recipientCount').textContent = data.recipientCount;
                     document.getElementById('systemStatus').textContent = data.systemStatus;
+                    // 如果返回了股票数量，则显示，否则保持为 "-"
+                    if (data.stockCount !== undefined) {
+                        document.getElementById('stockCount').textContent = data.stockCount;
+                    }
                 } else {
                     console.error('获取统计数据失败:', statsResult.message);
                 }
