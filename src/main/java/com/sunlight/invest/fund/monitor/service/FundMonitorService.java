@@ -1,5 +1,6 @@
 package com.sunlight.invest.fund.monitor.service;
 
+import com.sunlight.ai.service.DeepSeekService;
 import com.sunlight.invest.fund.monitor.entity.AlarmRecord;
 import com.sunlight.invest.fund.monitor.entity.FundNav;
 import com.sunlight.invest.fund.monitor.entity.MonitorFund;
@@ -57,7 +58,10 @@ public class FundMonitorService {
     
     @Autowired
     private SystemConfigService systemConfigService;
-
+    
+    @Autowired
+    private DeepSeekService deepSeekService;
+    
     // 内部类用于存储预警信息
     private static class AlertInfo {
         private String subject;
@@ -687,6 +691,9 @@ public class FundMonitorService {
         htmlBuilder.append(".alert-item { background-color: #ffffff; border: 1px solid #e0e0e0; border-left: 4px solid #1976d2; padding: 15px; margin-bottom: 15px; border-radius: 5px; }");
         htmlBuilder.append(".alert-item.warning { border-left-color: #f57c00; }");
         htmlBuilder.append(".alert-item.critical { border-left-color: #d32f2f; }");
+        htmlBuilder.append(".ai-analysis { background-color: #f1f8e9; padding: 20px; border-radius: 5px; margin-top: 20px; border-left: 4px solid #388e3c; }");
+        htmlBuilder.append(".ai-title { color: #388e3c; font-size: 18px; font-weight: bold; margin-bottom: 10px; }");
+        htmlBuilder.append(".ai-content { line-height: 1.6; }");
         htmlBuilder.append(".footer { text-align: center; margin-top: 30px; color: #757575; font-size: 14px; }");
         htmlBuilder.append("</style>");
         htmlBuilder.append("</head>");
@@ -718,8 +725,11 @@ public class FundMonitorService {
             List<AlertInfo> fundAlerts = entry.getValue();
             
             if (!fundAlerts.isEmpty()) {
+                // 获取基金名称
+                String fundName = fundAlerts.get(0).getAlarmRecord().getFundName();
+                
                 htmlBuilder.append("<div class='fund-section'>");
-                htmlBuilder.append("<h2>基金代码: ").append(fundCode).append("</h2>");
+                htmlBuilder.append("<h2>基金代码: ").append(fundCode).append(" (").append(fundName).append(")</h2>");
                 
                 for (int i = 0; i < fundAlerts.size(); i++) {
                     AlertInfo alert = fundAlerts.get(i);
@@ -748,6 +758,28 @@ public class FundMonitorService {
                     
                     htmlBuilder.append("</div>");
                 }
+                
+                // 为每个基金添加AI智能分析报告
+                try {
+                    List<FundNav> fundNavList = fundNavMapper.selectRecentDays(fundCode, 30);
+                    String aiAnalysis = generateFundAIAnalysis(fundNavList, fundCode, fundName);
+                    
+                    htmlBuilder.append("<div class='ai-analysis'>");
+                    htmlBuilder.append("<div class='ai-title'>🤖 AI智能分析报告</div>");
+                    htmlBuilder.append("<div class='ai-content'>");
+                    htmlBuilder.append("<pre>").append(aiAnalysis.replace("<", "&lt;").replace(">", "&gt;")).append("</pre>");
+                    htmlBuilder.append("</div>");
+                    htmlBuilder.append("</div>");
+                } catch (Exception e) {
+                    log.error("生成基金AI分析报告失败，基金代码: {}", fundCode, e);
+                    htmlBuilder.append("<div class='ai-analysis'>");
+                    htmlBuilder.append("<div class='ai-title'>🤖 AI智能分析报告</div>");
+                    htmlBuilder.append("<div class='ai-content'>");
+                    htmlBuilder.append("<pre>生成AI分析报告时出现错误：" + e.getMessage() + "</pre>");
+                    htmlBuilder.append("</div>");
+                    htmlBuilder.append("</div>");
+                }
+                
                 htmlBuilder.append("</div>");
             }
         }
@@ -764,7 +796,7 @@ public class FundMonitorService {
         String htmlContent = htmlBuilder.toString();
 
         try {
-            // 发送集中预警HTML邮件给所有接收人
+            // 发送全局预警HTML邮件给所有接收人
             emailNotificationService.sendHtmlEmailToAllRecipients(subject, htmlContent);
             log.info("全局基金预警汇总HTML邮件已发送，共 {} 个预警", allAlerts.size());
 
@@ -774,6 +806,51 @@ public class FundMonitorService {
             }
         } catch (Exception e) {
             log.error("发送全局基金预警汇总HTML邮件失败", e);
+        }
+    }
+    
+    /**
+     * 生成基金AI分析报告
+     * 
+     * @param fundNavList 基金净值数据列表
+     * @param fundCode 基金代码
+     * @param fundName 基金名称
+     * @return AI分析报告
+     */
+    public String generateFundAIAnalysis(List<FundNav> fundNavList, String fundCode, String fundName) {
+        if (fundNavList == null || fundNavList.isEmpty()) {
+            return "无法生成分析报告：没有基金数据";
+        }
+        
+        // 构建提示词
+        StringBuilder prompt = new StringBuilder();
+        prompt.append("角色：你是一名经验丰富的基金投资分析专家，擅长技术面和基本面结合分析。\n");
+        prompt.append("任务：请分析以下基金的历史数据，基金代码：").append(fundCode).append("，基金名称：").append(fundName).append("。\n");
+        prompt.append("数据格式为：每行包含\"净值日期、单位净值、日涨跌幅\"。\n");
+        prompt.append("数据：\n");
+        
+        // 添加数据（最多取最近30天的数据）
+        int count = 0;
+        for (FundNav nav : fundNavList) {
+            if (count >= 30) break;
+            prompt.append(nav.getNavDate().toString()).append("、")
+                  .append(nav.getUnitNav().toString()).append("、")
+                  .append(nav.getDailyReturn() != null ? nav.getDailyReturn().toString() : "0").append("\n");
+            count++;
+        }
+        
+        prompt.append("要求：请按以下结构输出分析报告：\n");
+        prompt.append("趋势判断：当前处于上升、下降还是震荡趋势？\n");
+        prompt.append("波动特征：近期基金的波动性如何？\n");
+        prompt.append("风险评估：当前基金的主要风险点是什么？\n");
+        prompt.append("投资建议：给出短期（1-2周）的投资策略建议（如持有、加仓、减仓）及理由。\n");
+        
+        try {
+            // 调用AI服务
+            return deepSeekService.getAIResponse(prompt.toString());
+        } catch (Exception e) {
+            log.error("生成基金AI分析报告失败，基金代码: {}, 错误: {}", fundCode, e.getMessage(), e);
+            return "生成分析报告失败：" + e.getMessage();
         }
     }
 }
