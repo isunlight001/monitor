@@ -2,6 +2,8 @@ package com.sunlight.invest.stock;
 
 import com.sunlight.ai.service.DeepSeekService;
 import com.sunlight.invest.stock.service.StockDataService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -11,6 +13,7 @@ import java.util.List;
 
 @Service
 public class StockService {
+    private static final Logger log = LoggerFactory.getLogger(StockService.class);
     
     @Autowired
     private StockDataFetcher stockDataFetcher;
@@ -117,7 +120,7 @@ public class StockService {
         prompt.append("关键位置：近期的支撑位和压力位大致在哪里？\n");
         prompt.append("风险提示：当前主要的风险点是什么？\n");
         prompt.append("操作建议：给出短期（1-3天）的操作策略建议（如观望、分批建仓、减仓）及理由。\n");
-        
+        log.info("提示词：{}", prompt);
         // 调用AI服务
         return deepSeekService.getAIResponse(prompt.toString());
     }
