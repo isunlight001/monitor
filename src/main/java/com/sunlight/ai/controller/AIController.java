@@ -1,6 +1,7 @@
 package com.sunlight.ai.controller;
 
 import com.sunlight.ai.service.DeepSeekService;
+import com.sunlight.invest.common.BaseResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,19 +26,14 @@ public class AIController {
      * @return AI回答
      */
     @PostMapping("/chat")
-    public Map<String, Object> chatWithAI(@RequestParam String question) {
-        Map<String, Object> result = new HashMap<>();
+    public BaseResponse<String> chatWithAI(@RequestParam String question) {
         try {
             String response = deepSeekService.getAIResponse(question);
-            result.put("success", true);
-            result.put("data", response);
-            result.put("message", "请求成功");
+            return BaseResponse.success(response);
         } catch (Exception e) {
             logger.error("调用AI服务失败", e);
-            result.put("success", false);
-            result.put("message", "服务暂时不可用");
+            return BaseResponse.error("服务暂时不可用");
         }
-        return result;
     }
     
     /**
@@ -47,25 +43,18 @@ public class AIController {
      * @return AI回答
      */
     @PostMapping("/chat/json")
-    public Map<String, Object> chatWithAIJson(@RequestBody Map<String, String> request) {
-        Map<String, Object> result = new HashMap<>();
+    public BaseResponse<String> chatWithAIJson(@RequestBody Map<String, String> request) {
         try {
             String question = request.get("question");
             if (question == null || question.trim().isEmpty()) {
-                result.put("success", false);
-                result.put("message", "问题不能为空");
-                return result;
+                return BaseResponse.error("问题不能为空");
             }
             
             String response = deepSeekService.getAIResponse(question);
-            result.put("success", true);
-            result.put("data", response);
-            result.put("message", "请求成功");
+            return BaseResponse.success(response);
         } catch (Exception e) {
             logger.error("调用AI服务失败", e);
-            result.put("success", false);
-            result.put("message", "服务暂时不可用");
+            return BaseResponse.error("服务暂时不可用");
         }
-        return result;
     }
 }
