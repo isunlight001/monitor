@@ -10,9 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -48,17 +45,19 @@ public class DeepSeekService {
                     .header("Content-Type", "application/json")
                     .post(RequestBody.create(requestBody.toJSONString(), JSON_MEDIA_TYPE))
                     .build();
+
             
             try (Response response = client.newCall(request).execute()) {
                 if (!response.isSuccessful()) {
                     logger.error("DeepSeek API请求失败: {}", response.code());
-                    return "抱歉，AI服务暂时不可用";
+                    return "抱歉，API请求失败,AI服务暂时不可用";
                 }
                 
                 ResponseBody responseBody = response.body();
+
                 if (responseBody == null) {
                     logger.error("DeepSeek API响应为空");
-                    return "抱歉，AI服务暂时不可用";
+                    return "抱歉，API响应为空,AI服务暂时不可用";
                 }
                 
                 String responseString = responseBody.string();
@@ -72,7 +71,7 @@ public class DeepSeekService {
                         return message.getString("content");
                     }
                 }
-                
+                logger.info("DeepSeek API响应: {}", responseString);
                 return "抱歉，AI服务暂时不可用";
             }
         } catch (Exception e) {
