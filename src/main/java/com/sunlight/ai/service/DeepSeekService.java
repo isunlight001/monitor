@@ -29,6 +29,7 @@ public class DeepSeekService {
      * @return AI回复内容
      */
     public String getAIResponse(String question) {
+        logger.info("用户提问: {}", question);
         try {
             OkHttpClient client = new OkHttpClient.Builder()
                     .connectTimeout(30, TimeUnit.SECONDS)
