@@ -136,164 +136,226 @@
                 grid-template-columns: 1fr;
             }
         }
-        
-        /* 设备检测提示 */
-        .device-detection {
-            text-align: center;
-            padding: 20px;
-            color: white;
-        }
     </style>
     <!-- 引入公共header样式 -->
     <link rel="stylesheet" href="css/header.css">
 </head>
 <body>
-    <div class="device-detection" id="deviceDetection">
-        <p><i class="bi bi-phone"></i> 正在检测您的设备类型...</p>
-    </div>
+<div class="container">
+    <!-- 引入公共header -->
+    <div id="header-placeholder"></div>
 
-    <div class="container" id="mainContainer" style="display: none;">
-        <!-- 引入公共header -->
-        <div id="header-placeholder"></div>
-        
-        <div class="content">
-            <div class="dashboard-stats">
-                <div class="stat-card">
-                    <h3>监控基金数</h3>
-                    <div class="number" id="fundCount">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>今日告警</h3>
-                    <div class="number" id="todayAlerts">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>邮件接收人</h3>
-                    <div class="number" id="recipientCount">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>系统状态</h3>
-                    <div class="number" id="systemStatus">🟢</div>
-                </div>
-<!--                <div class="stat-card">-->
-<!--                    <h3>股票数据</h3>-->
-<!--                    <div class="number" id="stockCount">-</div>-->
-<!--                </div>-->
+    <div class="content">
+        <div class="dashboard-stats">
+            <div class="stat-card">
+                <h3>监控基金数</h3>
+                <div class="number" id="fundCount">0</div>
             </div>
-            
-            <div class="recent-alerts">
-                <h2>🔔 最近告警</h2>
-                <div id="alertsContainer">
-                    <!-- 告警将通过JavaScript动态加载 -->
-                </div>
+            <div class="stat-card">
+                <h3>今日告警</h3>
+                <div class="number" id="todayAlerts">0</div>
             </div>
+            <div class="stat-card">
+                <h3>邮件接收人</h3>
+                <div class="number" id="recipientCount">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>系统状态</h3>
+                <div class="number" id="systemStatus">🟢</div>
+            </div>
+            <!--                <div class="stat-card">-->
+            <!--                    <h3>股票数据</h3>-->
+            <!--                    <div class="number" id="stockCount">-</div>-->
+            <!--                </div>-->
+        </div>
 
-            <!-- 快速访问 -->
-            <div class="quick-access">
-                <h2>⚡ 快速访问</h2>
-                <div class="quick-links">
-                    <a href="fund-monitor.html" class="quick-link">📊 基金监控</a>
-                    <a href="stock-management.html" class="quick-link">📈 股票管理</a>
-                    <a href="alert-records.html" class="quick-link">🔔 告警记录</a>
-                </div>
+        <div class="recent-alerts">
+            <h2>🔔 最近告警</h2>
+            <div id="alertsContainer">
+                <!-- 告警将通过JavaScript动态加载 -->
             </div>
         </div>
-        
-        <div class="footer" style="text-align: center; padding: 20px; color: #666; border-top: 1px solid #eee; margin-top: 30px;">
-            <p>© 2025 基金监控系统 - 专业的基金数据分析平台</p>
+
+        <!-- 快速访问 -->
+        <div class="quick-access">
+            <h2>⚡ 快速访问</h2>
+            <div class="quick-links">
+                <a href="fund-monitor.html" class="quick-link">📊 基金监控</a>
+                <a href="stock-management.html" class="quick-link">📈 股票管理</a>
+                <a href="alert-records.html" class="quick-link">🔔 告警记录</a>
+            </div>
         </div>
     </div>
 
-    <script>
-        const USER_API_BASE = '/api/users';
-        const DASHBOARD_API_BASE = '/api/dashboard';
-        
-        // 设备检测函数
-        function isMobileDevice() {
-            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-        }
-        
-        // 页面加载时检查设备类型和登录状态
-        document.addEventListener('DOMContentLoaded', function() {
-            // 检测设备类型
-            if (isMobileDevice()) {
-                // 移动设备，重定向到移动端主页
-                window.location.href = 'mobile/index.html';
-                return;
-            }
-            
-            // PC设备，显示主页面内容
-            document.getElementById('deviceDetection').style.display = 'none';
-            document.getElementById('mainContainer').style.display = 'block';
-            
-            // 检查登录状态
-            checkLoginStatus();
-        });
-        
-        // 检查登录状态
-        async function checkLoginStatus() {
-            try {
-                const response = await fetch(`${USER_API_BASE}/status`);
-                const result = await response.json();
-                
-                if (!result.success) {
-                    // 未登录，跳转到登录页
-                    window.location.href = 'login.html';
-                    return;
-                }
-                
-                // 加载仪表板数据
-                loadDashboardData();
-            } catch (error) {
-                console.error('检查登录状态失败:', error);
-                // 出错时也跳转到登录页
+    <div class="footer" style="text-align: center; padding: 20px; color: #666; border-top: 1px solid #eee; margin-top: 30px;">
+        <p>© 2025 基金监控系统 - 专业的基金数据分析平台</p>
+    </div>
+</div>
+
+<script>
+    const USER_API_BASE = '/api/users';
+    const DASHBOARD_API_BASE = '/api/dashboard';
+
+    // 页面加载时检查登录状态
+    document.addEventListener('DOMContentLoaded', function() {
+        checkLoginStatus();
+        loadDashboardData();
+    });
+
+    // 检查登录状态
+    async function checkLoginStatus() {
+        try {
+            const response = await fetch(`${USER_API_BASE}/status`);
+            const result = await response.json();
+
+            if (result.success) {
+                // 显示用户信息
+                document.getElementById('userInfo').style.display = 'flex';
+                document.getElementById('currentUserName').textContent = result.data.username;
+            } else {
+                // 未登录，跳转到登录页面
                 window.location.href = 'login.html';
             }
+        } catch (error) {
+            console.error('检查登录状态失败:', error);
+            // 跳转到登录页面
+            window.location.href = 'login.html';
         }
+    }
 
-        // 加载仪表板数据
-        async function loadDashboardData() {
-            try {
-                const response = await fetch(`${DASHBOARD_API_BASE}/stats`);
-                const stats = await response.json();
-                
-                document.getElementById('fundCount').textContent = stats.fundCount || 0;
-                document.getElementById('todayAlerts').textContent = stats.todayAlerts || 0;
-                document.getElementById('recipientCount').textContent = stats.recipientCount || 0;
-                
-                // 加载最近告警
-                loadRecentAlerts();
-            } catch (error) {
-                console.error('加载仪表板数据失败:', error);
+    // 用户登出
+    async function logout() {
+        try {
+            const response = await fetch(`${USER_API_BASE}/logout`, {
+                method: 'POST'
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                // 登出成功，跳转到登录页面
+                window.location.href = 'login.html';
+            } else {
+                alert('登出失败: ' + result.message);
             }
+        } catch (error) {
+            alert('登出失败: ' + error.message);
         }
+    }
 
-        // 加载最近告警
-        async function loadRecentAlerts() {
-            try {
-                const response = await fetch(`${DASHBOARD_API_BASE}/recent-alerts`);
-                const alerts = await response.json();
-                
-                const container = document.getElementById('alertsContainer');
-                
-                if (alerts.length === 0) {
-                    container.innerHTML = '<p style="text-align: center; color: #6c757d;">暂无告警记录</p>';
-                    return;
+    // 加载仪表板数据
+    async function loadDashboardData() {
+        try {
+            // 获取统计数据
+            const statsResponse = await fetch(`${DASHBOARD_API_BASE}/stats`);
+            const statsResult = await statsResponse.json();
+
+            if (statsResult.success) {
+                const data = statsResult.data;
+                document.getElementById('fundCount').textContent = data.fundCount;
+                document.getElementById('todayAlerts').textContent = data.todayAlerts;
+                document.getElementById('recipientCount').textContent = data.recipientCount;
+                document.getElementById('systemStatus').textContent = data.systemStatus;
+                // 如果返回了股票数量，则显示，否则保持为 "-"
+                if (data.stockCount !== undefined) {
+                    document.getElementById('stockCount').textContent = data.stockCount;
                 }
-                
-                container.innerHTML = alerts.map(alert => `
-                    <div class="alert-item ${alert.level}">
-                        <h4>${alert.fundName} (${alert.fundCode})</h4>
-                        <p>${alert.ruleDescription}</p>
-                        <p>${new Date(alert.timestamp).toLocaleString()}</p>
-                    </div>
-                `).join('');
-            } catch (error) {
-                console.error('加载告警数据失败:', error);
+            } else {
+                console.error('获取统计数据失败:', statsResult.message);
             }
+
+            // 获取最近告警
+            const alertsResponse = await fetch(`${DASHBOARD_API_BASE}/recent-alerts`);
+            const alertsResult = await alertsResponse.json();
+
+            if (alertsResult.success) {
+                displayRecentAlerts(alertsResult.data);
+            } else {
+                console.error('获取告警记录失败:', alertsResult.message);
+            }
+        } catch (error) {
+            console.error('加载仪表板数据失败:', error);
         }
-    </script>
-    
-    <!-- 引入公共header -->
-    <script src="js/header.js"></script>
+    }
+
+    // 显示最近告警
+    function displayRecentAlerts(alerts) {
+        const alertsContainer = document.getElementById('alertsContainer');
+
+        if (!alerts || alerts.length === 0) {
+            alertsContainer.innerHTML = '<p style="text-align: center; color: #6c757d;">暂无告警记录</p>';
+            return;
+        }
+
+        let alertsHtml = '';
+        alerts.forEach(alert => {
+            // 根据告警类型设置样式
+            let alertClass = 'alert-item';
+            if (alert.alertType === 'DANGER' || alert.alertType === 'HIGH') {
+                alertClass += ' danger';
+            } else if (alert.alertType === 'WARNING' || alert.alertType === 'MEDIUM') {
+                alertClass += ' warning';
+            }
+
+            // 格式化时间
+            let createTime = '';
+            if (alert.createTime) {
+                // 假设createTime是ISO格式的字符串
+                const date = new Date(alert.createTime);
+                createTime = date.toLocaleString('zh-CN');
+            }
+
+            alertsHtml += `
+                <div class="${alertClass}">
+                    <h4>${getAlertIcon(alert.alertType)} ${alert.ruleDescription || '告警通知'}</h4>
+                    <p>基金: ${alert.fundName} (${alert.fundCode})</p>
+                    <p>内容: ${alert.alertContent || '无具体内容'}</p>
+                    <p>时间: ${createTime}</p>
+                </div>
+            `;
+        });
+
+        alertsContainer.innerHTML = alertsHtml;
+    }
+
+    // 根据告警类型获取图标
+    function getAlertIcon(alertType) {
+        switch (alertType) {
+            case 'DANGER':
+            case 'HIGH':
+                return '🔴';
+            case 'WARNING':
+            case 'MEDIUM':
+                return '🟡';
+            case 'INFO':
+            case 'LOW':
+                return '🟢';
+            default:
+                return '🔔';
+        }
+    }
+
+    // 加载公共header
+    function loadHeader() {
+        fetch('components/header.html')
+            .then(response => response.text())
+            .then(html => {
+                document.getElementById('header-placeholder').innerHTML = html;
+                // 检查登录状态
+                checkLoginStatus();
+            })
+            .catch(error => {
+                console.error('加载公共header失败:', error);
+            });
+    }
+
+    // 页面加载时加载公共header和仪表板数据
+    document.addEventListener('DOMContentLoaded', function() {
+        loadHeader();
+        loadDashboardData();
+    });
+</script>
+<!-- 引入公共认证脚本 -->
+<script src="js/auth.js"></script>
 </body>
 </html>
