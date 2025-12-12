@@ -91,17 +91,17 @@
         </div>
         
         <div class="login-body">
-            <form class="layui-form" id="loginForm">
+            <form class="layui-form" id="loginForm" lay-filter="loginForm">
                 <div class="layui-form-item">
                     <label class="layui-form-label">用户名</label>
                     <div class="layui-input-block">
-                        <input type="text" id="username" required lay-verify="required" placeholder="请输入用户名" autocomplete="off" class="layui-input">
+                        <input type="text" name="username" required lay-verify="required" placeholder="请输入用户名" autocomplete="off" class="layui-input">
                     </div>
                 </div>
                 <div class="layui-form-item">
                     <label class="layui-form-label">密码</label>
                     <div class="layui-input-block">
-                        <input type="password" id="password" required lay-verify="required" placeholder="请输入密码" autocomplete="off" class="layui-input">
+                        <input type="password" name="password" required lay-verify="required" placeholder="请输入密码" autocomplete="off" class="layui-input">
                     </div>
                 </div>
                 <div class="layui-form-item">
@@ -149,13 +149,10 @@
                 
                 // 监听提交
                 form.on('submit(loginSubmit)', function(data){
-                    handleLogin();
+                    handleLogin(data.field);
                     return false; // 阻止表单跳转
                 });
             });
-            
-            // 检查登录状态
-            checkLoginStatus();
         });
 
         // 检查登录状态
@@ -174,9 +171,9 @@
         }
 
         // 处理登录
-        async function handleLogin() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+        async function handleLogin(data) {
+            const username = data.username;
+            const password = data.password;
             
             if (!username || !password) {
                 showResult('loginResult', false, '请填写用户名和密码');

@@ -86,7 +86,7 @@
             <div class="layui-logo">📈 基金监控系统</div>
             <!-- 头部区域左侧 -->
             <ul class="layui-nav layui-layout-left">
-                <li class="layui-nav-item"><a href="javascript:;">首页</a></li>
+                <li class="layui-nav-item"><a href="index.html">首页</a></li>
             </ul>
             <!-- 头部区域右侧 -->
             <ul class="layui-nav layui-layout-right" id="userInfoNav">
@@ -108,7 +108,7 @@
                 <!-- 左侧导航区域 -->
                 <ul class="layui-nav layui-nav-tree" lay-filter="navTree">
                     <li class="layui-nav-item layui-nav-itemed">
-                        <a href="javascript:;">首页</a>
+                        <a href="index.html">首页</a>
                     </li>
                     <li class="layui-nav-item">
                         <a href="javascript:;">基金监控</a>
@@ -235,11 +235,9 @@
             var element = layui.element;
             var layer = layui.layer;
 
-            // 页面加载时检查登录状态
-            document.addEventListener('DOMContentLoaded', function() {
-                checkLoginStatus();
-                loadDashboardData();
-            });
+            // 页面加载时检查登录状态和加载数据
+            checkLoginStatus();
+            loadDashboardData();
         });
 
         // 检查登录状态
@@ -291,10 +289,10 @@
 
                 if (statsResult.success) {
                     const data = statsResult.data;
-                    document.getElementById('fundCount').textContent = data.fundCount;
-                    document.getElementById('todayAlerts').textContent = data.todayAlerts;
-                    document.getElementById('recipientCount').textContent = data.recipientCount;
-                    document.getElementById('systemStatus').textContent = data.systemStatus;
+                    document.getElementById('fundCount').textContent = data.fundCount || 0;
+                    document.getElementById('todayAlerts').textContent = data.todayAlerts || 0;
+                    document.getElementById('recipientCount').textContent = data.recipientCount || 0;
+                    document.getElementById('systemStatus').textContent = data.systemStatus || '🟢';
                 } else {
                     console.error('获取统计数据失败:', statsResult.message);
                 }

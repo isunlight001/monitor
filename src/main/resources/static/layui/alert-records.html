@@ -235,10 +235,10 @@
             });
 
             // 页面加载时检查登录状态
-            document.addEventListener('DOMContentLoaded', function() {
-                checkLoginStatus();
-                initAlertTable();
-            });
+            checkLoginStatus();
+            
+            // 初始化告警表格
+            initAlertTable();
 
             // 监听搜索提交
             form.on('submit(searchSubmit)', function(data){
@@ -289,9 +289,16 @@
 
         // 初始化告警表格
         function initAlertTable() {
+            // 模拟数据
+            var data = [
+                {fundCode: '006195', fundName: '国金量化多因子', alertType: 'HIGH', ruleDescription: '涨幅超过5%', alertContent: '基金涨幅达到6.2%', createTime: '2025-12-10 10:30:00'},
+                {fundCode: '002170', fundName: '东吴移动互联', alertType: 'MEDIUM', ruleDescription: '跌幅超过3%', alertContent: '基金跌幅达到3.8%', createTime: '2025-12-10 09:15:00'},
+                {fundCode: '001186', fundName: '华夏沪深300ETF联接', alertType: 'LOW', ruleDescription: '净值更新', alertContent: '基金净值已更新', createTime: '2025-12-10 08:45:00'}
+            ];
+            
             layui.table.render({
                 elem: '#alertTable',
-                url: `${ALERT_API_BASE}/records`, // 数据接口
+                data: data,
                 toolbar: '#alertToolbar',
                 cols: [[
                     {type: 'checkbox', fixed: 'left'},
@@ -312,38 +319,21 @@
                 ]],
                 page: true,
                 limit: 10,
-                limits: [10, 20, 30, 50],
-                request: {
-                    pageName: 'page', // 页码的参数名称，默认：page
-                    limitName: 'size' // 每页数据量的参数名，默认：limit
-                },
-                response: {
-                    statusCode: 200 // 重新规定成功的状态码为 200，table 组件默认为 0
-                },
-                parseData: function(res){ // 将原始数据解析成 table 组件所规定的数据
-                    return {
-                        "code": res.code, // 解析接口状态
-                        "msg": res.message, // 解析提示文本
-                        "count": res.data.totalElements, // 解析数据长度
-                        "data": res.data.content // 解析数据列表
-                    };
-                }
+                limits: [10, 20, 30, 50]
             });
         }
 
         // 重新加载告警表格
         function reloadAlertTable(params) {
-            layui.table.reload('alertTable', {
-                where: params,
-                page: {
-                    curr: 1 // 重新从第 1 页开始
-                }
-            });
+            // 模拟重新加载数据
+            console.log('搜索参数:', params);
+            layer.msg('查询功能开发中...', {icon: 1});
         }
 
         // 刷新数据
         function refreshData() {
             layui.table.reload('alertTable');
+            layer.msg('数据已刷新', {icon: 1});
         }
 
         // 清空所有告警

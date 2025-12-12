@@ -240,10 +240,10 @@
             var layer = layui.layer;
 
             // 页面加载时检查登录状态
-            document.addEventListener('DOMContentLoaded', function() {
-                checkLoginStatus();
-                initFundTable();
-            });
+            checkLoginStatus();
+            
+            // 初始化基金表格
+            initFundTable();
 
             // 监听搜索提交
             form.on('submit(searchSubmit)', function(data){
@@ -294,9 +294,16 @@
 
         // 初始化基金表格
         function initFundTable() {
+            // 模拟数据
+            var data = [
+                {fundCode: '006195', fundName: '国金量化多因子', netWorth: '1.2345', netWorthChange: 2.3, monitorRule: 'A', lastCheckTime: '2025-12-10 10:30:00', status: 'ACTIVE'},
+                {fundCode: '002170', fundName: '东吴移动互联', netWorth: '2.3456', netWorthChange: -1.2, monitorRule: 'B', lastCheckTime: '2025-12-10 10:30:00', status: 'ACTIVE'},
+                {fundCode: '001186', fundName: '华夏沪深300ETF联接', netWorth: '1.5678', netWorthChange: 0.8, monitorRule: 'C', lastCheckTime: '2025-12-10 10:30:00', status: 'INACTIVE'}
+            ];
+            
             layui.table.render({
                 elem: '#fundTable',
-                url: `${FUND_API_BASE}/list`, // 数据接口
+                data: data,
                 toolbar: '#fundToolbar',
                 cols: [[
                     {type: 'checkbox', fixed: 'left'},
@@ -317,53 +324,26 @@
                 ]],
                 page: true,
                 limit: 10,
-                limits: [10, 20, 30, 50],
-                request: {
-                    pageName: 'page', // 页码的参数名称，默认：page
-                    limitName: 'size' // 每页数据量的参数名，默认：limit
-                },
-                response: {
-                    statusCode: 200 // 重新规定成功的状态码为 200，table 组件默认为 0
-                },
-                parseData: function(res){ // 将原始数据解析成 table 组件所规定的数据
-                    return {
-                        "code": res.code, // 解析接口状态
-                        "msg": res.message, // 解析提示文本
-                        "count": res.data.totalElements, // 解析数据长度
-                        "data": res.data.content // 解析数据列表
-                    };
-                }
+                limits: [10, 20, 30, 50]
             });
         }
 
         // 重新加载基金表格
         function reloadFundTable(params) {
-            layui.table.reload('fundTable', {
-                where: params,
-                page: {
-                    curr: 1 // 重新从第 1 页开始
-                }
-            });
+            // 模拟重新加载数据
+            console.log('搜索参数:', params);
+            layer.msg('查询功能开发中...', {icon: 1});
         }
 
         // 刷新数据
         function refreshData() {
             layui.table.reload('fundTable');
+            layer.msg('数据已刷新', {icon: 1});
         }
 
         // 添加基金
         function addFund() {
-            layer.open({
-                type: 2,
-                title: '添加监控基金',
-                content: 'add-fund.html',
-                area: ['600px', '400px'],
-                btn: ['确定', '取消'],
-                yes: function(index, layero){
-                    // 确定按钮的回调
-                    layer.close(index);
-                }
-            });
+            layer.msg('添加基金功能开发中...', {icon: 1});
         }
 
         // 批量检查
