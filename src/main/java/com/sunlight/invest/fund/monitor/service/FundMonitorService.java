@@ -1,6 +1,7 @@
 package com.sunlight.invest.fund.monitor.service;
 
 import com.sunlight.ai.service.DeepSeekService;
+import com.sunlight.invest.common.HolidayService;
 import com.sunlight.invest.fund.monitor.entity.AlarmRecord;
 import com.sunlight.invest.fund.monitor.entity.FundNav;
 import com.sunlight.invest.fund.monitor.entity.MonitorFund;
@@ -16,6 +17,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,6 +63,9 @@ public class FundMonitorService {
     
     @Autowired
     private DeepSeekService deepSeekService;
+
+    @Autowired
+    private HolidayService holidayService;
     
     // 内部类用于存储预警信息
     private static class AlertInfo {
@@ -85,6 +90,11 @@ public class FundMonitorService {
 
     @Scheduled(cron = "#{systemConfigService.scheduleCron}")
     public void scheduledMonitorTask() {
+        LocalDate today = LocalDate.now();
+        if (holidayService.isHoliday(today)) {
+            log.error("今天是节假日({})，跳过执行基金监控定时任务", today);
+            return;
+        }
         // 从数据库获取所有启用的监控基金
         List<MonitorFund> monitorFunds = monitorFundMapper.selectAllEnabled();
         log.info("获取到 {} 个启用的监控基金", monitorFunds.size());

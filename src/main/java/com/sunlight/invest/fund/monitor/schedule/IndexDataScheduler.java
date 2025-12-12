@@ -1,5 +1,6 @@
 package com.sunlight.invest.fund.monitor.schedule;
 
+import com.sunlight.invest.common.HolidayService;
 import com.sunlight.invest.fund.monitor.service.IndexDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,9 @@ public class IndexDataScheduler {
 
     @Autowired
     private IndexDataService indexDataService;
+    
+    @Autowired
+    private HolidayService holidayService;
 
     /**
      * 每日16点执行指数数据更新任务
@@ -32,10 +36,16 @@ public class IndexDataScheduler {
      */
     @Scheduled(cron = "0 0 16 * * ?")
     public void scheduledIndexDataUpdate() {
+        // 检查今天是否为节假日
+        LocalDate today = LocalDate.now();
+        if (holidayService.isHoliday(today)) {
+            log.info("今天是节假日({})，跳过执行指数数据更新任务", today);
+            return;
+        }
+        
         log.info("开始执行指数数据更新任务");
 
         try {
-            LocalDate today = LocalDate.now();
             LocalDate startDate = today.minusDays(30); // 获取最近30天的数据
             
             int count = indexDataService.fetchAndSaveAllIndexData(startDate, today);

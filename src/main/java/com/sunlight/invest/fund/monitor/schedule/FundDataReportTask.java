@@ -1,5 +1,6 @@
 package com.sunlight.invest.fund.monitor.schedule;
 
+import com.sunlight.invest.common.HolidayService;
 import com.sunlight.invest.fund.monitor.entity.FundNav;
 import com.sunlight.invest.fund.monitor.entity.MonitorFund;
 import com.sunlight.invest.fund.monitor.mapper.FundNavMapper;
@@ -38,6 +39,9 @@ public class FundDataReportTask {
     @Autowired
     private EmailNotificationService emailNotificationService;
     
+    @Autowired
+    private HolidayService holidayService;
+    
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     /**
@@ -45,6 +49,13 @@ public class FundDataReportTask {
      */
     @Scheduled(cron = "0 30 8 * * ?")
     public void sendFundDataReport() {
+        // 检查今天是否为节假日
+        LocalDate today = LocalDate.now();
+        if (holidayService.isHoliday(today)) {
+            log.info("今天是节假日({})，跳过执行基金数据报告任务", today);
+            return;
+        }
+        
         try {
             log.info("开始执行基金数据报告任务");
             

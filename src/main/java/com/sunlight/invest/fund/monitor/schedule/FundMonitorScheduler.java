@@ -1,12 +1,13 @@
 package com.sunlight.invest.fund.monitor.schedule;
 
-
+import com.sunlight.invest.common.HolidayService;
 import com.sunlight.invest.fund.monitor.service.FundMonitorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 
 /**
  * 基金监控定时任务
@@ -22,10 +23,11 @@ public class FundMonitorScheduler {
 
     private static final Logger log = LoggerFactory.getLogger(FundMonitorScheduler.class);
 
-
     @Autowired
     private FundMonitorService fundMonitorService;
-
+    
+    @Autowired
+    private HolidayService holidayService;
 
     /**
      * 每天8点执行基金数据抓取和监控
@@ -33,6 +35,13 @@ public class FundMonitorScheduler {
      */
 //    @Scheduled(cron = "0 0 8 * * ?")
     public void scheduledMonitorTask() {
+        // 检查今天是否为节假日
+        LocalDate today = LocalDate.now();
+        if (holidayService.isHoliday(today)) {
+            log.error("今天是节假日({})，跳过执行基金监控定时任务", today);
+            return;
+        }
+        
         log.info("========== 开始执行基金监控定时任务 ==========");
         fundMonitorService.scheduledMonitorTask();
     }
@@ -44,6 +53,13 @@ public class FundMonitorScheduler {
      */
     // @Scheduled(fixedRate = 300000) // 5分钟
     public void manualTriggerTask() {
+        // 检查今天是否为节假日
+        LocalDate today = LocalDate.now();
+        if (holidayService.isHoliday(today)) {
+            log.info("今天是节假日({})，跳过执行手动触发监控任务", today);
+            return;
+        }
+        
         log.info("手动触发基金监控任务");
         scheduledMonitorTask();
     }
