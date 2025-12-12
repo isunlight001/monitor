@@ -229,7 +229,7 @@
     <script src="https://cdn.jsdelivr.net/npm/layui@2.8.18/dist/layui.js"></script>
     <script>
         // API基础路径
-        const FUND_API_BASE = '/api/fund-monitor';
+        const FUND_API_BASE = '/api/fund/monitor';
         const USER_API_BASE = '/api/users';
 
         // 初始化Layui组件
@@ -338,15 +338,59 @@
         async function loadFundData() {
             try {
                 const response = await fetch(`${FUND_API_BASE}/monitor-funds-with-nav`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const result = await response.json();
                 
                 if (result.success) {
-                    return result.data || [];
+                    // 处理基金名称编码问题
+                    const data = result.data || [];
+                    return data.map(item => ({
+                        ...item,
+                        fundName: item.fundName ? decodeURIComponent(escape(item.fundName)) : item.fundName
+                    }));
                 } else {
-                    throw new Error(result.message || '获取数据失败');
+                    console.warn('获取基金数据失败:', result.message || '未知错误');
+                    return []; // 返回空数组而不是抛出错误
                 }
             } catch (error) {
-                throw error;
+                console.error('加载基金数据失败:', error);
+                return []; // 返回空数组而不是抛出错误
+            }
+        }
+
+        // 根据参数加载基金数据
+        async function loadFundDataWithParams(params) {
+            try {
+                // 先获取所有数据
+                const response = await fetch(`${FUND_API_BASE}/monitor-funds-with-nav`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const result = await response.json();
+                
+                if (result.success) {
+                    let data = result.data || [];
+                    
+                    // 根据搜索参数过滤数据
+                    if (params) {
+                        if (params.fundCode) {
+                            data = data.filter(item => item.fundCode && item.fundCode.includes(params.fundCode));
+                        }
+                        if (params.fundName) {
+                            data = data.filter(item => item.fundName && item.fundName.includes(params.fundName));
+                        }
+                    }
+                    
+                    return data;
+                } else {
+                    console.warn('获取基金数据失败:', result.message || '未知错误');
+                    return [];
+                }
+            } catch (error) {
+                console.error('加载基金数据失败:', error);
+                return [];
             }
         }
 
@@ -361,40 +405,6 @@
                 console.error('重新加载基金数据失败:', error);
                 layer.msg('重新加载数据失败: ' + error.message, {icon: 2});
             });
-        }
-
-        // 根据参数加载基金数据
-        async function loadFundDataWithParams(params) {
-            try {
-                // 构造查询参数
-                let url = `${FUND_API_BASE}/monitor-funds-with-nav`;
-                
-                // 如果有搜索参数，则需要调整URL或处理方式
-                // 这里简化处理，实际应该根据后端API调整
-                
-                const response = await fetch(url);
-                const result = await response.json();
-                
-                if (result.success) {
-                    let data = result.data || [];
-                    
-                    // 根据搜索参数过滤数据
-                    if (params) {
-                        if (params.fundCode) {
-                            data = data.filter(item => item.fundCode.includes(params.fundCode));
-                        }
-                        if (params.fundName) {
-                            data = data.filter(item => item.fundName.includes(params.fundName));
-                        }
-                    }
-                    
-                    return data;
-                } else {
-                    throw new Error(result.message || '获取数据失败');
-                }
-            } catch (error) {
-                throw error;
-            }
         }
 
         // 刷新数据

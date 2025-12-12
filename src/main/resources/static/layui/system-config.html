@@ -237,15 +237,25 @@
         async function loadConfigData() {
             try {
                 const response = await fetch(CONFIG_API_BASE);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const result = await response.json();
                 
                 if (result.success) {
-                    return result.data || [];
+                    // 处理配置描述编码问题
+                    const data = result.data || [];
+                    return data.map(item => ({
+                        ...item,
+                        description: item.description ? decodeURIComponent(escape(item.description)) : item.description
+                    }));
                 } else {
-                    throw new Error(result.message || '获取数据失败');
+                    console.warn('获取系统配置数据失败:', result.message || '未知错误');
+                    return [];
                 }
             } catch (error) {
-                throw error;
+                console.error('加载系统配置数据失败:', error);
+                return []; // 返回空数组而不是抛出错误
             }
         }
 

@@ -295,15 +295,25 @@
         async function loadRecipientData() {
             try {
                 const response = await fetch(RECIPIENT_API_BASE);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const result = await response.json();
                 
                 if (result.success) {
-                    return result.data || [];
+                    // 处理邮件接收人名称编码问题
+                    const data = result.data || [];
+                    return data.map(item => ({
+                        ...item,
+                        name: item.name ? decodeURIComponent(escape(item.name)) : item.name
+                    }));
                 } else {
-                    throw new Error(result.message || '获取数据失败');
+                    console.warn('获取邮件接收人数据失败:', result.message || '未知错误');
+                    return [];
                 }
             } catch (error) {
-                throw error;
+                console.error('加载邮件接收人数据失败:', error);
+                return []; // 返回空数组而不是抛出错误
             }
         }
 

@@ -216,7 +216,7 @@
     <script src="https://cdn.jsdelivr.net/npm/layui@2.8.18/dist/layui.js"></script>
     <script>
         // API基础路径
-        const ALERT_API_BASE = '/api/alerts';
+        const ALERT_API_BASE = '/api/alert';
         const USER_API_BASE = '/api/users';
 
         // 初始化Layui组件
@@ -327,24 +327,27 @@
         // 加载告警数据
         async function loadAlertData() {
             try {
-                // 这里需要根据实际API调整，暂时使用模拟数据
-                // 实际应该调用告警相关的API接口
-                const response = await fetch('/api/alerts'); // 需要根据实际API调整
+                // 使用正确的告警API端点
+                const response = await fetch('/api/alert/records');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const result = await response.json();
                 
                 if (result.success) {
-                    return result.data || [];
+                    // 处理基金名称编码问题
+                    const data = result.data || [];
+                    return data.map(item => ({
+                        ...item,
+                        fundName: item.fundName ? decodeURIComponent(escape(item.fundName)) : item.fundName
+                    }));
                 } else {
-                    throw new Error(result.message || '获取数据失败');
+                    console.warn('获取告警数据失败:', result.message || '未知错误');
+                    return [];
                 }
             } catch (error) {
-                // 出错时使用模拟数据以便页面能正常显示
-                console.warn('加载真实数据失败，使用模拟数据:', error);
-                return [
-                    {fundCode: '006195', fundName: '国金量化多因子', alertType: 'HIGH', ruleDescription: '涨幅超过5%', alertContent: '基金涨幅达到6.2%', createTime: '2025-12-10T10:30:00'},
-                    {fundCode: '002170', fundName: '东吴移动互联', alertType: 'MEDIUM', ruleDescription: '跌幅超过3%', alertContent: '基金跌幅达到3.8%', createTime: '2025-12-10T09:15:00'},
-                    {fundCode: '001186', fundName: '华夏沪深300ETF联接', alertType: 'LOW', ruleDescription: '净值更新', alertContent: '基金净值已更新', createTime: '2025-12-10T08:45:00'}
-                ];
+                console.warn('加载告警数据失败:', error);
+                return [];
             }
         }
 

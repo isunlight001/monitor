@@ -208,7 +208,7 @@
     <script src="https://cdn.jsdelivr.net/npm/layui@2.8.18/dist/layui.js"></script>
     <script>
         // API基础路径
-        const STOCK_API_BASE = '/api/stocks';
+        const STOCK_API_BASE = '/api/stock';
         const USER_API_BASE = '/api/users';
 
         // 初始化Layui组件
@@ -314,24 +314,27 @@
         // 加载股票数据
         async function loadStockData() {
             try {
-                // 这里需要根据实际API调整，暂时使用模拟数据
-                // 实际应该调用股票相关的API接口
-                const response = await fetch('/api/stocks'); // 需要根据实际API调整
+                // 使用正确的股票API端点
+                const response = await fetch('/api/stock/recent?days=30');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const result = await response.json();
                 
                 if (result.success) {
-                    return result.data || [];
+                    // 处理股票名称编码问题
+                    const data = result.data || [];
+                    return data.map(item => ({
+                        ...item,
+                        stockName: item.stockName ? decodeURIComponent(escape(item.stockName)) : item.stockName
+                    }));
                 } else {
-                    throw new Error(result.message || '获取数据失败');
+                    console.warn('获取股票数据失败:', result.message || '未知错误');
+                    return [];
                 }
             } catch (error) {
-                // 出错时使用模拟数据以便页面能正常显示
-                console.warn('加载真实数据失败，使用模拟数据:', error);
-                return [
-                    {stockCode: '000001', stockName: '平安银行', currentPrice: '12.34', changeAmount: '0.45', changePercent: '3.78', market: 'SZ', lastSyncTime: '2025-12-10T10:30:00'},
-                    {stockCode: '600000', stockName: '浦发银行', currentPrice: '8.92', changeAmount: '-0.23', changePercent: '-2.51', market: 'SH', lastSyncTime: '2025-12-10T10:30:00'},
-                    {stockCode: '000858', stockName: '五粮液', currentPrice: '156.78', changeAmount: '5.67', changePercent: '3.75', market: 'SZ', lastSyncTime: '2025-12-10T10:30:00'}
-                ];
+                console.warn('加载股票数据失败:', error);
+                return [];
             }
         }
 
