@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>基金监控系统 - Layui版本</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/layui@2.8.18/dist/css/layui.css">
+    <style>
+        body {
+            background-color: #f5f5f5;
+        }
+        .layui-layout-admin .layui-header {
+            background-color: #23262E;
+        }
+        .layui-layout-admin .layui-side {
+            background-color: #393D49;
+        }
+        .layui-layout-admin .layui-logo {
+            color: #fff;
+            font-weight: bold;
+        }
+        .layui-card {
+            box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+        }
+        .stat-card {
+            text-align: center;
+            padding: 20px 0;
+        }
+        .stat-card .number {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .stat-card .label {
+            font-size: 16px;
+            color: #666;
+        }
+        .quick-link {
+            display: block;
+            padding: 15px;
+            text-align: center;
+            background: #f8f9fa;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: #333;
+        }
+        .quick-link:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .quick-link i {
+            font-size: 24px;
+            margin-bottom: 10px;
+            display: block;
+        }
+        .alert-item {
+            padding: 15px;
+            border-left: 4px solid #009688;
+            background: #fff;
+            margin-bottom: 10px;
+            border-radius: 0 4px 4px 0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        .alert-item.warning {
+            border-left-color: #FFB800;
+        }
+        .alert-item.danger {
+            border-left-color: #FF5722;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="layui-layout layui-layout-admin">
+        <!-- 头部区域 -->
+        <div class="layui-header">
+            <div class="layui-logo">📈 基金监控系统</div>
+            <!-- 头部区域左侧 -->
+            <ul class="layui-nav layui-layout-left">
+                <li class="layui-nav-item"><a href="javascript:;">首页</a></li>
+            </ul>
+            <!-- 头部区域右侧 -->
+            <ul class="layui-nav layui-layout-right" id="userInfoNav">
+                <li class="layui-nav-item">
+                    <a href="javascript:;" id="userNameLink">
+                        <img src="//tva1.sinaimg.cn/crop.0.0.118.118.180/5db11ff4gw1e77d3nqrv8j203k03kweg.jpg" class="layui-nav-img">
+                        <span id="currentUserName">游客</span>
+                    </a>
+                    <dl class="layui-nav-child">
+                        <dd><a href="javascript:void(0);" onclick="logout()">退出登录</a></dd>
+                    </dl>
+                </li>
+            </ul>
+        </div>
+
+        <!-- 左侧导航区域 -->
+        <div class="layui-side layui-bg-black">
+            <div class="layui-side-scroll">
+                <!-- 左侧导航区域 -->
+                <ul class="layui-nav layui-nav-tree" lay-filter="navTree">
+                    <li class="layui-nav-item layui-nav-itemed">
+                        <a href="javascript:;">首页</a>
+                    </li>
+                    <li class="layui-nav-item">
+                        <a href="javascript:;">基金监控</a>
+                        <dl class="layui-nav-child">
+                            <dd><a href="fund-monitor.html">📊 基金监控</a></dd>
+                            <dd><a href="index-data.html">💹 指数数据</a></dd>
+                            <dd><a href="fund-backtest.html">🧪 基金回测</a></dd>
+                        </dl>
+                    </li>
+                    <li class="layui-nav-item">
+                        <a href="javascript:;">告警管理</a>
+                        <dl class="layui-nav-child">
+                            <dd><a href="alert-records.html">🔔 告警记录</a></dd>
+                            <dd><a href="notification-test.html">📧 通知测试</a></dd>
+                        </dl>
+                    </li>
+                    <li class="layui-nav-item">
+                        <a href="javascript:;">系统管理</a>
+                        <dl class="layui-nav-child">
+                            <dd><a href="email-recipient-management.html">👥 邮件接收人</a></dd>
+                            <dd><a href="system-config.html">⚙️ 系统配置</a></dd>
+                        </dl>
+                    </li>
+                    <li class="layui-nav-item">
+                        <a href="javascript:;">AI功能</a>
+                        <dl class="layui-nav-child">
+                            <dd><a href="ai-test.html">🤖 AI测试</a></dd>
+                            <dd><a href="fund-report-test.html">📈 报告测试</a></dd>
+                        </dl>
+                    </li>
+                    <li class="layui-nav-item">
+                        <a href="stock-management.html">📈 股票管理</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- 内容主体区域 -->
+        <div class="layui-body">
+            <!-- 内容区 -->
+            <div style="padding: 15px;">
+                <!-- 统计卡片 -->
+                <div class="layui-row layui-col-space15">
+                    <div class="layui-col-md3">
+                        <div class="layui-card">
+                            <div class="layui-card-body stat-card">
+                                <div class="label">监控基金数</div>
+                                <div class="number" id="fundCount">0</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-md3">
+                        <div class="layui-card">
+                            <div class="layui-card-body stat-card">
+                                <div class="label">今日告警</div>
+                                <div class="number" id="todayAlerts">0</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-md3">
+                        <div class="layui-card">
+                            <div class="layui-card-body stat-card">
+                                <div class="label">邮件接收人</div>
+                                <div class="number" id="recipientCount">0</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-md3">
+                        <div class="layui-card">
+                            <div class="layui-card-body stat-card">
+                                <div class="label">系统状态</div>
+                                <div class="number" id="systemStatus">🟢</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 最近告警和快速访问 -->
+                <div class="layui-row layui-col-space15" style="margin-top: 20px;">
+                    <div class="layui-col-md8">
+                        <div class="layui-card">
+                            <div class="layui-card-header">🔔 最近告警</div>
+                            <div class="layui-card-body" id="alertsContainer">
+                                <p style="text-align: center; color: #666;">暂无告警记录</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="layui-col-md4">
+                        <div class="layui-card">
+                            <div class="layui-card-header">⚡ 快速访问</div>
+                            <div class="layui-card-body">
+                                <a href="fund-monitor.html" class="quick-link">
+                                    <i>📊</i>
+                                    <span>基金监控</span>
+                                </a>
+                                <a href="stock-management.html" class="quick-link">
+                                    <i>📈</i>
+                                    <span>股票管理</span>
+                                </a>
+                                <a href="alert-records.html" class="quick-link">
+                                    <i>🔔</i>
+                                    <span>告警记录</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部固定区域 -->
+        <div class="layui-footer footer">
+            © 2025 基金监控系统 - 专业的基金数据分析平台
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/layui@2.8.18/dist/layui.js"></script>
+    <script>
+        const USER_API_BASE = '/api/users';
+        const DASHBOARD_API_BASE = '/api/dashboard';
+
+        // 初始化Layui组件
+        layui.use(['element', 'layer'], function(){
+            var element = layui.element;
+            var layer = layui.layer;
+
+            // 页面加载时检查登录状态
+            document.addEventListener('DOMContentLoaded', function() {
+                checkLoginStatus();
+                loadDashboardData();
+            });
+        });
+
+        // 检查登录状态
+        async function checkLoginStatus() {
+            try {
+                const response = await fetch(`${USER_API_BASE}/status`);
+                const result = await response.json();
+
+                if (result.success) {
+                    // 显示用户信息
+                    document.getElementById('currentUserName').textContent = result.data.username;
+                } else {
+                    // 未登录，跳转到登录页面
+                    window.location.href = 'login.html';
+                }
+            } catch (error) {
+                console.error('检查登录状态失败:', error);
+                // 跳转到登录页面
+                window.location.href = 'login.html';
+            }
+        }
+
+        // 用户登出
+        async function logout() {
+            try {
+                const response = await fetch(`${USER_API_BASE}/logout`, {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    // 登出成功，跳转到登录页面
+                    window.location.href = 'login.html';
+                } else {
+                    alert('登出失败: ' + result.message);
+                }
+            } catch (error) {
+                alert('登出失败: ' + error.message);
+            }
+        }
+
+        // 加载仪表板数据
+        async function loadDashboardData() {
+            try {
+                // 获取统计数据
+                const statsResponse = await fetch(`${DASHBOARD_API_BASE}/stats`);
+                const statsResult = await statsResponse.json();
+
+                if (statsResult.success) {
+                    const data = statsResult.data;
+                    document.getElementById('fundCount').textContent = data.fundCount;
+                    document.getElementById('todayAlerts').textContent = data.todayAlerts;
+                    document.getElementById('recipientCount').textContent = data.recipientCount;
+                    document.getElementById('systemStatus').textContent = data.systemStatus;
+                } else {
+                    console.error('获取统计数据失败:', statsResult.message);
+                }
+
+                // 获取最近告警
+                const alertsResponse = await fetch(`${DASHBOARD_API_BASE}/recent-alerts`);
+                const alertsResult = await alertsResponse.json();
+
+                if (alertsResult.success) {
+                    displayRecentAlerts(alertsResult.data);
+                } else {
+                    console.error('获取告警记录失败:', alertsResult.message);
+                }
+            } catch (error) {
+                console.error('加载仪表板数据失败:', error);
+            }
+        }
+
+        // 显示最近告警
+        function displayRecentAlerts(alerts) {
+            const alertsContainer = document.getElementById('alertsContainer');
+
+            if (!alerts || alerts.length === 0) {
+                alertsContainer.innerHTML = '<p style="text-align: center; color: #666;">暂无告警记录</p>';
+                return;
+            }
+
+            let alertsHtml = '';
+            alerts.forEach(alert => {
+                // 根据告警类型设置样式
+                let alertClass = 'alert-item';
+                if (alert.alertType === 'DANGER' || alert.alertType === 'HIGH') {
+                    alertClass += ' danger';
+                } else if (alert.alertType === 'WARNING' || alert.alertType === 'MEDIUM') {
+                    alertClass += ' warning';
+                }
+
+                // 格式化时间
+                let createTime = '';
+                if (alert.createTime) {
+                    // 假设createTime是ISO格式的字符串
+                    const date = new Date(alert.createTime);
+                    createTime = date.toLocaleString('zh-CN');
+                }
+
+                alertsHtml += `
+                    <div class="${alertClass}">
+                        <h4>${getAlertIcon(alert.alertType)} ${alert.ruleDescription || '告警通知'}</h4>
+                        <p>基金: ${alert.fundName} (${alert.fundCode})</p>
+                        <p>内容: ${alert.alertContent || '无具体内容'}</p>
+                        <p>时间: ${createTime}</p>
+                    </div>
+                `;
+            });
+
+            alertsContainer.innerHTML = alertsHtml;
+        }
+
+        // 根据告警类型获取图标
+        function getAlertIcon(alertType) {
+            switch (alertType) {
+                case 'DANGER':
+                case 'HIGH':
+                    return '🔴';
+                case 'WARNING':
+                case 'MEDIUM':
+                    return '🟡';
+                case 'INFO':
+                case 'LOW':
+                    return '🟢';
+                default:
+                    return '🔔';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户登录 - 基金监控系统</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/layui@2.8.18/dist/css/layui.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+        .login-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .login-header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        .login-body {
+            padding: 30px;
+        }
+        .layui-form-item {
+            margin-bottom: 20px;
+        }
+        .layui-form-label {
+            font-weight: 500;
+        }
+        .layui-input {
+            height: 45px;
+            border-radius: 4px;
+        }
+        .layui-btn {
+            height: 45px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        .layui-btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        .result-message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            display: none;
+        }
+        .result-message.success {
+            background-color: #f0f9eb;
+            color: #67c23a;
+            border: 1px solid #e1f3d8;
+        }
+        .result-message.error {
+            background-color: #fef0f0;
+            color: #f56c6c;
+            border: 1px solid #fde2e2;
+        }
+        /* 设备检测提示 */
+        .device-detection {
+            text-align: center;
+            padding: 20px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="device-detection" id="deviceDetection">
+        <p>正在检测您的设备类型...</p>
+    </div>
+
+    <div class="login-container" id="loginContainer" style="display: none;">
+        <div class="login-header">
+            <h1>🔐 用户登录</h1>
+            <p>基金监控系统</p>
+        </div>
+        
+        <div class="login-body">
+            <form class="layui-form" id="loginForm">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">用户名</label>
+                    <div class="layui-input-block">
+                        <input type="text" id="username" required lay-verify="required" placeholder="请输入用户名" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">密码</label>
+                    <div class="layui-input-block">
+                        <input type="password" id="password" required lay-verify="required" placeholder="请输入密码" autocomplete="off" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-input-block">
+                        <button class="layui-btn layui-btn-primary layui-btn-fluid" lay-submit lay-filter="loginSubmit">登录</button>
+                    </div>
+                </div>
+            </form>
+            
+            <div class="result-message" id="loginResult"></div>
+            
+            <div style="margin-top: 25px; text-align: center; color: #666; font-size: 14px;">
+                <p>默认账户: admin / admin123</p>
+                <p>或者: user / user123</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/layui@2.8.18/dist/layui.js"></script>
+    <script>
+        // API基础路径
+        const API_BASE = '/api/users';
+        
+        // 设备检测函数
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+        
+        // 页面加载完成后检查设备类型和登录状态
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检测设备类型
+            if (isMobileDevice()) {
+                // 移动设备，重定向到移动端登录页面
+                window.location.href = '../mobile/login.html';
+                return;
+            }
+            
+            // PC设备，显示登录表单
+            document.getElementById('deviceDetection').style.display = 'none';
+            document.getElementById('loginContainer').style.display = 'block';
+            
+            // 初始化Layui表单
+            layui.use('form', function(){
+                var form = layui.form;
+                
+                // 监听提交
+                form.on('submit(loginSubmit)', function(data){
+                    handleLogin();
+                    return false; // 阻止表单跳转
+                });
+            });
+            
+            // 检查登录状态
+            checkLoginStatus();
+        });
+
+        // 检查登录状态
+        async function checkLoginStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/status`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    // 已登录，跳转到主页
+                    window.location.href = 'index.html';
+                }
+            } catch (error) {
+                console.log('检查登录状态失败:', error);
+            }
+        }
+
+        // 处理登录
+        async function handleLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (!username || !password) {
+                showResult('loginResult', false, '请填写用户名和密码');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    showResult('loginResult', true, '登录成功');
+                    // 延迟跳转到主页
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1000);
+                } else {
+                    showResult('loginResult', false, result.message || '登录失败');
+                }
+            } catch (error) {
+                showResult('loginResult', false, '登录失败: ' + error.message);
+            }
+        }
+
+        // 显示结果
+        function showResult(elementId, isSuccess, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = 'result-message ' + (isSuccess ? 'success' : 'error');
+            element.style.display = 'block';
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                element.style.display = 'none';
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
