@@ -56,6 +56,27 @@ deepseek:
   api-url: https://api.deepseek.com/v1/chat/completions
   model: deepseek-chat
 
+# 节假日配置
+app:
+  holidays:
+    # 是否包含周末，默认为true
+    include-weekends: true
+    # 节假日列表，格式为 yyyy-MM-dd
+    dates:
+      - "2025-01-01"  # 元旦
+      - "2025-02-10"  # 春节
+      - "2025-02-11"  # 春节
+      - "2025-02-12"  # 春节
+      - "2025-04-04"  # 清明节
+      - "2025-05-01"  # 劳动节
+      - "2025-05-02"  # 劳动节
+      - "2025-05-03"  # 劳动节
+      - "2025-06-14"  # 端午节
+      - "2025-09-15"  # 中秋节
+      - "2025-10-01"  # 国庆节
+      - "2025-10-02"  # 国庆节
+      - "2025-10-03"  # 国庆节
+
 logging:
   level:
     com.sunlight: debug

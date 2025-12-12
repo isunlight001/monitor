@@ -1,7 +1,9 @@
 package com.sunlight.invest;
 
+import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -20,8 +22,11 @@ import java.time.format.DateTimeFormatter;
  * @author System
  * @since 2024-12-02
  */
+
 @SpringBootApplication(scanBasePackages = {"com.sunlight.invest", "com.sunlight.ai"})
 @EnableScheduling
+@MapperScan("com.sunlight.invest.**.mapper")
+@EnableConfigurationProperties
 public class FundApplication {
     
     /**
