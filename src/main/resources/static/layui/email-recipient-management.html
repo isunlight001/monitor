@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>基金监控 - 基金监控系统</title>
+    <title>邮件接收人管理 - 基金监控系统</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/layui@2.8.18/dist/css/layui.css">
     <style>
         body {
@@ -29,34 +29,13 @@
         .layui-table th {
             background-color: #f8f9fa;
         }
-        .positive {
-            color: #FF5722;
-            font-weight: bold;
-        }
-        .negative {
+        .status-enabled {
             color: #009688;
             font-weight: bold;
         }
-        .quick-link {
-            display: block;
-            padding: 15px;
-            text-align: center;
-            background: #f8f9fa;
-            border-radius: 4px;
-            margin-bottom: 15px;
-            transition: all 0.3s;
-            text-decoration: none;
-            color: #333;
-        }
-        .quick-link:hover {
-            background: #e9ecef;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-        .quick-link i {
-            font-size: 24px;
-            margin-bottom: 10px;
-            display: block;
+        .status-disabled {
+            color: #FF5722;
+            font-weight: bold;
         }
         .footer {
             text-align: center;
@@ -97,7 +76,7 @@
                     <li class="layui-nav-item">
                         <a href="index.html">首页</a>
                     </li>
-                    <li class="layui-nav-item layui-nav-itemed">
+                    <li class="layui-nav-item">
                         <a href="javascript:;">基金监控</a>
                         <dl class="layui-nav-child">
                             <dd><a href="fund-monitor.html">📊 基金监控</a></dd>
@@ -112,7 +91,7 @@
                             <dd><a href="notification-test.html">📧 通知测试</a></dd>
                         </dl>
                     </li>
-                    <li class="layui-nav-item">
+                    <li class="layui-nav-item layui-nav-itemed">
                         <a href="javascript:;">系统管理</a>
                         <dl class="layui-nav-child">
                             <dd><a href="email-recipient-management.html">👥 邮件接收人</a></dd>
@@ -139,7 +118,7 @@
             <div style="padding: 15px;">
                 <div class="layui-card">
                     <div class="layui-card-header">
-                        <i class="layui-icon layui-icon-chart"></i> 基金监控
+                        <i class="layui-icon layui-icon-username"></i> 邮件接收人管理
                         <button class="layui-btn layui-btn-sm layui-btn-normal" style="float: right;" onclick="refreshData()">
                             <i class="layui-icon layui-icon-refresh"></i> 刷新数据
                         </button>
@@ -148,15 +127,15 @@
                         <form class="layui-form" lay-filter="searchForm">
                             <div class="layui-form-item">
                                 <div class="layui-inline">
-                                    <label class="layui-form-label">基金代码</label>
+                                    <label class="layui-form-label">姓名</label>
                                     <div class="layui-input-inline">
-                                        <input type="text" name="fundCode" placeholder="请输入基金代码" autocomplete="off" class="layui-input">
+                                        <input type="text" name="name" placeholder="请输入姓名" autocomplete="off" class="layui-input">
                                     </div>
                                 </div>
                                 <div class="layui-inline">
-                                    <label class="layui-form-label">基金名称</label>
+                                    <label class="layui-form-label">邮箱</label>
                                     <div class="layui-input-inline">
-                                        <input type="text" name="fundName" placeholder="请输入基金名称" autocomplete="off" class="layui-input">
+                                        <input type="text" name="email" placeholder="请输入邮箱" autocomplete="off" class="layui-input">
                                     </div>
                                 </div>
                                 <div class="layui-inline">
@@ -170,7 +149,7 @@
                             </div>
                         </form>
                         
-                        <table class="layui-hide" id="fundTable" lay-filter="fundTable"></table>
+                        <table class="layui-hide" id="recipientTable" lay-filter="recipientTable"></table>
                     </div>
                 </div>
                 
@@ -182,23 +161,13 @@
                     <div class="layui-card-body">
                         <div class="layui-row layui-col-space15">
                             <div class="layui-col-md3">
-                                <button class="layui-btn layui-btn-fluid" onclick="addFund()">
-                                    <i class="layui-icon layui-icon-add-1"></i> 添加监控基金
-                                </button>
-                            </div>
-                            <div class="layui-col-md3">
-                                <button class="layui-btn layui-btn-warm layui-btn-fluid" onclick="batchCheck()">
-                                    <i class="layui-icon layui-icon-ok"></i> 批量检查
+                                <button class="layui-btn layui-btn-fluid" onclick="addRecipient()">
+                                    <i class="layui-icon layui-icon-add-1"></i> 添加接收人
                                 </button>
                             </div>
                             <div class="layui-col-md3">
                                 <button class="layui-btn layui-btn-danger layui-btn-fluid" onclick="batchDelete()">
                                     <i class="layui-icon layui-icon-delete"></i> 批量删除
-                                </button>
-                            </div>
-                            <div class="layui-col-md3">
-                                <button class="layui-btn layui-btn-normal layui-btn-fluid" onclick="exportData()">
-                                    <i class="layui-icon layui-icon-export"></i> 导出数据
                                 </button>
                             </div>
                         </div>
@@ -213,23 +182,22 @@
         </div>
     </div>
 
-    <script type="text/html" id="fundToolbar">
+    <script type="text/html" id="recipientToolbar">
         <div class="layui-btn-container">
             <button class="layui-btn layui-btn-sm" lay-event="add">添加</button>
             <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="delete">删除</button>
         </div>
     </script>
 
-    <script type="text/html" id="fundBar">
+    <script type="text/html" id="recipientBar">
         <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
         <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
-        <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="check">检查</a>
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/layui@2.8.18/dist/layui.js"></script>
     <script>
         // API基础路径
-        const FUND_API_BASE = '/api/fund-monitor';
+        const RECIPIENT_API_BASE = '/api/email-recipients';
         const USER_API_BASE = '/api/users';
 
         // 初始化Layui组件
@@ -242,12 +210,12 @@
             // 页面加载时检查登录状态
             checkLoginStatus();
             
-            // 初始化基金表格
-            initFundTable();
+            // 初始化邮件接收人表格
+            initRecipientTable();
 
             // 监听搜索提交
             form.on('submit(searchSubmit)', function(data){
-                reloadFundTable(data.field);
+                reloadRecipientTable(data.field);
                 return false;
             });
         });
@@ -292,52 +260,41 @@
             }
         }
 
-        // 初始化基金表格
-        function initFundTable() {
+        // 初始化邮件接收人表格
+        function initRecipientTable() {
             // 使用真实API获取数据
-            loadFundData().then(data => {
+            loadRecipientData().then(data => {
                 layui.table.render({
-                    elem: '#fundTable',
+                    elem: '#recipientTable',
                     data: data,
-                    toolbar: '#fundToolbar',
+                    toolbar: '#recipientToolbar',
                     cols: [[
                         {type: 'checkbox', fixed: 'left'},
-                        {field: 'fundCode', title: '基金代码', width: 120, sort: true},
-                        {field: 'fundName', title: '基金名称', minWidth: 150},
-                        {field: 'latestNav', title: '净值', width: 100, sort: true, templet: function(d) {
-                            if (d.latestNav === null) return '--';
-                            return `<span class="${d.latestReturn >= 0 ? 'positive' : 'negative'}">${d.latestNav.toFixed(4)}</span>`;
-                        }},
-                        {field: 'latestReturn', title: '涨跌幅', width: 100, sort: true, templet: function(d) {
-                            if (d.latestReturn === null) return '--';
-                            return `<span class="${d.latestReturn >= 0 ? 'positive' : 'negative'}">${d.latestReturn.toFixed(2)}%</span>`;
-                        }},
-                        {field: 'monitorRule', title: '监控规则', width: 120, templet: function(d) {
-                            // 这里可以根据实际业务逻辑设置监控规则
-                            return 'A'; // 默认规则
-                        }},
-                        {field: 'navDate', title: '净值日期', width: 160, sort: true, templet: function(d) {
-                            return d.navDate || '--';
-                        }},
+                        {field: 'id', title: 'ID', width: 80, sort: true},
+                        {field: 'name', title: '姓名', minWidth: 120},
+                        {field: 'email', title: '邮箱', minWidth: 200},
                         {field: 'enabled', title: '状态', width: 100, templet: function(d) {
-                            return d.enabled ? '<span style="color: #009688;">启用</span>' : '<span style="color: #FF5722;">停用</span>';
+                            return d.enabled ? '<span class="status-enabled">启用</span>' : '<span class="status-disabled">禁用</span>';
                         }},
-                        {fixed: 'right', title: '操作', toolbar: '#fundBar', width: 150}
+                        {field: 'createTime', title: '创建时间', width: 180, sort: true, templet: function(d) {
+                            return d.createTime ? new Date(d.createTime).toLocaleString('zh-CN') : '';
+                        }},
+                        {fixed: 'right', title: '操作', toolbar: '#recipientBar', width: 150}
                     ]],
                     page: true,
                     limit: 10,
                     limits: [10, 20, 30, 50]
                 });
             }).catch(error => {
-                console.error('加载基金数据失败:', error);
+                console.error('加载邮件接收人数据失败:', error);
                 layer.msg('加载数据失败: ' + error.message, {icon: 2});
             });
         }
 
-        // 加载基金数据
-        async function loadFundData() {
+        // 加载邮件接收人数据
+        async function loadRecipientData() {
             try {
-                const response = await fetch(`${FUND_API_BASE}/monitor-funds-with-nav`);
+                const response = await fetch(RECIPIENT_API_BASE);
                 const result = await response.json();
                 
                 if (result.success) {
@@ -350,110 +307,77 @@
             }
         }
 
-        // 重新加载基金表格
-        function reloadFundTable(params) {
-            // 根据搜索参数重新加载数据
-            loadFundDataWithParams(params).then(data => {
-                layui.table.reload('fundTable', {
-                    data: data
-                });
-            }).catch(error => {
-                console.error('重新加载基金数据失败:', error);
-                layer.msg('重新加载数据失败: ' + error.message, {icon: 2});
-            });
-        }
-
-        // 根据参数加载基金数据
-        async function loadFundDataWithParams(params) {
-            try {
-                // 构造查询参数
-                let url = `${FUND_API_BASE}/monitor-funds-with-nav`;
-                
-                // 如果有搜索参数，则需要调整URL或处理方式
-                // 这里简化处理，实际应该根据后端API调整
-                
-                const response = await fetch(url);
-                const result = await response.json();
-                
-                if (result.success) {
-                    let data = result.data || [];
-                    
-                    // 根据搜索参数过滤数据
-                    if (params) {
-                        if (params.fundCode) {
-                            data = data.filter(item => item.fundCode.includes(params.fundCode));
-                        }
-                        if (params.fundName) {
-                            data = data.filter(item => item.fundName.includes(params.fundName));
-                        }
-                    }
-                    
-                    return data;
-                } else {
-                    throw new Error(result.message || '获取数据失败');
-                }
-            } catch (error) {
-                throw error;
-            }
+        // 重新加载邮件接收人表格
+        function reloadRecipientTable(params) {
+            // 这里简化处理，实际应该根据搜索条件过滤数据
+            initRecipientTable();
         }
 
         // 刷新数据
         function refreshData() {
-            initFundTable();
+            initRecipientTable();
             layer.msg('数据已刷新', {icon: 1});
         }
 
-        // 添加基金
-        function addFund() {
+        // 添加邮件接收人
+        function addRecipient() {
             layer.open({
                 type: 1,
-                title: '添加监控基金',
+                title: '添加邮件接收人',
                 content: `
                     <div style="padding: 20px;">
-                        <form class="layui-form" id="addFundForm">
+                        <form class="layui-form" id="addRecipientForm">
                             <div class="layui-form-item">
-                                <label class="layui-form-label">基金代码</label>
+                                <label class="layui-form-label">姓名</label>
                                 <div class="layui-input-block">
-                                    <input type="text" name="fundCode" required lay-verify="required" placeholder="请输入基金代码" autocomplete="off" class="layui-input">
+                                    <input type="text" name="name" required lay-verify="required" placeholder="请输入姓名" autocomplete="off" class="layui-input">
                                 </div>
                             </div>
                             <div class="layui-form-item">
-                                <label class="layui-form-label">基金名称</label>
+                                <label class="layui-form-label">邮箱</label>
                                 <div class="layui-input-block">
-                                    <input type="text" name="fundName" required lay-verify="required" placeholder="请输入基金名称" autocomplete="off" class="layui-input">
+                                    <input type="email" name="email" required lay-verify="required|email" placeholder="请输入邮箱" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">状态</label>
+                                <div class="layui-input-block">
+                                    <input type="radio" name="enabled" value="true" title="启用" checked>
+                                    <input type="radio" name="enabled" value="false" title="禁用">
                                 </div>
                             </div>
                             <div class="layui-form-item">
                                 <div class="layui-input-block">
-                                    <button class="layui-btn" lay-submit lay-filter="addFundSubmit">立即提交</button>
+                                    <button class="layui-btn" lay-submit lay-filter="addRecipientSubmit">立即提交</button>
                                     <button type="reset" class="layui-btn layui-btn-primary">重置</button>
                                 </div>
                             </div>
                         </form>
                     </div>
                 `,
-                area: ['500px', '300px'],
+                area: ['500px', '400px'],
                 success: function(layero, index) {
                     layui.form.render();
-                    layui.form.on('submit(addFundSubmit)', function(data) {
-                        addFundSubmit(data.field, index);
+                    layui.form.on('submit(addRecipientSubmit)', function(data) {
+                        addRecipientSubmit(data.field, index);
                         return false;
                     });
                 }
             });
         }
 
-        // 添加基金提交
-        async function addFundSubmit(data, index) {
+        // 添加邮件接收人提交
+        async function addRecipientSubmit(data, index) {
             try {
-                const response = await fetch(`${FUND_API_BASE}/monitor-fund`, {
+                const response = await fetch(RECIPIENT_API_BASE, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded'
+                        'Content-Type': 'application/json'
                     },
-                    body: new URLSearchParams({
-                        fundCode: data.fundCode,
-                        fundName: data.fundName
+                    body: JSON.stringify({
+                        name: data.name,
+                        email: data.email,
+                        enabled: data.enabled === 'true'
                     })
                 });
 
@@ -471,22 +395,9 @@
             }
         }
 
-        // 批量检查
-        function batchCheck() {
-            var checkStatus = layui.table.checkStatus('fundTable');
-            var data = checkStatus.data;
-            
-            if (data.length === 0) {
-                layer.msg('请至少选择一条记录', {icon: 0});
-                return;
-            }
-            
-            layer.msg('批量检查功能开发中...', {icon: 1});
-        }
-
         // 批量删除
         function batchDelete() {
-            var checkStatus = layui.table.checkStatus('fundTable');
+            var checkStatus = layui.table.checkStatus('recipientTable');
             var data = checkStatus.data;
             
             if (data.length === 0) {
@@ -494,12 +405,12 @@
                 return;
             }
             
-            layer.confirm('确定要删除这 ' + data.length + ' 个基金吗？', {
+            layer.confirm('确定要删除这 ' + data.length + ' 个邮件接收人吗？', {
                 title: '提示'
             }, function(index) {
                 // 执行删除操作
                 var promises = data.map(item => {
-                    return fetch(`${FUND_API_BASE}/monitor-fund/${item.id}`, {
+                    return fetch(`${RECIPIENT_API_BASE}/${item.id}`, {
                         method: 'DELETE'
                     });
                 });
@@ -510,7 +421,7 @@
                     })
                     .then(results => {
                         var successCount = results.filter(result => result.success).length;
-                        layer.msg(`成功删除 ${successCount} 个基金`, {icon: 1});
+                        layer.msg(`成功删除 ${successCount} 个邮件接收人`, {icon: 1});
                         refreshData();
                     })
                     .catch(error => {
@@ -521,16 +432,11 @@
             });
         }
 
-        // 导出数据
-        function exportData() {
-            layer.msg('导出数据功能开发中...', {icon: 1});
-        }
-
         // 监听工具栏事件
-        layui.table.on('toolbar(fundTable)', function(obj) {
+        layui.table.on('toolbar(recipientTable)', function(obj) {
             switch(obj.event) {
                 case 'add':
-                    addFund();
+                    addRecipient();
                     break;
                 case 'delete':
                     batchDelete();
@@ -539,32 +445,102 @@
         });
 
         // 监听行工具栏事件
-        layui.table.on('tool(fundTable)', function(obj) {
+        layui.table.on('tool(recipientTable)', function(obj) {
             var data = obj.data;
             switch(obj.event) {
                 case 'edit':
-                    editFund(data);
+                    editRecipient(data);
                     break;
                 case 'del':
-                    deleteFund(data.id);
-                    break;
-                case 'check':
-                    checkFund(data.fundCode);
+                    deleteRecipient(data.id);
                     break;
             }
         });
 
-        // 编辑基金
-        function editFund(data) {
-            layer.msg('编辑功能开发中...', {icon: 1});
+        // 编辑邮件接收人
+        function editRecipient(data) {
+            layer.open({
+                type: 1,
+                title: '编辑邮件接收人',
+                content: `
+                    <div style="padding: 20px;">
+                        <form class="layui-form" id="editRecipientForm">
+                            <input type="hidden" name="id" value="${data.id}">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">姓名</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="name" required lay-verify="required" placeholder="请输入姓名" autocomplete="off" class="layui-input" value="${data.name}">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">邮箱</label>
+                                <div class="layui-input-block">
+                                    <input type="email" name="email" required lay-verify="required|email" placeholder="请输入邮箱" autocomplete="off" class="layui-input" value="${data.email}">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">状态</label>
+                                <div class="layui-input-block">
+                                    <input type="radio" name="enabled" value="true" title="启用" ${data.enabled ? 'checked' : ''}>
+                                    <input type="radio" name="enabled" value="false" title="禁用" ${!data.enabled ? 'checked' : ''}>
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
+                                    <button class="layui-btn" lay-submit lay-filter="editRecipientSubmit">立即提交</button>
+                                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                `,
+                area: ['500px', '400px'],
+                success: function(layero, index) {
+                    layui.form.render();
+                    layui.form.on('submit(editRecipientSubmit)', function(formdata) {
+                        editRecipientSubmit(formdata.field, index);
+                        return false;
+                    });
+                }
+            });
         }
 
-        // 删除基金
-        function deleteFund(id) {
-            layer.confirm('确定要删除这个基金吗？', {
+        // 编辑邮件接收人提交
+        async function editRecipientSubmit(data, index) {
+            try {
+                const response = await fetch(RECIPIENT_API_BASE, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        id: parseInt(data.id),
+                        name: data.name,
+                        email: data.email,
+                        enabled: data.enabled === 'true'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    layer.msg('更新成功', {icon: 1});
+                    layer.close(index);
+                    refreshData();
+                } else {
+                    layer.msg('更新失败: ' + result.message, {icon: 2});
+                }
+            } catch (error) {
+                layer.msg('更新失败: ' + error.message, {icon: 2});
+            }
+        }
+
+        // 删除邮件接收人
+        function deleteRecipient(id) {
+            layer.confirm('确定要删除这个邮件接收人吗？', {
                 title: '提示'
             }, function(index) {
-                fetch(`${FUND_API_BASE}/monitor-fund/${id}`, {
+                fetch(`${RECIPIENT_API_BASE}/${id}`, {
                     method: 'DELETE'
                 })
                 .then(response => response.json())
@@ -582,11 +558,6 @@
                 
                 layer.close(index);
             });
-        }
-
-        // 检查基金
-        function checkFund(fundCode) {
-            layer.msg('检查基金: ' + fundCode, {icon: 1});
         }
     </script>
 </body>

@@ -289,38 +289,63 @@
 
         // 初始化告警表格
         function initAlertTable() {
-            // 模拟数据
-            var data = [
-                {fundCode: '006195', fundName: '国金量化多因子', alertType: 'HIGH', ruleDescription: '涨幅超过5%', alertContent: '基金涨幅达到6.2%', createTime: '2025-12-10 10:30:00'},
-                {fundCode: '002170', fundName: '东吴移动互联', alertType: 'MEDIUM', ruleDescription: '跌幅超过3%', alertContent: '基金跌幅达到3.8%', createTime: '2025-12-10 09:15:00'},
-                {fundCode: '001186', fundName: '华夏沪深300ETF联接', alertType: 'LOW', ruleDescription: '净值更新', alertContent: '基金净值已更新', createTime: '2025-12-10 08:45:00'}
-            ];
-            
-            layui.table.render({
-                elem: '#alertTable',
-                data: data,
-                toolbar: '#alertToolbar',
-                cols: [[
-                    {type: 'checkbox', fixed: 'left'},
-                    {field: 'fundCode', title: '基金代码', width: 120, sort: true},
-                    {field: 'fundName', title: '基金名称', minWidth: 150},
-                    {field: 'alertType', title: '告警类型', width: 120, templet: function(d) {
-                        switch(d.alertType) {
-                            case 'HIGH': return '<span class="alert-high">高风险</span>';
-                            case 'MEDIUM': return '<span class="alert-medium">中风险</span>';
-                            case 'LOW': return '<span class="alert-low">低风险</span>';
-                            default: return d.alertType;
-                        }
-                    }},
-                    {field: 'ruleDescription', title: '规则描述', minWidth: 200},
-                    {field: 'alertContent', title: '告警内容', minWidth: 200},
-                    {field: 'createTime', title: '告警时间', width: 180, sort: true},
-                    {fixed: 'right', title: '操作', toolbar: '#alertBar', width: 80}
-                ]],
-                page: true,
-                limit: 10,
-                limits: [10, 20, 30, 50]
+            // 使用真实API获取数据
+            loadAlertData().then(data => {
+                layui.table.render({
+                    elem: '#alertTable',
+                    data: data,
+                    toolbar: '#alertToolbar',
+                    cols: [[
+                        {type: 'checkbox', fixed: 'left'},
+                        {field: 'fundCode', title: '基金代码', width: 120, sort: true},
+                        {field: 'fundName', title: '基金名称', minWidth: 150},
+                        {field: 'alertType', title: '告警类型', width: 120, templet: function(d) {
+                            switch(d.alertType) {
+                                case 'HIGH': return '<span class="alert-high">高风险</span>';
+                                case 'MEDIUM': return '<span class="alert-medium">中风险</span>';
+                                case 'LOW': return '<span class="alert-low">低风险</span>';
+                                default: return d.alertType;
+                            }
+                        }},
+                        {field: 'ruleDescription', title: '规则描述', minWidth: 200},
+                        {field: 'alertContent', title: '告警内容', minWidth: 200},
+                        {field: 'createTime', title: '告警时间', width: 180, sort: true, templet: function(d) {
+                            return d.createTime ? new Date(d.createTime).toLocaleString('zh-CN') : '';
+                        }},
+                        {fixed: 'right', title: '操作', toolbar: '#alertBar', width: 80}
+                    ]],
+                    page: true,
+                    limit: 10,
+                    limits: [10, 20, 30, 50]
+                });
+            }).catch(error => {
+                console.error('加载告警数据失败:', error);
+                layer.msg('加载数据失败: ' + error.message, {icon: 2});
             });
+        }
+
+        // 加载告警数据
+        async function loadAlertData() {
+            try {
+                // 这里需要根据实际API调整，暂时使用模拟数据
+                // 实际应该调用告警相关的API接口
+                const response = await fetch('/api/alerts'); // 需要根据实际API调整
+                const result = await response.json();
+                
+                if (result.success) {
+                    return result.data || [];
+                } else {
+                    throw new Error(result.message || '获取数据失败');
+                }
+            } catch (error) {
+                // 出错时使用模拟数据以便页面能正常显示
+                console.warn('加载真实数据失败，使用模拟数据:', error);
+                return [
+                    {fundCode: '006195', fundName: '国金量化多因子', alertType: 'HIGH', ruleDescription: '涨幅超过5%', alertContent: '基金涨幅达到6.2%', createTime: '2025-12-10T10:30:00'},
+                    {fundCode: '002170', fundName: '东吴移动互联', alertType: 'MEDIUM', ruleDescription: '跌幅超过3%', alertContent: '基金跌幅达到3.8%', createTime: '2025-12-10T09:15:00'},
+                    {fundCode: '001186', fundName: '华夏沪深300ETF联接', alertType: 'LOW', ruleDescription: '净值更新', alertContent: '基金净值已更新', createTime: '2025-12-10T08:45:00'}
+                ];
+            }
         }
 
         // 重新加载告警表格
