@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>节假日管理 - 基金监控系统</title>
-    <link rel="stylesheet" href="./layui/css/layui.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/layui@2.8.18/dist/css/layui.css">
     <style>
         body {
             background-color: #f5f5f5;
@@ -29,45 +29,6 @@
         .layui-table th {
             background-color: #f8f9fa;
         }
-        .section {
-            margin-bottom: 20px;
-            padding: 20px;
-            border: 1px solid #eee;
-            border-radius: 6px;
-            background-color: #fff;
-        }
-        .section-title {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            color: #333;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
-        }
-        .form-item {
-            margin-bottom: 15px;
-        }
-        .result-box {
-            margin-top: 15px;
-            padding: 10px;
-            border-radius: 4px;
-            display: none;
-        }
-        .success {
-            background-color: #f0f9eb;
-            border: 1px solid #e1f3d8;
-            color: #67c23a;
-        }
-        .error {
-            background-color: #fef0f0;
-            border: 1px solid #fde2e2;
-            color: #f56c6c;
-        }
-        .info {
-            background-color: #ecf5ff;
-            border: 1px solid #d9ecff;
-            color: #409eff;
-        }
         .footer {
             text-align: center;
             padding: 20px;
@@ -80,7 +41,7 @@
     <div class="layui-layout layui-layout-admin">
         <!-- 头部区域 -->
         <div class="layui-header">
-            <div class="layui-logo">📅 基金监控系统</div>
+            <div class="layui-logo">📈 基金监控系统</div>
             <!-- 头部区域左侧 -->
             <ul class="layui-nav layui-layout-left">
                 <li class="layui-nav-item"><a href="index.html">首页</a></li>
@@ -122,15 +83,13 @@
                             <dd><a href="notification-test.html">📧 通知测试</a></dd>
                         </dl>
                     </li>
-                    <li class="layui-nav-item">
+                    <li class="layui-nav-item layui-nav-itemed">
                         <a href="javascript:;">系统管理</a>
                         <dl class="layui-nav-child">
                             <dd><a href="email-recipient-management.html">👥 邮件接收人</a></dd>
                             <dd><a href="system-config.html">⚙️ 系统配置</a></dd>
+                            <dd><a href="holiday-management.html">📅 节假日管理</a></dd>
                         </dl>
-                    </li>
-                    <li class="layui-nav-item layui-nav-itemed">
-                        <a href="javascript:;">节假日管理</a>
                     </li>
                     <li class="layui-nav-item">
                         <a href="stock-management.html">📈 股票管理</a>
@@ -145,82 +104,57 @@
             <div style="padding: 15px;">
                 <div class="layui-card">
                     <div class="layui-card-header">
-                        <i class="layui-icon layui-icon-date"></i> 节假日管理系统
+                        <i class="layui-icon layui-icon-date"></i> 节假日管理
+                        <button class="layui-btn layui-btn-sm layui-btn-normal" style="float: right;" onclick="refreshData()">
+                            <i class="layui-icon layui-icon-refresh"></i> 刷新数据
+                        </button>
                     </div>
                     <div class="layui-card-body">
-                        <!-- 节假日检查 -->
-                        <div class="section">
-                            <div class="section-title">🔍 检查节假日</div>
-                            <div class="form-item">
-                                <label class="layui-form-label">选择日期:</label>
+                        <form class="layui-form" lay-filter="holidayForm">
+                            <div class="layui-form-item">
                                 <div class="layui-inline">
-                                    <input type="text" class="layui-input" id="checkDate" placeholder="请选择日期">
+                                    <label class="layui-form-label">检查日期</label>
+                                    <div class="layui-input-inline">
+                                        <input type="text" class="layui-input" id="checkDate" placeholder="请选择日期">
+                                    </div>
+                                    <button class="layui-btn" type="button" onclick="checkHoliday()">
+                                        <i class="layui-icon layui-icon-search"></i> 检查
+                                    </button>
                                 </div>
-                                <button class="layui-btn layui-btn-normal" onclick="checkHoliday()">
-                                    <i class="layui-icon layui-icon-search"></i>检查
+                            </div>
+                        </form>
+                        
+                        <table class="layui-hide" id="holidayTable" lay-filter="holidayTable"></table>
+                    </div>
+                </div>
+                
+                <!-- 操作按钮 -->
+                <div class="layui-card" style="margin-top: 20px;">
+                    <div class="layui-card-header">
+                        <i class="layui-icon layui-icon-util"></i> 操作面板
+                    </div>
+                    <div class="layui-card-body">
+                        <div class="layui-row layui-col-space15">
+                            <div class="layui-col-md3">
+                                <button class="layui-btn layui-btn-fluid" onclick="showAddDialog()">
+                                    <i class="layui-icon layui-icon-add-1"></i> 添加节假日
                                 </button>
                             </div>
-                            <div id="checkResult" class="result-box"></div>
-                        </div>
-                        
-                        <!-- 添加节假日 -->
-                        <div class="section">
-                            <div class="section-title">➕ 添加节假日</div>
-                            <div class="form-item">
-                                <label class="layui-form-label">节假日日期:</label>
-                                <div class="layui-inline">
-                                    <input type="text" class="layui-input" id="addDate" placeholder="请选择日期">
-                                </div>
-                                <button class="layui-btn layui-btn-normal" onclick="addHoliday()">
-                                    <i class="layui-icon layui-icon-add-1"></i>添加
+                            <div class="layui-col-md3">
+                                <button class="layui-btn layui-btn-warm layui-btn-fluid" onclick="showRemoveDialog()">
+                                    <i class="layui-icon layui-icon-delete"></i> 移除节假日
                                 </button>
                             </div>
-                            <div id="addResult" class="result-box"></div>
-                        </div>
-                        
-                        <!-- 移除节假日 -->
-                        <div class="section">
-                            <div class="section-title">➖ 移除节假日</div>
-                            <div class="form-item">
-                                <label class="layui-form-label">节假日日期:</label>
-                                <div class="layui-inline">
-                                    <input type="text" class="layui-input" id="removeDate" placeholder="请选择日期">
-                                </div>
-                                <button class="layui-btn layui-btn-danger" onclick="removeHoliday()">
-                                    <i class="layui-icon layui-icon-delete"></i>移除
+                            <div class="layui-col-md3">
+                                <button class="layui-btn layui-btn-normal layui-btn-fluid" onclick="reloadHolidays()">
+                                    <i class="layui-icon layui-icon-refresh"></i> 重新加载配置
                                 </button>
                             </div>
-                            <div id="removeResult" class="result-box"></div>
-                        </div>
-                        
-                        <!-- 重新加载配置 -->
-                        <div class="section">
-                            <div class="section-title">🔄 系统操作</div>
-                            <div class="form-item">
-                                <button class="layui-btn layui-btn-warm" onclick="reloadHolidays()">
-                                    <i class="layui-icon layui-icon-refresh"></i>重新加载节假日配置
-                                </button>
-                                <button class="layui-btn layui-btn-primary" onclick="showAllHolidays()">
-                                    <i class="layui-icon layui-icon-list"></i>查看所有节假日
+                            <div class="layui-col-md3">
+                                <button class="layui-btn layui-btn-primary layui-btn-fluid" onclick="showAllHolidays()">
+                                    <i class="layui-icon layui-icon-list"></i> 查看所有节假日
                                 </button>
                             </div>
-                            <div id="reloadResult" class="result-box"></div>
-                        </div>
-                        
-                        <!-- 节假日列表 -->
-                        <div class="section" id="holidayListSection" style="display: none;">
-                            <div class="section-title">📋 所有节假日</div>
-                            <table class="layui-table" id="holidayTable">
-                                <thead>
-                                    <tr>
-                                        <th>日期</th>
-                                        <th>星期</th>
-                                        <th>类型</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="holidayTableBody">
-                                </tbody>
-                            </table>
                         </div>
                     </div>
                 </div>
@@ -233,11 +167,26 @@
         </div>
     </div>
 
-    <script src="./layui/layui.js"></script>
+    <script type="text/html" id="holidayToolbar">
+        <div class="layui-btn-container">
+            <button class="layui-btn layui-btn-sm" lay-event="add">添加节假日</button>
+            <button class="layui-btn layui-btn-sm layui-btn-warm" lay-event="reload">重新加载</button>
+        </div>
+    </script>
+
+    <script type="text/html" id="holidayBar">
+        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">移除</a>
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/layui@2.8.18/dist/layui.js"></script>
     <script>
-        layui.use(['laydate', 'layer'], function(){
-            var laydate = layui.laydate;
+        // 初始化Layui组件
+        layui.use(['element', 'table', 'form', 'layer', 'laydate'], function(){
+            var element = layui.element;
+            var table = layui.table;
+            var form = layui.form;
             var layer = layui.layer;
+            var laydate = layui.laydate;
             
             // 页面加载时检查登录状态
             checkLoginStatus();
@@ -245,16 +194,6 @@
             // 初始化日期选择器
             laydate.render({
                 elem: '#checkDate',
-                theme: '#409eff'
-            });
-            
-            laydate.render({
-                elem: '#addDate',
-                theme: '#409eff'
-            });
-            
-            laydate.render({
-                elem: '#removeDate',
                 theme: '#409eff'
             });
         });
@@ -299,24 +238,67 @@
             }
         }
         
-        // 显示结果消息
-        function showMessage(elementId, message, isSuccess) {
-            var element = document.getElementById(elementId);
-            element.innerHTML = message;
-            element.className = 'result-box ' + (isSuccess ? 'success' : 'error');
-            element.style.display = 'block';
-            
-            // 3秒后自动隐藏
-            setTimeout(function() {
-                element.style.display = 'none';
-            }, 3000);
+        // 刷新数据
+        function refreshData() {
+            // 重新加载页面数据
+            location.reload();
+        }
+        
+        // 显示添加节假日对话框
+        function showAddDialog() {
+            layer.prompt({
+                formType: 0,
+                value: '',
+                title: '请输入节假日日期 (格式: YYYY-MM-DD)',
+                area: ['300px', '50px']
+            }, function(value, index, elem) {
+                if (!value) {
+                    layer.msg('请输入日期', {icon: 2});
+                    return;
+                }
+                
+                // 验证日期格式
+                var dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+                if (!dateRegex.test(value)) {
+                    layer.msg('日期格式不正确，请使用 YYYY-MM-DD 格式', {icon: 2});
+                    return;
+                }
+                
+                addHoliday(value);
+                layer.close(index);
+            });
+        }
+        
+        // 显示移除节假日对话框
+        function showRemoveDialog() {
+            layer.prompt({
+                formType: 0,
+                value: '',
+                title: '请输入要移除的节假日日期 (格式: YYYY-MM-DD)',
+                area: ['300px', '50px']
+            }, function(value, index, elem) {
+                if (!value) {
+                    layer.msg('请输入日期', {icon: 2});
+                    return;
+                }
+                
+                // 验证日期格式
+                var dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+                if (!dateRegex.test(value)) {
+                    layer.msg('日期格式不正确，请使用 YYYY-MM-DD 格式', {icon: 2});
+                    return;
+                }
+                
+                removeHoliday(value);
+                layer.close(index);
+            });
         }
         
         // 检查节假日
         function checkHoliday() {
             var date = document.getElementById('checkDate').value;
             if (!date) {
-                showMessage('checkResult', '请选择日期', false);
+                layer.msg('请选择日期', {icon: 2});
                 return;
             }
             
@@ -324,21 +306,20 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        showMessage('checkResult', data.message, true);
+                        layer.msg(data.message, {icon: 1});
                     } else {
-                        showMessage('checkResult', data.message, false);
+                        layer.msg(data.message, {icon: 2});
                     }
                 })
                 .catch(error => {
-                    showMessage('checkResult', '检查失败: ' + error.message, false);
+                    layer.msg('检查失败: ' + error.message, {icon: 2});
                 });
         }
         
         // 添加节假日
-        function addHoliday() {
-            var date = document.getElementById('addDate').value;
+        function addHoliday(date) {
             if (!date) {
-                showMessage('addResult', '请选择日期', false);
+                layer.msg('请输入日期', {icon: 2});
                 return;
             }
             
@@ -348,21 +329,22 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        showMessage('addResult', data.message, true);
+                        layer.msg(data.message, {icon: 1});
+                        // 重新加载节假日列表
+                        showAllHolidays();
                     } else {
-                        showMessage('addResult', data.message, false);
+                        layer.msg(data.message, {icon: 2});
                     }
                 })
                 .catch(error => {
-                    showMessage('addResult', '添加失败: ' + error.message, false);
+                    layer.msg('添加失败: ' + error.message, {icon: 2});
                 });
         }
         
         // 移除节假日
-        function removeHoliday() {
-            var date = document.getElementById('removeDate').value;
+        function removeHoliday(date) {
             if (!date) {
-                showMessage('removeResult', '请选择日期', false);
+                layer.msg('请输入日期', {icon: 2});
                 return;
             }
             
@@ -372,13 +354,15 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        showMessage('removeResult', data.message, true);
+                        layer.msg(data.message, {icon: 1});
+                        // 重新加载节假日列表
+                        showAllHolidays();
                     } else {
-                        showMessage('removeResult', data.message, false);
+                        layer.msg(data.message, {icon: 2});
                     }
                 })
                 .catch(error => {
-                    showMessage('removeResult', '移除失败: ' + error.message, false);
+                    layer.msg('移除失败: ' + error.message, {icon: 2});
                 });
         }
         
@@ -390,13 +374,15 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        showMessage('reloadResult', data.message, true);
+                        layer.msg(data.message, {icon: 1});
+                        // 重新加载节假日列表
+                        showAllHolidays();
                     } else {
-                        showMessage('reloadResult', data.message, false);
+                        layer.msg(data.message, {icon: 2});
                     }
                 })
                 .catch(error => {
-                    showMessage('reloadResult', '重新加载失败: ' + error.message, false);
+                    layer.msg('重新加载失败: ' + error.message, {icon: 2});
                 });
         }
         
@@ -406,7 +392,16 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
-                        displayHolidays(data.data);
+                        // 使用Layui表格显示节假日列表
+                        layui.table.render({
+                            elem: '#holidayTable',
+                            data: data.data.map(date => ({date: date})),
+                            cols: [[
+                                {field: 'date', title: '节假日日期', minWidth: 150}
+                            ]],
+                            page: true,
+                            limit: 10
+                        });
                     } else {
                         layer.msg('获取节假日列表失败: ' + data.message, {icon: 2});
                     }
@@ -414,53 +409,6 @@
                 .catch(error => {
                     layer.msg('获取节假日列表失败: ' + error.message, {icon: 2});
                 });
-        }
-        
-        // 显示节假日列表
-        function displayHolidays(holidays) {
-            const tableBody = document.getElementById('holidayTableBody');
-            const section = document.getElementById('holidayListSection');
-            
-            if (!holidays || holidays.length === 0) {
-                tableBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">暂无节假日数据</td></tr>';
-            } else {
-                // 按日期排序
-                holidays.sort();
-                
-                let html = '';
-                holidays.forEach(dateStr => {
-                    const date = new Date(dateStr);
-                    const weekday = getWeekday(date.getDay());
-                    const type = isWeekend(date) ? '周末' : '节假日';
-                    
-                    html += `
-                        <tr>
-                            <td>${dateStr}</td>
-                            <td>${weekday}</td>
-                            <td>${type}</td>
-                        </tr>
-                    `;
-                });
-                
-                tableBody.innerHTML = html;
-            }
-            
-            section.style.display = 'block';
-            
-            // 滚动到节假日列表
-            section.scrollIntoView({behavior: 'smooth'});
-        }
-        
-        // 获取星期几
-        function getWeekday(day) {
-            const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-            return weekdays[day];
-        }
-        
-        // 判断是否为周末
-        function isWeekend(date) {
-            const day = date.getDay();
-            return day === 0 || day === 6;
         }
     </script>
 </body>

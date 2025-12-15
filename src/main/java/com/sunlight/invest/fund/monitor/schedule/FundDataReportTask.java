@@ -47,7 +47,7 @@ public class FundDataReportTask {
     /**
      * 每日8:30发送基金数据报告
      */
-    @Scheduled(cron = "0 30 8 * * ?")
+    @Scheduled(cron = "0 32 14 * * ?")
     public void sendFundDataReport() {
         // 检查今天是否为节假日
         LocalDate today = LocalDate.now();
