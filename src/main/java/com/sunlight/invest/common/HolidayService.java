@@ -3,8 +3,15 @@ package com.sunlight.invest.common;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,9 +24,18 @@ public class HolidayService {
     // 存储节假日的集合（可以根据实际情况从数据库或配置文件加载）
     private Set<LocalDate> holidays = new HashSet<>();
     
+    // 节假日文件路径
+    private static final String HOLIDAY_FILE_PATH = "src/main/resources/data/holidays.txt";
+    
     public HolidayService() {
         // 初始化示例节假日
         initHolidays();
+    }
+    
+    @PostConstruct
+    public void postConstruct() {
+        // 从文件加载节假日
+        loadHolidaysFromFile();
     }
     
     private void initHolidays() {
@@ -37,6 +53,59 @@ public class HolidayService {
         holidays.add(LocalDate.of(2025, 10, 1));  // 国庆节
         holidays.add(LocalDate.of(2025, 10, 2));  // 国庆节
         holidays.add(LocalDate.of(2025, 10, 3));  // 国庆节
+        
+        // 保存到文件
+        saveHolidaysToFile();
+    }
+    
+    /**
+     * 从文件加载节假日
+     */
+    private void loadHolidaysFromFile() {
+        try {
+            Path path = Paths.get(HOLIDAY_FILE_PATH);
+            if (Files.exists(path)) {
+                BufferedReader reader = Files.newBufferedReader(path);
+                String line;
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                
+                while ((line = reader.readLine()) != null) {
+                    try {
+                        LocalDate date = LocalDate.parse(line.trim(), formatter);
+                        holidays.add(date);
+                    } catch (Exception e) {
+                        // 忽略无效日期
+                    }
+                }
+                reader.close();
+            }
+        } catch (Exception e) {
+            // 文件不存在或读取失败，使用默认节假日
+        }
+    }
+    
+    /**
+     * 将节假日保存到文件
+     */
+    private void saveHolidaysToFile() {
+        try {
+            Path path = Paths.get(HOLIDAY_FILE_PATH);
+            // 确保父目录存在
+            Files.createDirectories(path.getParent());
+            
+            BufferedWriter writer = Files.newBufferedWriter(path);
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            
+            for (LocalDate date : holidays) {
+                writer.write(date.format(formatter));
+                writer.newLine();
+            }
+            
+            writer.close();
+        } catch (Exception e) {
+            // 保存失败，不影响程序运行
+            e.printStackTrace();
+        }
     }
     
     /**
@@ -67,6 +136,7 @@ public class HolidayService {
      */
     public void addHoliday(LocalDate date) {
         holidays.add(date);
+        saveHolidaysToFile(); // 保存到文件
     }
     
     /**
@@ -74,6 +144,7 @@ public class HolidayService {
      */
     public void removeHoliday(LocalDate date) {
         holidays.remove(date);
+        saveHolidaysToFile(); // 保存到文件
     }
     
     /**
@@ -87,5 +158,12 @@ public class HolidayService {
         if (holidayConfig.getHolidayDates() != null) {
             holidays.addAll(holidayConfig.getHolidayDates());
         }
+    }
+    
+    /**
+     * 获取所有节假日
+     */
+    public Set<LocalDate> getAllHolidays() {
+        return new HashSet<>(holidays);
     }
 }

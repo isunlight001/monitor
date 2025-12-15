@@ -5,7 +5,6 @@ import com.sunlight.invest.fund.monitor.service.IndexDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -34,7 +33,7 @@ public class IndexDataScheduler {
      * 每日16点执行指数数据更新任务
      * 获取当天的指数数据并保存到数据库
      */
-    @Scheduled(cron = "0 0 16 * * ?")
+//    @Scheduled(cron = "0 0 16 * * ?")
     public void scheduledIndexDataUpdate() {
         // 检查今天是否为节假日
         LocalDate today = LocalDate.now();

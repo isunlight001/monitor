@@ -5,7 +5,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/holidays")
@@ -94,6 +97,31 @@ public class HolidayController {
         } catch (Exception e) {
             result.put("success", false);
             result.put("message", "重新加载节假日配置失败: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    /**
+     * 获取所有节假日
+     */
+    @GetMapping("/all")
+    public Map<String, Object> getAllHolidays() {
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            Set<LocalDate> holidays = holidayService.getAllHolidays();
+            List<String> holidayStrings = holidays.stream()
+                    .sorted()
+                    .map(date -> date.toString())
+                    .collect(Collectors.toList());
+            
+            result.put("success", true);
+            result.put("data", holidayStrings);
+            result.put("message", "获取节假日列表成功");
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "获取节假日列表失败: " + e.getMessage());
         }
         
         return result;
