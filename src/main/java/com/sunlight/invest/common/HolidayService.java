@@ -39,23 +39,26 @@ public class HolidayService {
     }
     
     private void initHolidays() {
-        // 示例节假日，实际应用中可以从数据库加载
-        holidays.add(LocalDate.of(2025, 1, 1));   // 元旦
-        holidays.add(LocalDate.of(2025, 2, 10));  // 春节
-        holidays.add(LocalDate.of(2025, 2, 11));  // 春节
-        holidays.add(LocalDate.of(2025, 2, 12));  // 春节
-        holidays.add(LocalDate.of(2025, 4, 4));   // 清明节
-        holidays.add(LocalDate.of(2025, 5, 1));   // 劳动节
-        holidays.add(LocalDate.of(2025, 5, 2));   // 劳动节
-        holidays.add(LocalDate.of(2025, 5, 3));   // 劳动节
-        holidays.add(LocalDate.of(2025, 6, 14));  // 端午节
-        holidays.add(LocalDate.of(2025, 9, 15));  // 中秋节
-        holidays.add(LocalDate.of(2025, 10, 1));  // 国庆节
-        holidays.add(LocalDate.of(2025, 10, 2));  // 国庆节
-        holidays.add(LocalDate.of(2025, 10, 3));  // 国庆节
-        
-        // 保存到文件
-        saveHolidaysToFile();
+        // 只有当holidays为空时才初始化示例节假日
+        if (holidays.isEmpty()) {
+            // 示例节假日，实际应用中可以从数据库加载
+            holidays.add(LocalDate.of(2025, 1, 1));   // 元旦
+            holidays.add(LocalDate.of(2025, 2, 10));  // 春节
+            holidays.add(LocalDate.of(2025, 2, 11));  // 春节
+            holidays.add(LocalDate.of(2025, 2, 12));  // 春节
+            holidays.add(LocalDate.of(2025, 4, 4));   // 清明节
+            holidays.add(LocalDate.of(2025, 5, 1));   // 劳动节
+            holidays.add(LocalDate.of(2025, 5, 2));   // 劳动节
+            holidays.add(LocalDate.of(2025, 5, 3));   // 劳动节
+            holidays.add(LocalDate.of(2025, 6, 14));  // 端午节
+            holidays.add(LocalDate.of(2025, 9, 15));  // 中秋节
+            holidays.add(LocalDate.of(2025, 10, 1));  // 国庆节
+            holidays.add(LocalDate.of(2025, 10, 2));  // 国庆节
+            holidays.add(LocalDate.of(2025, 10, 3));  // 国庆节
+            
+            // 保存到文件
+            saveHolidaysToFile();
+        }
     }
     
     /**
@@ -65,6 +68,7 @@ public class HolidayService {
         try {
             Path path = Paths.get(HOLIDAY_FILE_PATH);
             if (Files.exists(path)) {
+                holidays.clear(); // 清空现有节假日
                 BufferedReader reader = Files.newBufferedReader(path);
                 String line;
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -151,8 +155,12 @@ public class HolidayService {
      * 重新加载节假日配置
      */
     public void reloadHolidays() {
-        holidays.clear();
-        initHolidays();
+        loadHolidaysFromFile();
+        
+        // 如果文件中没有节假日数据，则使用默认数据
+        if (holidays.isEmpty()) {
+            initHolidays();
+        }
         
         // 添加配置文件中的节假日
         if (holidayConfig.getHolidayDates() != null) {
