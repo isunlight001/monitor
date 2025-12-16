@@ -842,7 +842,7 @@ public class FundMonitorService {
         // 添加数据（最多取最近30天的数据）
         int count = 0;
         for (FundNav nav : fundNavList) {
-            if (count >= 30) break;
+            if (count >= 60) break;
             prompt.append(nav.getNavDate().toString()).append("、")
                   .append(nav.getUnitNav().toString()).append("、")
                   .append(nav.getDailyReturn() != null ? nav.getDailyReturn().toString() : "0").append("\n");
