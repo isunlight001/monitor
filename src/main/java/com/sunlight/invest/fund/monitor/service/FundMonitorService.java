@@ -850,10 +850,10 @@ public class FundMonitorService {
         }
         
         prompt.append("要求：请按以下结构输出分析报告：\n");
-        prompt.append("趋势判断：当前处于上升、下降还是震荡趋势？\n");
+//        prompt.append("趋势判断：当前处于上升、下降还是震荡趋势？\n");
 //        prompt.append("波动特征：近期基金的波动性如何？\n");
 //        prompt.append("风险评估：当前基金的主要风险点是什么？\n");
-        prompt.append("投资建议：给出短期（1-2周）的投资策略建议（如持有、加仓、减仓）及理由。\n");
+        prompt.append("投资建议：给出1个月的投资策略建议（如持有、加仓、减仓）及理由，输出内容要简洁明了不超过50个字。\n");
         
         try {
             // 调用AI服务
