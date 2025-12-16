@@ -13,53 +13,113 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
         }
         .login-container {
             width: 100%;
             max-width: 400px;
             background: white;
-            border-radius: 8px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
             overflow: hidden;
+            transform: translateY(0);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .login-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
         }
         .login-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 30px;
+            padding: 40px 30px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .login-header::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            transform: rotate(30deg);
         }
         .login-header h1 {
-            font-size: 28px;
+            font-size: 32px;
             margin-bottom: 10px;
+            position: relative;
+            font-weight: 600;
+        }
+        .login-header p {
+            font-size: 16px;
+            opacity: 0.9;
+            position: relative;
         }
         .login-body {
             padding: 30px;
         }
         .layui-form-item {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
+            position: relative;
         }
         .layui-form-label {
             font-weight: 500;
+            color: #333;
+            padding: 0;
+            margin-bottom: 8px;
         }
         .layui-input {
-            height: 45px;
-            border-radius: 4px;
+            height: 48px;
+            border-radius: 6px;
+            border: 2px solid #e6e6e6;
+            padding-left: 40px;
+            transition: all 0.3s ease;
+            font-size: 15px;
+        }
+        .layui-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .input-icon {
+            position: absolute;
+            left: 12px;
+            top: 38px;
+            color: #999;
+            font-size: 18px;
+            z-index: 1;
         }
         .layui-btn {
-            height: 45px;
-            border-radius: 4px;
+            height: 48px;
+            border-radius: 6px;
             font-weight: 500;
+            font-size: 16px;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
         }
         .layui-btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border: none;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .layui-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
         }
         .result-message {
             margin-top: 15px;
-            padding: 10px;
-            border-radius: 4px;
+            padding: 12px 15px;
+            border-radius: 6px;
             text-align: center;
             display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         .result-message.success {
             background-color: #f0f9eb;
@@ -77,6 +137,22 @@
             padding: 20px;
             color: white;
         }
+        /* 底部信息 */
+        .login-footer {
+            text-align: center;
+            margin-top: 25px;
+            color: #999;
+            font-size: 13px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        .login-footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .login-footer a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -86,36 +162,41 @@
 
     <div class="login-container" id="loginContainer" style="display: none;">
         <div class="login-header">
-            <h1>🔐 用户登录</h1>
-            <p>基金监控系统</p>
+            <h1>🔐 基金监控系统</h1>
+            <p>专业的基金数据分析平台</p>
         </div>
         
         <div class="login-body">
             <form class="layui-form" id="loginForm" lay-filter="loginForm">
                 <div class="layui-form-item">
                     <label class="layui-form-label">用户名</label>
+                    <div class="input-icon">👤</div>
                     <div class="layui-input-block">
                         <input type="text" name="username" required lay-verify="required" placeholder="请输入用户名" autocomplete="off" class="layui-input">
                     </div>
                 </div>
                 <div class="layui-form-item">
                     <label class="layui-form-label">密码</label>
+                    <div class="input-icon">🔒</div>
                     <div class="layui-input-block">
                         <input type="password" name="password" required lay-verify="required" placeholder="请输入密码" autocomplete="off" class="layui-input">
                     </div>
                 </div>
                 <div class="layui-form-item">
                     <div class="layui-input-block">
-                        <button class="layui-btn layui-btn-primary layui-btn-fluid" lay-submit lay-filter="loginSubmit">登录</button>
+                        <button class="layui-btn layui-btn-primary layui-btn-fluid" lay-submit lay-filter="loginSubmit">安全登录</button>
                     </div>
                 </div>
             </form>
             
             <div class="result-message" id="loginResult"></div>
             
-            <div style="margin-top: 25px; text-align: center; color: #666; font-size: 14px;">
+            <div class="login-footer">
                 <p>默认账户: admin / admin123</p>
                 <p>或者: user / user123</p>
+                <p style="margin-top: 15px; font-size: 12px; color: #bbb;">
+                    © 2025 基金监控系统 v1.0
+                </p>
             </div>
         </div>
     </div>
@@ -142,6 +223,17 @@
             // PC设备，显示登录表单
             document.getElementById('deviceDetection').style.display = 'none';
             document.getElementById('loginContainer').style.display = 'block';
+            
+            // 添加输入框焦点效果
+            const inputs = document.querySelectorAll('.layui-input');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.parentElement.querySelector('.input-icon').style.color = '#667eea';
+                });
+                input.addEventListener('blur', function() {
+                    this.parentElement.parentElement.querySelector('.input-icon').style.color = '#999';
+                });
+            });
             
             // 初始化Layui表单
             layui.use('form', function(){
@@ -195,11 +287,11 @@
                 const result = await response.json();
                 
                 if (response.ok && result.success) {
-                    showResult('loginResult', true, '登录成功');
+                    showResult('loginResult', true, '登录成功，正在跳转...');
                     // 延迟跳转到主页
                     setTimeout(() => {
                         window.location.href = 'index.html';
-                    }, 1000);
+                    }, 1500);
                 } else {
                     showResult('loginResult', false, result.message || '登录失败');
                 }
