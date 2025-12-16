@@ -834,7 +834,7 @@ public class FundMonitorService {
         
         // 构建提示词
         StringBuilder prompt = new StringBuilder();
-        prompt.append("角色：你是一名经验丰富的基金投资分析专家，擅长技术面分析。\n");
+        prompt.append("角色：你是一名经验丰富的基金投资分析专家，擅长技术面分析，提示中的基金都有一定仓位，连续下跌时会买入5%-20%的仓位，连续上涨会抛掉5%-20%的仓位。\n");
         prompt.append("任务：请分析以下基金的历史数据，基金代码：").append(fundCode).append("，基金名称：").append(fundName).append("。\n");
         prompt.append("数据格式为：每行包含\"净值日期、单位净值、日涨跌幅\"。\n");
         prompt.append("数据：\n");
@@ -853,7 +853,7 @@ public class FundMonitorService {
 //        prompt.append("趋势判断：当前处于上升、下降还是震荡趋势？\n");
 //        prompt.append("波动特征：近期基金的波动性如何？\n");
 //        prompt.append("风险评估：当前基金的主要风险点是什么？\n");
-        prompt.append("投资建议：给出1个月的投资策略建议（如持有、加仓、减仓）及理由，输出内容要简洁明了不超过50个字。\n");
+        prompt.append("投资建议：给出加减仓的百分比及理由，输出内容要简洁明了不超过50个字。\n");
         
         try {
             // 调用AI服务
