@@ -28,7 +28,7 @@ import java.util.List;
 public class FundDataReportTask {
 
     private static final Logger log = LoggerFactory.getLogger(FundDataReportTask.class);
-    public static final int DAYS = 10;
+    public static final int DAYS = 5;
 
     @Autowired
     private MonitorFundMapper monitorFundMapper;
