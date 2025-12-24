@@ -35,6 +35,7 @@ public class SystemConfigService {
     private static final String DEFAULT_THRESHOLD_4_PERCENT = "4.0";
     private static final String DEFAULT_MONITOR_DAYS = "7";
     private static final String DEFAULT_SCHEDULE_CRON = "0 0 9 * * ?";
+    private static final String DEFAULT_FUND_REPORT_SCHEDULE_CRON = "0 10 8 * * ?";
     
     /**
      * 初始化配置缓存
@@ -125,6 +126,37 @@ public class SystemConfigService {
             value = DEFAULT_SCHEDULE_CRON;
         }
         return value;
+    }
+    
+    /**
+     * 获取基金报告定时任务cron表达式
+     *
+     * @return cron表达式
+     */
+    public String getFundReportScheduleCron() {
+        String value = configCache.get("fund_report_schedule_cron");
+        if (value == null) {
+            value = DEFAULT_FUND_REPORT_SCHEDULE_CRON;
+        }
+        return value;
+    }
+    
+    /**
+     * 获取基金报告天数配置
+     *
+     * @return 基金报告天数
+     */
+    public int getFundReportDays() {
+        String value = configCache.get("fund_report_days");
+        if (value == null) {
+            value = DEFAULT_MONITOR_DAYS; // 使用默认的监控天数
+        }
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            log.warn("基金报告天数配置格式错误，使用默认值: {}", DEFAULT_MONITOR_DAYS);
+            return Integer.parseInt(DEFAULT_MONITOR_DAYS);
+        }
     }
     
     /**

@@ -35,7 +35,9 @@ public class SystemConfigInitializer implements CommandLineRunner {
             new SystemConfig("threshold_5_percent", "5.0", "5%阈值"),
             new SystemConfig("threshold_4_percent", "4.0", "4%阈值"),
             new SystemConfig("monitor_days", "7", "监控天数"),
-            new SystemConfig("schedule_cron", "0 0 9 * * ?", "定时任务cron表达式")
+            new SystemConfig("schedule_cron", "0 0 9 * * ?", "定时任务cron表达式"),
+            new SystemConfig("fund_report_schedule_cron", "0 10 8 * * ?", "基金报告定时任务cron表达式"),
+            new SystemConfig("fund_report_days", "5", "基金报告天数")
         );
         
         // 检查并插入默认配置项

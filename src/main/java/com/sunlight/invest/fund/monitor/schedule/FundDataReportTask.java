@@ -6,6 +6,7 @@ import com.sunlight.invest.fund.monitor.entity.MonitorFund;
 import com.sunlight.invest.fund.monitor.mapper.FundNavMapper;
 import com.sunlight.invest.fund.monitor.mapper.MonitorFundMapper;
 import com.sunlight.invest.notification.service.EmailNotificationService;
+import com.sunlight.invest.system.service.SystemConfigService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,7 @@ import java.util.List;
 
 /**
  * 基金数据报告定时任务
- * 每日发送维护基金的近5日数据
+ * 每日发送维护基金的数据报告
  *
  * @author System
  * @since 2024-12-06
@@ -28,7 +29,6 @@ import java.util.List;
 public class FundDataReportTask {
 
     private static final Logger log = LoggerFactory.getLogger(FundDataReportTask.class);
-    public static final int DAYS = 5;
 
     @Autowired
     private MonitorFundMapper monitorFundMapper;
@@ -42,12 +42,15 @@ public class FundDataReportTask {
     @Autowired
     private HolidayService holidayService;
     
+    @Autowired
+    private SystemConfigService systemConfigService;
+    
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     /**
-     * 每日8:30发送基金数据报告
+     * 每日发送基金数据报告
      */
-    @Scheduled(cron = "0 10 8 * * ?")
+    @Scheduled(cron = "#{systemConfigService.fundReportScheduleCron}")
     public void sendFundDataReport() {
         // 检查今天是否为节假日
         LocalDate today = LocalDate.now();
@@ -127,8 +130,8 @@ public class FundDataReportTask {
             htmlBuilder.append("<div class='fund-section'>");
             htmlBuilder.append("<h2>").append(fund1.getFundName()).append(" (").append(fund1.getFundCode()).append(")</h2>");
             
-            // 获取近5日数据
-            List<FundNav> recentNavs1 = fundNavMapper.selectRecentDays(fund1.getFundCode(), DAYS);
+            // 获取近N日数据（从数据库配置获取天数）
+            List<FundNav> recentNavs1 = fundNavMapper.selectRecentDays(fund1.getFundCode(), systemConfigService.getFundReportDays());
             
             if (recentNavs1 == null || recentNavs1.isEmpty()) {
                 htmlBuilder.append("<p>暂无数据</p>");
@@ -175,8 +178,8 @@ public class FundDataReportTask {
                 htmlBuilder.append("<div class='fund-section'>");
                 htmlBuilder.append("<h2>").append(fund2.getFundName()).append(" (").append(fund2.getFundCode()).append(")</h2>");
                 
-                // 获取近5日数据
-                List<FundNav> recentNavs2 = fundNavMapper.selectRecentDays(fund2.getFundCode(), DAYS);
+                // 获取近N日数据（从数据库配置获取天数）
+                List<FundNav> recentNavs2 = fundNavMapper.selectRecentDays(fund2.getFundCode(), systemConfigService.getFundReportDays());
                 
                 if (recentNavs2 == null || recentNavs2.isEmpty()) {
                     htmlBuilder.append("<p>暂无数据</p>");

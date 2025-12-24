@@ -31,6 +31,8 @@ INSERT INTO `system_config` VALUES (1, 'threshold_5_percent', '5.0', '5%阈值',
 INSERT INTO `system_config` VALUES (2, 'threshold_4_percent', '4.0', '4%阈值', 1, '2025-12-04 15:04:28', '2025-12-04 15:04:28');
 INSERT INTO `system_config` VALUES (3, 'monitor_days', '5', '监控天数', 1, '2025-12-04 15:04:28', '2025-12-04 15:08:54');
 INSERT INTO `system_config` VALUES (4, 'schedule_cron', '0 0 14 * * ?', '定时任务cron表达式', 1, '2025-12-04 15:04:28', '2025-12-04 15:12:29');
+INSERT INTO `system_config` VALUES (5, 'fund_report_schedule_cron', '0 10 8 * * ?', '基金报告定时任务cron表达式', 1, '2025-12-04 15:04:28', '2025-12-04 15:12:29');
+INSERT INTO `system_config` VALUES (6, 'fund_report_days', '5', '基金报告天数', 1, '2025-12-04 15:04:28', '2025-12-04 15:08:54');
 
 INSERT INTO `user` VALUES (1, 'admin', 'Test#x86', 'admin@example.com', '系统管理员', 1, '2025-12-06 09:48:28', '2025-12-06 09:50:42');
 INSERT INTO `user` VALUES (2, 'test', 'Test#x86', 'admin@example.com', '系统管理员', 1, '2025-12-06 09:48:28', '2025-12-06 09:50:42');
