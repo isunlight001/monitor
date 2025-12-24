@@ -28,8 +28,6 @@ public class HolidayService {
     private static final String HOLIDAY_FILE_PATH = "src/main/resources/data/holidays.txt";
     
     public HolidayService() {
-        // 初始化示例节假日
-        initHolidays();
     }
     
     @PostConstruct
@@ -156,12 +154,12 @@ public class HolidayService {
      */
     public void reloadHolidays() {
         loadHolidaysFromFile();
-        
+
         // 如果文件中没有节假日数据，则使用默认数据
         if (holidays.isEmpty()) {
             initHolidays();
         }
-        
+
         // 添加配置文件中的节假日
         if (holidayConfig.getHolidayDates() != null) {
             holidays.addAll(holidayConfig.getHolidayDates());
