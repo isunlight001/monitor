@@ -17,8 +17,8 @@ public class FileNameReplaceTest {
         // 示例：将指定盘符下的所有包含特定字符串的文件和文件夹名称替换为对应的新字符串
         String rootPath = "D:\\"; // 根目录路径，可根据需要修改为其他盘符如 "E:\\", "C:\\" 等
         // 定义替换规则数组 - 旧字符串和新字符串一一对应
-        String[] oldStrings = {"熊猫农村", "农商银行", "信用社"};   // 要被替换的字符串数组
-        String[] newStrings = {"四川农信", "农村银行", "信用联社"};   // 替换后的字符串数组
+        String[] oldStrings = {"熊猫农村", "火山农信", "义乌银行"};   // 要被替换的字符串数组
+        String[] newStrings = {"四川农信", "陕西农信", "稠州银行"};   // 替换后的字符串数组
         
         System.out.println("开始执行文件和文件夹名称替换任务...");
         System.out.println("根路径: " + rootPath);
