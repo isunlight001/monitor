@@ -22,7 +22,7 @@ INSERT INTO `fund_monitor` VALUES (8, '012920', '易方达全球成长精选混�
 INSERT INTO `fund_monitor` VALUES (9, '002170', '东吴移动互联网灵活配置混合C', 1, '2025-12-03 11:26:42', '2025-12-03 11:26:42');
 INSERT INTO `fund_monitor` VALUES (10, '023918', '华夏国证自由现金流ETF连接C', 1, '2025-12-04 15:06:24', '2025-12-04 15:06:24');
 INSERT INTO `fund_monitor` VALUES (11, '007721', '天弘标普500A', 1, '2025-12-08 14:15:21', '2025-12-08 14:15:21');
-INSERT INTO `fund_monitor` VALUES (12, '017428', '易方达成长混合动力C', 1, '2025-12-08 14:16:40', '2025-12-08 14:16:40');
+INSERT INTO `fund_monitor` VALUES (12, '014728', '易方达成长混合动力C', 1, '2025-12-08 14:16:40', '2025-12-08 14:16:40');
 
 -- ----------------------------
 -- Records of system_config
