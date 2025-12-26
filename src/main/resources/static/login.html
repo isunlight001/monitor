@@ -101,6 +101,25 @@
         .result.show {
             display: block;
         }
+
+        .json-formatter-link {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .json-formatter-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .json-formatter-link a:hover {
+            color: #764ba2;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -126,6 +145,10 @@
         </form>
 
         <div class="result" id="loginResult"></div>
+        
+        <div class="json-formatter-link">
+            <a href="json-formatter.html" target="_blank">🔧 使用JSON格式化工具</a>
+        </div>
     </div>
 </div>
 
