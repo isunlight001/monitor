@@ -73,35 +73,22 @@ public class FundBacktestService {
                 throw new RuntimeException("没有找到符合条件的基金数据");
             }
             
-            // 获取指数数据（使用上证指数作为基准）
-            logger.info("步骤3: 获取指数数据...");
-            List<IndexData> indexDataList = indexDataMapper.selectByDateRange("000001", startDate, endDate);
-            logger.info("获取到指数数据: {} 条", indexDataList.size());
-            
-            // 将指数数据转换为Map便于查找
-            Map<LocalDate, IndexData> indexDataMap = indexDataList.stream()
-                    .collect(Collectors.toMap(IndexData::getTradeDate, data -> data));
+            // 不再获取指数数据（去掉上证指数的参照）
+            logger.info("步骤3: 使用基金数据进行回测，不再使用指数数据");
             
             // 将基金数据转换为Map便于查找
             Map<LocalDate, FundNav> fundDataMap = fundDataList.stream()
                     .collect(Collectors.toMap(FundNav::getNavDate, nav -> nav));
             
-            // 获取共同的交易日期并排序
-            Set<LocalDate> commonDates = new HashSet<>(indexDataMap.keySet());
-            commonDates.retainAll(fundDataMap.keySet());
-            List<LocalDate> sortedDates = new ArrayList<>(commonDates);
+            // 获取交易日期并排序
+            List<LocalDate> sortedDates = new ArrayList<>(fundDataMap.keySet());
             sortedDates.sort(LocalDate::compareTo);
             
-            if (sortedDates.isEmpty()) {
-                logger.error("没有找到共同的交易日期");
-                throw new RuntimeException("没有找到共同的交易日期");
-            }
-            
-            logger.info("找到 {} 个共同交易日", sortedDates.size());
+            logger.info("找到 {} 个交易日", sortedDates.size());
             
             // 执行回测
             logger.info("步骤4: 执行回测算法...");
-            return performBacktest(request, sortedDates, indexDataMap, fundDataMap);
+            return performBacktest(request, sortedDates, fundDataMap);
             
         } catch (Exception e) {
             logger.error("回测执行失败", e);
@@ -114,7 +101,6 @@ public class FundBacktestService {
      */
     private BacktestResponse performBacktest(BacktestRequest request,
                                             List<LocalDate> sortedDates,
-                                            Map<LocalDate, IndexData> indexDataMap,
                                             Map<LocalDate, FundNav> fundDataMap) {
         
         logger.info("进入回测核心逻辑...");
@@ -151,17 +137,14 @@ public class FundBacktestService {
         
         // 遍历交易日期
         for (LocalDate date : sortedDates) {
-            IndexData indexData = indexDataMap.get(date);
             FundNav fundNav = fundDataMap.get(date);
             
-            if (indexData == null || fundNav == null) {
+            if (fundNav == null) {
                 continue; // 缺少数据则跳过
             }
             
-            // 获取当前净值和指数涨跌幅
+            // 获取当前净值
             double currentNav = fundNav.getUnitNav().doubleValue();
-            double indexChange = indexData.getDailyReturn() != null ? 
-                indexData.getDailyReturn().doubleValue() : 0.0;
             
             // 计算当前总资产
             double currentTotalAssets = currentCash + currentHoldings * currentNav;
@@ -186,17 +169,17 @@ public class FundBacktestService {
             // 获取最近几天的数据用于规则判断
             int currentIndex = sortedDates.indexOf(date);
             
-            // 规则A：连续5天或以上上涨/下跌
+            // 规则A：连续5天或以上上涨/下跌（基金净值）
             if (currentIndex >= 4) { // 至少有5天数据
                 boolean isConsecutiveUp = true;
                 boolean isConsecutiveDown = true;
                 
                 for (int i = currentIndex - 4; i <= currentIndex; i++) {
                     LocalDate checkDate = sortedDates.get(i);
-                    IndexData checkIndexData = indexDataMap.get(checkDate);
-                    if (checkIndexData != null) {
-                        double checkChange = checkIndexData.getDailyReturn() != null ? 
-                            checkIndexData.getDailyReturn().doubleValue() : 0.0;
+                    FundNav checkFundNav = fundDataMap.get(checkDate);
+                    if (checkFundNav != null) {
+                        double checkChange = checkFundNav.getDailyReturn() != null ? 
+                            checkFundNav.getDailyReturn().doubleValue() : 0.0;
                         if (checkChange <= 0) {
                             isConsecutiveUp = false;
                         }
@@ -210,17 +193,10 @@ public class FundBacktestService {
                 }
                 
                 if (isConsecutiveUp || isConsecutiveDown) {
-                    // 执行加仓或减仓
+                    // 连续上涨减仓，连续下跌加仓
                     double positionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
-                    if (isConsecutiveUp && currentCash >= positionChangeAmount) {
-                        // 加仓
-                        double sharesToBuy = positionChangeAmount / currentNav;
-                        currentCash -= positionChangeAmount;
-                        currentHoldings += sharesToBuy;
-                        action = "BUY";
-                        upPositionChanges++;
-                    } else if (isConsecutiveDown && currentHoldingsValue >= positionChangeAmount) {
-                        // 减仓
+                    if (isConsecutiveUp && currentHoldingsValue >= positionChangeAmount) {
+                        // 连续上涨，减仓
                         double sharesToSell = positionChangeAmount / currentNav;
                         if (sharesToSell <= currentHoldings) {
                             currentCash += positionChangeAmount;
@@ -228,22 +204,33 @@ public class FundBacktestService {
                             action = "SELL";
                             downPositionChanges++;
                         }
+                    } else if (isConsecutiveDown && currentCash >= positionChangeAmount) {
+                        // 连续下跌，加仓
+                        double sharesToBuy = positionChangeAmount / currentNav;
+                        currentCash -= positionChangeAmount;
+                        currentHoldings += sharesToBuy;
+                        action = "BUY";
+                        upPositionChanges++;
                     }
                 }
             }
             
-            // 规则B：单日涨跌幅绝对值5%
-            if (Math.abs(indexChange) >= request.getSingleDayThreshold()) {
+            // 规则B：单日涨跌幅绝对值5%（基金净值）
+            FundNav currentFundNav = fundDataMap.get(date);
+            double fundChange = currentFundNav.getDailyReturn() != null ? 
+                currentFundNav.getDailyReturn().doubleValue() : 0.0;
+                
+            if (Math.abs(fundChange) >= request.getSingleDayThreshold()) {
                 double positionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
-                if (indexChange > 0 && currentCash >= positionChangeAmount) {
-                    // 涨幅超过阈值，加仓
+                if (fundChange < 0 && currentCash >= positionChangeAmount) {
+                    // 跌幅超过阈值，加仓（连续下跌加仓）
                     double sharesToBuy = positionChangeAmount / currentNav;
                     currentCash -= positionChangeAmount;
                     currentHoldings += sharesToBuy;
                     action = "BUY";
                     upPositionChanges++;
-                } else if (indexChange < 0 && currentHoldingsValue >= positionChangeAmount) {
-                    // 跌幅超过阈值，减仓
+                } else if (fundChange > 0 && currentHoldingsValue >= positionChangeAmount) {
+                    // 涨幅超过阈值，减仓（连续上涨减仓）
                     double sharesToSell = positionChangeAmount / currentNav;
                     if (sharesToSell <= currentHoldings) {
                         currentCash += positionChangeAmount;
@@ -254,29 +241,29 @@ public class FundBacktestService {
                 }
             }
             
-            // 规则C：连续2天累计涨跌幅绝对值4%
+            // 规则C：连续2天累计涨跌幅绝对值4%（基金净值）
             if (currentIndex >= 1) { // 至少有2天数据
                 double cumulativeChange = 0;
                 for (int i = Math.max(0, currentIndex - 1); i <= currentIndex; i++) {
                     LocalDate checkDate = sortedDates.get(i);
-                    IndexData checkIndexData = indexDataMap.get(checkDate);
-                    if (checkIndexData != null) {
-                        cumulativeChange += checkIndexData.getDailyReturn() != null ? 
-                            checkIndexData.getDailyReturn().doubleValue() : 0.0;
+                    FundNav checkFundNav = fundDataMap.get(checkDate);
+                    if (checkFundNav != null) {
+                        cumulativeChange += checkFundNav.getDailyReturn() != null ? 
+                            checkFundNav.getDailyReturn().doubleValue() : 0.0;
                     }
                 }
                 
                 if (Math.abs(cumulativeChange) >= request.getConsecutive2DaysThreshold()) {
                     double positionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
-                    if (cumulativeChange > 0 && currentCash >= positionChangeAmount) {
-                        // 累计上涨超过阈值，加仓
+                    if (cumulativeChange < 0 && currentCash >= positionChangeAmount) {
+                        // 累计下跌超过阈值，加仓
                         double sharesToBuy = positionChangeAmount / currentNav;
                         currentCash -= positionChangeAmount;
                         currentHoldings += sharesToBuy;
                         action = "BUY";
                         upPositionChanges++;
-                    } else if (cumulativeChange < 0 && currentHoldingsValue >= positionChangeAmount) {
-                        // 累计下跌超过阈值，减仓
+                    } else if (cumulativeChange > 0 && currentHoldingsValue >= positionChangeAmount) {
+                        // 累计上涨超过阈值，减仓
                         double sharesToSell = positionChangeAmount / currentNav;
                         if (sharesToSell <= currentHoldings) {
                             currentCash += positionChangeAmount;
@@ -288,29 +275,29 @@ public class FundBacktestService {
                 }
             }
             
-            // 规则D：连续3天累计涨跌幅绝对值5%
+            // 规则D：连续3天累计涨跌幅绝对值5%（基金净值）
             if (currentIndex >= 2) { // 至少有3天数据
                 double cumulativeChange = 0;
                 for (int i = Math.max(0, currentIndex - 2); i <= currentIndex; i++) {
                     LocalDate checkDate = sortedDates.get(i);
-                    IndexData checkIndexData = indexDataMap.get(checkDate);
-                    if (checkIndexData != null) {
-                        cumulativeChange += checkIndexData.getDailyReturn() != null ? 
-                            checkIndexData.getDailyReturn().doubleValue() : 0.0;
+                    FundNav checkFundNav = fundDataMap.get(checkDate);
+                    if (checkFundNav != null) {
+                        cumulativeChange += checkFundNav.getDailyReturn() != null ? 
+                            checkFundNav.getDailyReturn().doubleValue() : 0.0;
                     }
                 }
                 
                 if (Math.abs(cumulativeChange) >= request.getConsecutive3DaysThreshold()) {
                     double positionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
-                    if (cumulativeChange > 0 && currentCash >= positionChangeAmount) {
-                        // 累计上涨超过阈值，加仓
+                    if (cumulativeChange < 0 && currentCash >= positionChangeAmount) {
+                        // 累计下跌超过阈值，加仓
                         double sharesToBuy = positionChangeAmount / currentNav;
                         currentCash -= positionChangeAmount;
                         currentHoldings += sharesToBuy;
                         action = "BUY";
                         upPositionChanges++;
-                    } else if (cumulativeChange < 0 && currentHoldingsValue >= positionChangeAmount) {
-                        // 累计下跌超过阈值，减仓
+                    } else if (cumulativeChange > 0 && currentHoldingsValue >= positionChangeAmount) {
+                        // 累计上涨超过阈值，减仓
                         double sharesToSell = positionChangeAmount / currentNav;
                         if (sharesToSell <= currentHoldings) {
                             currentCash += positionChangeAmount;
@@ -322,29 +309,29 @@ public class FundBacktestService {
                 }
             }
             
-            // 规则E：连续4天累计涨跌幅绝对值5%
+            // 规则E：连续4天累计涨跌幅绝对值5%（基金净值）
             if (currentIndex >= 3) { // 至少有4天数据
                 double cumulativeChange = 0;
                 for (int i = Math.max(0, currentIndex - 3); i <= currentIndex; i++) {
                     LocalDate checkDate = sortedDates.get(i);
-                    IndexData checkIndexData = indexDataMap.get(checkDate);
-                    if (checkIndexData != null) {
-                        cumulativeChange += checkIndexData.getDailyReturn() != null ? 
-                            checkIndexData.getDailyReturn().doubleValue() : 0.0;
+                    FundNav checkFundNav = fundDataMap.get(checkDate);
+                    if (checkFundNav != null) {
+                        cumulativeChange += checkFundNav.getDailyReturn() != null ? 
+                            checkFundNav.getDailyReturn().doubleValue() : 0.0;
                     }
                 }
                 
                 if (Math.abs(cumulativeChange) >= request.getConsecutive4DaysThreshold()) {
                     double positionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
-                    if (cumulativeChange > 0 && currentCash >= positionChangeAmount) {
-                        // 累计上涨超过阈值，加仓
+                    if (cumulativeChange < 0 && currentCash >= positionChangeAmount) {
+                        // 累计下跌超过阈值，加仓
                         double sharesToBuy = positionChangeAmount / currentNav;
                         currentCash -= positionChangeAmount;
                         currentHoldings += sharesToBuy;
                         action = "BUY";
                         upPositionChanges++;
-                    } else if (cumulativeChange < 0 && currentHoldingsValue >= positionChangeAmount) {
-                        // 累计下跌超过阈值，减仓
+                    } else if (cumulativeChange > 0 && currentHoldingsValue >= positionChangeAmount) {
+                        // 累计上涨超过阈值，减仓
                         double sharesToSell = positionChangeAmount / currentNav;
                         if (sharesToSell <= currentHoldings) {
                             currentCash += positionChangeAmount;
@@ -362,7 +349,7 @@ public class FundBacktestService {
             // 记录当日交易详情
             dailyDetails.add(new BacktestResponse.DailyDetail(
                 date.toString(),
-                indexChange,
+                fundChange, // 使用基金涨跌幅而不是指数涨跌幅
                 currentNav,
                 currentCash,
                 currentHoldings,
