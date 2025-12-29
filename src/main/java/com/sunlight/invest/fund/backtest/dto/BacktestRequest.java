@@ -12,24 +12,29 @@ import java.time.LocalDate;
  */
 public class BacktestRequest {
     /**
+     * 基金代码
+     */
+    private String fundCode;
+    
+    /**
      * 初始资金（元）
      */
     private double initialCapital = 100000.0;
     
     /**
-     * 初始持仓（元）
+     * 初始持仓比例（%）
      */
-    private double initialHoldings = 100000.0;
+    private double initialHoldings = 50.0;
     
     /**
-     * 加仓金额（元）
+     * 加仓比例（%）
      */
-    private double upPositionChange = 10000.0;
+    private double upPositionChange = 10.0;
     
     /**
-     * 减仓金额（元）
+     * 减仓比例（%）
      */
-    private double downPositionChange = 10000.0;
+    private double downPositionChange = 10.0;
     
     /**
      * 涨幅阈值（%）
@@ -40,6 +45,31 @@ public class BacktestRequest {
      * 跌幅阈值（%）
      */
     private double downThreshold = 0.5;
+    
+    /**
+     * 规则A：连续上涨/下跌天数阈值
+     */
+    private int consecutiveDaysThreshold = 5;
+    
+    /**
+     * 规则B：单日涨跌幅绝对值阈值（%）
+     */
+    private double singleDayThreshold = 5.0;
+    
+    /**
+     * 规则C：连续2天累计涨跌幅绝对值阈值（%）
+     */
+    private double consecutive2DaysThreshold = 4.0;
+    
+    /**
+     * 规则D：连续3天累计涨跌幅绝对值阈值（%）
+     */
+    private double consecutive3DaysThreshold = 5.0;
+    
+    /**
+     * 规则E：连续4天累计涨跌幅绝对值阈值（%）
+     */
+    private double consecutive4DaysThreshold = 5.0;
     
     /**
      * 回测月数
@@ -59,6 +89,14 @@ public class BacktestRequest {
     private LocalDate endDate;
 
     // Getters and Setters
+    public String getFundCode() {
+        return fundCode;
+    }
+
+    public void setFundCode(String fundCode) {
+        this.fundCode = fundCode;
+    }
+
     public double getInitialCapital() {
         return initialCapital;
     }
@@ -105,6 +143,46 @@ public class BacktestRequest {
 
     public void setDownThreshold(double downThreshold) {
         this.downThreshold = downThreshold;
+    }
+
+    public int getConsecutiveDaysThreshold() {
+        return consecutiveDaysThreshold;
+    }
+
+    public void setConsecutiveDaysThreshold(int consecutiveDaysThreshold) {
+        this.consecutiveDaysThreshold = consecutiveDaysThreshold;
+    }
+
+    public double getSingleDayThreshold() {
+        return singleDayThreshold;
+    }
+
+    public void setSingleDayThreshold(double singleDayThreshold) {
+        this.singleDayThreshold = singleDayThreshold;
+    }
+
+    public double getConsecutive2DaysThreshold() {
+        return consecutive2DaysThreshold;
+    }
+
+    public void setConsecutive2DaysThreshold(double consecutive2DaysThreshold) {
+        this.consecutive2DaysThreshold = consecutive2DaysThreshold;
+    }
+
+    public double getConsecutive3DaysThreshold() {
+        return consecutive3DaysThreshold;
+    }
+
+    public void setConsecutive3DaysThreshold(double consecutive3DaysThreshold) {
+        this.consecutive3DaysThreshold = consecutive3DaysThreshold;
+    }
+
+    public double getConsecutive4DaysThreshold() {
+        return consecutive4DaysThreshold;
+    }
+
+    public void setConsecutive4DaysThreshold(double consecutive4DaysThreshold) {
+        this.consecutive4DaysThreshold = consecutive4DaysThreshold;
     }
 
     public int getBacktestMonths() {

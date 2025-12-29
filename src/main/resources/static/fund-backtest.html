@@ -50,276 +50,318 @@
             margin-top: 20px;
         }
         .panel {
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
+        
         .panel-title {
-            font-size: 1.4em;
+            font-size: 1.2em;
             font-weight: bold;
-            color: #667eea;
+            color: #333;
             margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
         }
+        
         .form-group {
-            margin-bottom: 18px;
+            margin-bottom: 15px;
         }
+        
         .form-group label {
             display: block;
-            margin-bottom: 6px;
-            color: #333;
-            font-weight: 500;
-            font-size: 0.95em;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
         }
-        .form-group input {
+        
+        .form-group input,
+        .form-group select {
             width: 100%;
-            padding: 10px 12px;
+            padding: 10px;
             border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 0.95em;
-            transition: all 0.3s;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
         }
-        .form-group input:focus {
+        
+        .form-group input:focus,
+        .form-group select:focus {
             outline: none;
             border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
         }
+        
         .btn {
-            width: 100%;
-            padding: 12px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #fff;
+            color: white;
+            padding: 12px 20px;
             border: none;
-            border-radius: 8px;
-            font-size: 1.1em;
-            font-weight: bold;
+            border-radius: 5px;
             cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: inline-block;
+            margin-right: 10px;
+            margin-bottom: 10px;
         }
+        
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
+        
         .btn:active {
             transform: translateY(0);
         }
-        .btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
         }
-        .result-area {
-            display: none;
-        }
-        .result-area.show {
-            display: block;
-        }
+        
         .summary-cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
-            margin-bottom: 25px;
-        }
-        .summary-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #fff;
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-        }
-        .summary-card .label {
-            font-size: 0.9em;
-            opacity: 0.9;
-            margin-bottom: 8px;
-        }
-        .summary-card .value {
-            font-size: 1.8em;
-            font-weight: bold;
-        }
-        .summary-card.success {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-        }
-        .summary-card.warning {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        }
-        .chart-container {
-            background: #f9f9f9;
-            border-radius: 12px;
-            padding: 20px;
             margin-bottom: 20px;
         }
-        .chart-title {
-            font-size: 1.2em;
+        
+        .summary-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        
+        .summary-card.success {
+            border-left: 4px solid #28a745;
+        }
+        
+        .summary-card.warning {
+            border-left: 4px solid #ffc107;
+        }
+        
+        .summary-card.danger {
+            border-left: 4px solid #dc3545;
+        }
+        
+        .summary-card.info {
+            border-left: 4px solid #17a2b8;
+        }
+        
+        .label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .value {
+            font-size: 18px;
             font-weight: bold;
             color: #333;
-            margin-bottom: 15px;
         }
-        #assetsChart {
-            width: 100%;
-            height: 40vh;
+        
+        .chart-container {
+            height: 400px;
+            margin: 20px 0;
         }
-        .detail-table-wrapper {
-            max-height: 400px;
+        
+        .result-area {
+            max-height: 70vh;
             overflow-y: auto;
-            border-radius: 12px;
-            background: #f9f9f9;
-            padding: 15px;
         }
+        
+        .detail-table-wrapper {
+            overflow-x: auto;
+        }
+        
         .detail-table {
             width: 100%;
             border-collapse: collapse;
-        }
-        .detail-table th {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #fff;
-            padding: 12px 15px;
-            text-align: left;
-            position: sticky;
-            top: 0;
-            font-weight: 500;
-            font-size: 0.9em;
-        }
-        .detail-table td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #e0e0e0;
-            font-size: 0.85em;
-        }
-        .detail-table tr:nth-child(even) {
-            background-color: #f8f9fa;
-        }
-        .detail-table tr:hover {
-            background-color: #e3f2fd;
-        }
-        /* 操作类型颜色配置 - 遵循金融市场惯例 */
-        .action-buy {
-            color: #22c55e; /* 绿色 - 加仓（买入） */
-            font-weight: bold;
-        }
-        .action-sell {
-            color: #ef4444; /* 红色 - 减仓（卖出） */
-            font-weight: bold;
-        }
-        .action-hold {
-            color: #999;
-        }
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #667eea;
-            font-size: 1.2em;
-        }
-        .loading::after {
-            content: '...';
-            animation: dots 1.5s infinite;
-        }
-        @keyframes dots {
-            0%, 20% { content: '.'; }
-            40% { content: '..'; }
-            60%, 100% { content: '...'; }
-        }
-        .error-msg {
-            background: #ffebee;
-            color: #c62828;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border-left: 4px solid #c62828;
-        }
-        .back-link {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background: rgba(255,255,255,0.9);
-            color: #667eea;
-            padding: 10px 20px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: bold;
-            transition: all 0.3s;
-            z-index: 1000;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .back-link:hover {
-            background: #fff;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            margin-top: 10px;
         }
         
-        @media (max-width: 900px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
-            .header h1 {
-                font-size: 1.8em;
-            }
-            .summary-cards {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        .detail-table th,
+        .detail-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .detail-table th {
+            background: #f8f9fa;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+        }
+        
+        .action-buy {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .action-sell {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        
+        .action-hold {
+            color: #6c757d;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-size: 18px;
+            color: #666;
+        }
+        
+        .error-msg {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .fund-dropdown {
+            position: relative;
+        }
+        
+        .fund-dropdown-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .fund-dropdown-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .fund-dropdown-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .fund-dropdown-list.show {
+            display: block;
+        }
+        
+        .rules-section {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .rules-section h4 {
+            margin-top: 0;
+            color: #495057;
+        }
+        
+        .rule-item {
+            margin: 8px 0;
+            padding: 5px 10px;
+            background: white;
+            border-radius: 4px;
+            font-size: 14px;
         }
     </style>
-    <!-- 引入公共header样式 -->
-    <link rel="stylesheet" href="css/header.css">
 </head>
 <body>
     <div class="container">
-        <!-- 引入公共header -->
-        <div id="header-placeholder"></div>
+        <div class="header">
+            <h1>📊 基金回测系统</h1>
+            <p>基于多种策略的基金投资回测分析</p>
+        </div>
         
         <div class="main-content">
             <!-- 左侧参数面板 -->
             <div class="panel">
-                <div class="panel-title">🎯 回测参数配置</div>
+                <div class="panel-title">⚙️ 回测参数设置</div>
                 
                 <div class="form-group">
-                    <label>初始资金（元）</label>
-                    <input type="number" id="initialCapital" value="100000" step="10000">
+                    <label>基金编码</label>
+                    <div class="fund-dropdown">
+                        <select id="fundCode" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                            <option value="">请选择基金</option>
+                        </select>
+                        <div class="fund-dropdown-list" id="fundCodeDropdown"></div>
+                    </div>
                 </div>
                 
                 <div class="form-group">
-                    <label>初始持仓（元）</label>
-                    <input type="number" id="initialHoldings" value="100000" step="10000">
+                    <label>初始资金 (元)</label>
+                    <input type="number" id="initialCapital" value="100000" step="1000">
                 </div>
                 
                 <div class="form-group">
-                    <label>加仓金额（元）</label>
-                    <input type="number" id="upPositionChange" value="10000" step="1000">
+                    <label>初始持仓比例 (%)</label>
+                    <input type="number" id="initialHoldings" value="50" step="1" min="0" max="100">
                 </div>
                 
                 <div class="form-group">
-                    <label>减仓金额（元）</label>
-                    <input type="number" id="downPositionChange" value="10000" step="1000">
+                    <label>加仓比例 (%)</label>
+                    <input type="number" id="upPositionChange" value="10" step="1" min="0">
                 </div>
                 
                 <div class="form-group">
-                    <label>涨幅阈值（%）</label>
-                    <input type="number" id="upThreshold" value="2.0" step="0.1">
+                    <label>减仓比例 (%)</label>
+                    <input type="number" id="downPositionChange" value="10" step="1" min="0">
                 </div>
                 
                 <div class="form-group">
-                    <label>跌幅阈值（%）</label>
+                    <label>涨幅阈值 (%)</label>
+                    <input type="number" id="upThreshold" value="2" step="0.1">
+                </div>
+                
+                <div class="form-group">
+                    <label>跌幅阈值 (%)</label>
                     <input type="number" id="downThreshold" value="0.5" step="0.1">
                 </div>
                 
                 <div class="form-group">
-                    <label>回测开始日期</label>
-                    <input type="date" id="startDate" value="">
+                    <label>回测月数</label>
+                    <input type="number" id="backtestMonths" value="12" min="1" max="24">
                 </div>
                 
                 <div class="form-group">
-                    <label>回测结束日期</label>
-                    <input type="date" id="endDate" value="">
+                    <label>开始日期</label>
+                    <input type="date" id="startDate">
                 </div>
                 
                 <div class="form-group">
-                    <label>回测月数（或使用日期范围）</label>
-                    <input type="number" id="backtestMonths" value="12" min="1" max="60">
+                    <label>结束日期</label>
+                    <input type="date" id="endDate">
                 </div>
                 
-                <button class="btn" id="runBtn">开始回测</button>
-                <div id="debugInfo" style="margin-top: 15px; padding: 10px; background: #f5f5f5; border-radius: 8px; font-size: 0.85em; color: #666; display: none;">
+                <div class="rules-section">
+                    <h4>📈 触发规则</h4>
+                    <div class="rule-item">规则A：连续5天或以上上涨/下跌</div>
+                    <div class="rule-item">规则B：单日涨跌幅绝对值≥5%</div>
+                    <div class="rule-item">规则C：连续2天累计涨跌幅绝对值≥4%</div>
+                    <div class="rule-item">规则D：连续3天累计涨跌幅绝对值≥5%</div>
+                    <div class="rule-item">规则E：连续4天累计涨跌幅绝对值≥5%</div>
+                </div>
+                
+                <button class="btn" id="runBtn">🚀 开始回测</button>
+                <button class="btn btn-secondary" id="resetBtn">🔄 重置参数</button>
+                
+                <div class="form-group" style="margin-top: 20px;">
                     <strong>调试信息:</strong>
                     <div id="debugMsg"></div>
                 </div>
@@ -330,12 +372,12 @@
                 <div class="panel-title">📊 回测结果分析</div>
                 
                 <div id="loadingArea" class="loading" style="display: none;">
-                    正在执行回测
+                    正在执行回测，请稍候...
                 </div>
                 
                 <div id="errorArea" style="display: none;"></div>
                 
-                <div id="resultArea" class="result-area">
+                <div id="resultArea" class="result-area" style="display: none;">
                     <!-- 概览卡片 -->
                     <div class="summary-cards">
                         <div class="summary-card">
@@ -350,29 +392,20 @@
                             <div class="label">最大回撤</div>
                             <div class="value" id="maxDrawdown">-</div>
                         </div>
-                        <div class="summary-card">
+                        <div class="summary-card info">
                             <div class="label">交易日数</div>
                             <div class="value" id="tradingDays">-</div>
                         </div>
-                        <div class="summary-card">
-                            <div class="label">加仓次数</div>
-                            <div class="value" id="upChanges">-</div>
-                        </div>
-                        <div class="summary-card">
-                            <div class="label">减仓次数</div>
-                            <div class="value" id="downChanges">-</div>
-                        </div>
                     </div>
                     
-                    <!-- 资产曲线图 -->
+                    <!-- 资金曲线图 -->
                     <div class="chart-container">
-                        <div class="chart-title">📈 资产变化曲线</div>
-                        <canvas id="assetsChart"></canvas>
+                        <canvas id="assetChart"></canvas>
                     </div>
                     
                     <!-- 详细数据表 -->
-                    <div class="chart-container">
-                        <div class="chart-title">📋 每日交易明细</div>
+                    <div class="detail-section">
+                        <h3>📈 详细交易记录</h3>
                         <div class="detail-table-wrapper">
                             <table class="detail-table" id="detailTable">
                                 <thead>
@@ -404,25 +437,26 @@
     <script>
         // 等待 Chart.js 库加载完成
         let Chart;
-        const scriptPromise = new Promise((resolve) => {
+        const scriptPromise = new Promise((resolve, reject) => {
             if (window.Chart) {
-                resolve(window.Chart);
+                Chart = window.Chart;
+                resolve(Chart);
             } else {
-                const script = document.createElement('script');
-                script.src = 'https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js';
-                script.onload = () => {
-                    Chart = window.Chart;
-                    resolve(window.Chart);
+                // 如果库未加载，等待一段时间再检查
+                let attempts = 0;
+                const checkChart = () => {
+                    if (window.Chart) {
+                        Chart = window.Chart;
+                        resolve(Chart);
+                    } else if (attempts < 10) {
+                        attempts++;
+                        setTimeout(checkChart, 100);
+                    } else {
+                        reject(new Error('Chart.js library failed to load'));
+                    }
                 };
-                document.head.appendChild(script);
+                checkChart();
             }
-        });
-
-        // 页面加载完成后初始化日期和绑定事件
-        document.addEventListener('DOMContentLoaded', function() {
-            loadHeader(); // 加载公共header
-            initializeDates();
-            bindEvents();
         });
 
         // 加载公共header
@@ -452,24 +486,71 @@
         // 绑定事件
         function bindEvents() {
             document.getElementById('runBtn').addEventListener('click', runBacktest);
+            document.getElementById('resetBtn').addEventListener('click', resetForm);
+        }
+
+        // 重置表单
+        function resetForm() {
+            document.getElementById('initialCapital').value = '100000';
+            document.getElementById('initialHoldings').value = '50';
+            document.getElementById('upPositionChange').value = '10';
+            document.getElementById('downPositionChange').value = '10';
+            document.getElementById('upThreshold').value = '2';
+            document.getElementById('downThreshold').value = '0.5';
+            document.getElementById('backtestMonths').value = '12';
+            
+            initializeDates();
+        }
+
+        // 加载基金代码下拉列表
+        async function loadFundCodes() {
+            try {
+                const response = await fetch('/api/fund/backtest/funds');
+                const result = await response.json();
+                
+                const select = document.getElementById('fundCode');
+                select.innerHTML = '<option value="">请选择基金</option>';
+                
+                if (result.success && result.data) {
+                    result.data.forEach(fund => {
+                        const option = document.createElement('option');
+                        option.value = fund.fundCode;
+                        option.textContent = `${fund.fundCode} - ${fund.fundName}`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('加载基金代码失败:', error);
+                document.getElementById('debugMsg').innerHTML = `加载基金代码失败: ${error.message}`;
+            }
         }
 
         // 运行回测
         async function runBacktest() {
             // 获取参数
             const params = {
+                fundCode: document.getElementById('fundCode').value,
                 initialCapital: parseFloat(document.getElementById('initialCapital').value),
                 initialHoldings: parseFloat(document.getElementById('initialHoldings').value),
                 upPositionChange: parseFloat(document.getElementById('upPositionChange').value),
                 downPositionChange: parseFloat(document.getElementById('downPositionChange').value),
                 upThreshold: parseFloat(document.getElementById('upThreshold').value),
                 downThreshold: parseFloat(document.getElementById('downThreshold').value),
+                consecutiveDaysThreshold: 5,
+                singleDayThreshold: 5.0,
+                consecutive2DaysThreshold: 4.0,
+                consecutive3DaysThreshold: 5.0,
+                consecutive4DaysThreshold: 5.0,
                 startDate: document.getElementById('startDate').value,
                 endDate: document.getElementById('endDate').value,
                 backtestMonths: parseInt(document.getElementById('backtestMonths').value)
             };
 
             // 验证参数
+            if (!params.fundCode) {
+                showError('请选择基金编码');
+                return;
+            }
             if (!params.startDate || !params.endDate) {
                 showError('请选择回测日期范围');
                 return;
@@ -477,12 +558,12 @@
 
             // 显示加载状态
             document.getElementById('loadingArea').style.display = 'block';
-            document.getElementById('resultArea').classList.remove('show');
+            document.getElementById('resultArea').style.display = 'none';
             document.getElementById('errorArea').style.display = 'none';
 
             try {
                 // 发送请求到后端API
-                const response = await fetch('/api/backtest/run', {
+                const response = await fetch('/api/fund/backtest/run', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -524,65 +605,61 @@
             document.getElementById('returnRate').textContent = formatPercentage(data.returnRate);
             document.getElementById('maxDrawdown').textContent = formatPercentage(data.maxDrawdown);
             document.getElementById('tradingDays').textContent = data.tradingDays;
-            document.getElementById('upChanges').textContent = data.upChanges;
-            document.getElementById('downChanges').textContent = data.downChanges;
 
-            // 渲染资产曲线图
-            renderAssetsChart(data.assetsHistory);
+            // 渲染资金曲线图
+            renderAssetChart(data.dailyDetails);
 
             // 渲染详细数据表
-            renderDetailTable(data.detailList);
+            renderDetailTable(data.dailyDetails);
 
             // 显示结果区域
-            document.getElementById('resultArea').classList.add('show');
+            document.getElementById('resultArea').style.display = 'block';
         }
 
-        // 格式化货币
-        function formatCurrency(value) {
-            return '¥' + value.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-        }
-
-        // 格式化百分比
-        function formatPercentage(value) {
-            return (value * 100).toFixed(2) + '%';
-        }
-
-        // 渲染资产曲线图
-        function renderAssetsChart(assetsHistory) {
-            const ctx = document.getElementById('assetsChart').getContext('2d');
+        // 渲染资金曲线图
+        function renderAssetChart(dailyDetails) {
+            const ctx = document.getElementById('assetChart').getContext('2d');
             
             // 销毁之前的图表实例（如果存在）
-            if (window.assetsChartInstance) {
-                window.assetsChartInstance.destroy();
+            if (window.assetChartInstance) {
+                window.assetChartInstance.destroy();
             }
 
-            // 准备图表数据
-            const dates = assetsHistory.map(item => item.date);
-            const assets = assetsHistory.map(item => item.totalAssets);
-            const benchmarks = assetsHistory.map(item => item.benchmarkAssets);
+            const dates = dailyDetails.map(item => item.date);
+            const totalAssets = dailyDetails.map(item => item.totalAssets);
+            const capitals = dailyDetails.map(item => item.capital);
+            const holdingsValues = dailyDetails.map(item => item.holdings * item.nav);
 
-            // 创建新图表
-            window.assetsChartInstance = new Chart(ctx, {
+            window.assetChartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: dates,
                     datasets: [
                         {
-                            label: '策略资产',
-                            data: assets,
+                            label: '总资产',
+                            data: totalAssets,
                             borderColor: '#667eea',
                             backgroundColor: 'rgba(102, 126, 234, 0.1)',
                             borderWidth: 2,
-                            fill: true,
+                            fill: false,
                             tension: 0.1
                         },
                         {
-                            label: '基准资产（上证指数）',
-                            data: benchmarks,
-                            borderColor: '#11998e',
-                            backgroundColor: 'rgba(17, 153, 142, 0.1)',
+                            label: '现金',
+                            data: capitals,
+                            borderColor: '#28a745',
+                            backgroundColor: 'rgba(40, 167, 69, 0.1)',
                             borderWidth: 2,
-                            fill: true,
+                            fill: false,
+                            tension: 0.1
+                        },
+                        {
+                            label: '持仓市值',
+                            data: holdingsValues,
+                            borderColor: '#ffc107',
+                            backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                            borderWidth: 2,
+                            fill: false,
                             tension: 0.1
                         }
                     ]
@@ -591,28 +668,28 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: {
-                            position: 'top',
+                        title: {
+                            display: true,
+                            text: '资金曲线图'
                         },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.dataset.label + ': ¥' + context.parsed.y.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-                                }
-                            }
+                        legend: {
+                            display: true,
+                            position: 'top'
                         }
                     },
                     scales: {
                         x: {
-                            grid: {
-                                display: false
+                            display: true,
+                            title: {
+                                display: true,
+                                text: '日期'
                             }
                         },
                         y: {
-                            ticks: {
-                                callback: function(value) {
-                                    return '¥' + value.toFixed(0).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-                                }
+                            display: true,
+                            title: {
+                                display: true,
+                                text: '金额 (元)'
                             }
                         }
                     }
@@ -639,9 +716,9 @@
                 row.innerHTML = `
                     <td>${item.date}</td>
                     <td>${formatPercentage(item.indexChange)}</td>
-                    <td>${item.fundNav.toFixed(4)}</td>
-                    <td>${formatCurrency(item.cash)}</td>
-                    <td>${item.holdings.toFixed(2)}</td>
+                    <td>${item.nav.toFixed(4)}</td>
+                    <td>${formatCurrency(item.capital)}</td>
+                    <td>${(item.holdings * item.nav).toFixed(2)}</td>
                     <td>${formatCurrency(item.totalAssets)}</td>
                     <td class="${actionClass}">${item.action === 'BUY' ? '加仓' : item.action === 'SELL' ? '减仓' : '持有'}</td>
                 `;
@@ -649,6 +726,24 @@
                 tbody.appendChild(row);
             });
         }
+
+        // 格式化货币
+        function formatCurrency(value) {
+            return '¥' + value.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        // 格式化百分比
+        function formatPercentage(value) {
+            return (value * 100).toFixed(2) + '%';
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadHeader(); // 加载公共header
+            initializeDates();
+            bindEvents();
+            loadFundCodes(); // 加载基金编码下拉列表
+        });
     </script>
     <!-- 引入公共认证脚本 -->
     <script src="js/auth.js"></script>

@@ -2,11 +2,17 @@ package com.sunlight.invest.fund.backtest.service;
 
 import com.sunlight.invest.fund.backtest.dto.BacktestRequest;
 import com.sunlight.invest.fund.backtest.dto.BacktestResponse;
-import com.sunlight.invest.fund.export.GsNavHtmlToExcel;
+import com.sunlight.invest.fund.monitor.entity.FundNav;
+import com.sunlight.invest.fund.monitor.entity.IndexData;
+import com.sunlight.invest.fund.monitor.mapper.FundNavMapper;
+import com.sunlight.invest.fund.monitor.mapper.IndexDataMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -22,6 +28,12 @@ public class FundBacktestService {
     
     private static final Logger logger = LoggerFactory.getLogger(FundBacktestService.class);
 
+    @Autowired
+    private FundNavMapper fundNavMapper;
+
+    @Autowired
+    private IndexDataMapper indexDataMapper;
+
     /**
      * 执行回测
      */
@@ -30,7 +42,7 @@ public class FundBacktestService {
         try {
             // 获取基金净值数据
             logger.info("步骤1: 获取基金净值数据...");
-            List<GsNavHtmlToExcel.Nav> fundDataList = GsNavHtmlToExcel.fetchTable();
+            List<FundNav> fundDataList = fundNavMapper.selectByFundCode(request.getFundCode(), 365); // 获取最近一年数据
             logger.info("获取到基金数据 {} 条", fundDataList.size());
             
             // 过滤出指定月数或日期区间的基金数据
@@ -50,8 +62,8 @@ public class FundBacktestService {
             }
             
             fundDataList = fundDataList.stream()
-                    .filter(nav -> !nav.getDate().isBefore(startDate) && !nav.getDate().isAfter(endDate))
-                    .sorted(Comparator.comparing(GsNavHtmlToExcel.Nav::getDate))
+                    .filter(nav -> !nav.getNavDate().isBefore(startDate) && !nav.getNavDate().isAfter(endDate))
+                    .sorted(Comparator.comparing(FundNav::getNavDate))
                     .collect(Collectors.toList());
             
             logger.info("筛选后的基金数据: {} 条 (日期范围: {} 至 {})", 
@@ -61,143 +73,336 @@ public class FundBacktestService {
                 throw new RuntimeException("没有找到符合条件的基金数据");
             }
             
-            // 模拟指数数据（实际应从数据源获取）
-            logger.info("步骤3: 生成模拟指数数据...");
-            List<IndexData> indexDataList = generateMockIndexData(startDate, endDate);
-            logger.info("生成指数数据: {} 条", indexDataList.size());
+            // 获取指数数据（使用上证指数作为基准）
+            logger.info("步骤3: 获取指数数据...");
+            List<IndexData> indexDataList = indexDataMapper.selectByDateRange("000001", startDate, endDate);
+            logger.info("获取到指数数据: {} 条", indexDataList.size());
+            
+            // 将指数数据转换为Map便于查找
+            Map<LocalDate, IndexData> indexDataMap = indexDataList.stream()
+                    .collect(Collectors.toMap(IndexData::getTradeDate, data -> data));
+            
+            // 将基金数据转换为Map便于查找
+            Map<LocalDate, FundNav> fundDataMap = fundDataList.stream()
+                    .collect(Collectors.toMap(FundNav::getNavDate, nav -> nav));
+            
+            // 获取共同的交易日期并排序
+            Set<LocalDate> commonDates = new HashSet<>(indexDataMap.keySet());
+            commonDates.retainAll(fundDataMap.keySet());
+            List<LocalDate> sortedDates = new ArrayList<>(commonDates);
+            sortedDates.sort(LocalDate::compareTo);
+            
+            if (sortedDates.isEmpty()) {
+                logger.error("没有找到共同的交易日期");
+                throw new RuntimeException("没有找到共同的交易日期");
+            }
+            
+            logger.info("找到 {} 个共同交易日", sortedDates.size());
             
             // 执行回测
             logger.info("步骤4: 执行回测算法...");
-            return performBacktest(request, indexDataList, fundDataList);
+            return performBacktest(request, sortedDates, indexDataMap, fundDataMap);
             
         } catch (Exception e) {
             logger.error("回测执行失败", e);
             throw new RuntimeException("回测执行失败: " + e.getMessage());
         }
     }
-
+    
     /**
      * 执行回测核心逻辑
      */
     private BacktestResponse performBacktest(BacktestRequest request,
-                                            List<IndexData> indexDataList,
-                                            List<GsNavHtmlToExcel.Nav> fundDataList) {
+                                            List<LocalDate> sortedDates,
+                                            Map<LocalDate, IndexData> indexDataMap,
+                                            Map<LocalDate, FundNav> fundDataMap) {
         
         logger.info("进入回测核心逻辑...");
         
-        // 将指数数据转换为Map便于查找
-        Map<LocalDate, IndexData> indexDataMap = indexDataList.stream()
-                .collect(Collectors.toMap(IndexData::getDate, data -> data));
+        // 初始化资金和持仓
+        double initialCapital = request.getInitialCapital();
+        double initialHoldingsValue = initialCapital * (request.getInitialHoldings() / 100.0); // 初始持仓市值
+        double initialCash = initialCapital - initialHoldingsValue; // 初始现金
         
-        // 将基金数据转换为Map便于查找
-        Map<LocalDate, GsNavHtmlToExcel.Nav> fundDataMap = fundDataList.stream()
-                .collect(Collectors.toMap(GsNavHtmlToExcel.Nav::getDate, nav -> nav));
-        
-        // 获取共同的交易日期并排序
-        Set<LocalDate> commonDates = new HashSet<>(indexDataMap.keySet());
-        commonDates.retainAll(fundDataMap.keySet());
-        List<LocalDate> sortedDates = new ArrayList<>(commonDates);
-        sortedDates.sort(LocalDate::compareTo);
-        
-        if (sortedDates.isEmpty()) {
-            logger.error("没有找到共同的交易日期");
-            throw new RuntimeException("没有找到共同的交易日期");
+        // 根据初始持仓市值和第一天的基金净值计算初始持仓份额
+        LocalDate firstDate = sortedDates.get(0);
+        FundNav firstFundNav = fundDataMap.get(firstDate);
+        if (firstFundNav == null) {
+            throw new RuntimeException("第一天没有基金净值数据");
         }
         
-        logger.info("找到 {} 个共同交易日", sortedDates.size());
+        double initialNav = firstFundNav.getUnitNav().doubleValue();
+        double initialHoldings = initialHoldingsValue / initialNav; // 初始持仓份额
+        double currentCash = initialCash;
+        double currentHoldings = initialHoldings; // 持仓份额
         
-        double capital = request.getInitialCapital();
-        double holdings = request.getInitialHoldings() / fundDataMap.get(sortedDates.get(0)).getNav();
-        int upPositionChanges = 0;
-        int downPositionChanges = 0;
-        double peakCapital = request.getInitialCapital() + request.getInitialHoldings();
-        double maxDrawdown = 0;
-        double peakHoldings = holdings;
-        double finalNav = 0;
+        // 计算初始总资产
+        double initialTotalAssets = currentCash + currentHoldings * initialNav;
         
+        // 存储每日交易记录
         List<BacktestResponse.DailyDetail> dailyDetails = new ArrayList<>();
         
-        // 遍历每个交易日
-        for (int i = 1; i < sortedDates.size(); i++) {
-            LocalDate currentDate = sortedDates.get(i);
-            LocalDate previousDate = sortedDates.get(i - 1);
+        // 统计变量
+        int upPositionChanges = 0; // 加仓次数
+        int downPositionChanges = 0; // 减仓次数
+        double peakHoldings = initialHoldingsValue; // 持仓峰值
+        double minTotalAssets = initialTotalAssets; // 最小总资产
+        double maxTotalAssets = initialTotalAssets; // 最大总资产
+        
+        // 遍历交易日期
+        for (LocalDate date : sortedDates) {
+            IndexData indexData = indexDataMap.get(date);
+            FundNav fundNav = fundDataMap.get(date);
             
-            IndexData currentIndex = indexDataMap.get(currentDate);
-            GsNavHtmlToExcel.Nav currentNav = fundDataMap.get(currentDate);
-            IndexData previousIndex = indexDataMap.get(previousDate);
-            
-            if (currentIndex == null || currentNav == null || previousIndex == null) {
-                continue;
+            if (indexData == null || fundNav == null) {
+                continue; // 缺少数据则跳过
             }
             
-            double previousChange = previousIndex.getChangePercent();
-            String action = "持有";
-            
-            // 根据前一天上证指数涨跌幅调整仓位
-            if (previousChange > request.getUpThreshold()) {
-                // 减仓
-                double sellShares = Math.min(request.getDownPositionChange() / currentNav.getNav(), holdings);
-                if (sellShares > 0) {
-                    holdings -= sellShares;
-                    capital += sellShares * currentNav.getNav();
-                    downPositionChanges++;
-                    action = "减仓";
-                }
-            } else if (previousChange < -request.getDownThreshold()) {
-                // 加仓
-                double purchaseAmount = Math.min(request.getUpPositionChange(), capital);
-                if (purchaseAmount > 0) {
-                    double newShares = purchaseAmount / currentNav.getNav();
-                    holdings += newShares;
-                    capital -= purchaseAmount;
-                    upPositionChanges++;
-                    action = "加仓";
-                }
-            }
+            // 获取当前净值和指数涨跌幅
+            double currentNav = fundNav.getUnitNav().doubleValue();
+            double indexChange = indexData.getDailyReturn() != null ? 
+                indexData.getDailyReturn().doubleValue() : 0.0;
             
             // 计算当前总资产
-            double totalAsset = capital + holdings * currentNav.getNav();
-            finalNav = currentNav.getNav();
+            double currentTotalAssets = currentCash + currentHoldings * currentNav;
             
-            // 更新最大回撤
-            if (totalAsset > peakCapital) {
-                peakCapital = totalAsset;
+            // 更新峰值和谷值
+            if (currentTotalAssets > maxTotalAssets) {
+                maxTotalAssets = currentTotalAssets;
             }
-            double drawdown = (peakCapital - totalAsset) / peakCapital;
-            if (drawdown > maxDrawdown) {
-                maxDrawdown = drawdown;
+            if (currentTotalAssets < minTotalAssets) {
+                minTotalAssets = currentTotalAssets;
             }
             
-            // 更新持仓峰值
-            if (holdings > peakHoldings) {
-                peakHoldings = holdings;
+            // 计算持仓市值
+            double currentHoldingsValue = currentHoldings * currentNav;
+            if (currentHoldingsValue > peakHoldings) {
+                peakHoldings = currentHoldingsValue;
             }
             
-            // 记录每日明细
+            // 触发规则判断
+            String action = "HOLD"; // 默认持有
+            
+            // 获取最近几天的数据用于规则判断
+            int currentIndex = sortedDates.indexOf(date);
+            
+            // 规则A：连续5天或以上上涨/下跌
+            if (currentIndex >= 4) { // 至少有5天数据
+                boolean isConsecutiveUp = true;
+                boolean isConsecutiveDown = true;
+                
+                for (int i = currentIndex - 4; i <= currentIndex; i++) {
+                    LocalDate checkDate = sortedDates.get(i);
+                    IndexData checkIndexData = indexDataMap.get(checkDate);
+                    if (checkIndexData != null) {
+                        double checkChange = checkIndexData.getDailyReturn() != null ? 
+                            checkIndexData.getDailyReturn().doubleValue() : 0.0;
+                        if (checkChange <= 0) {
+                            isConsecutiveUp = false;
+                        }
+                        if (checkChange >= 0) {
+                            isConsecutiveDown = false;
+                        }
+                    } else {
+                        isConsecutiveUp = false;
+                        isConsecutiveDown = false;
+                    }
+                }
+                
+                if (isConsecutiveUp || isConsecutiveDown) {
+                    // 执行加仓或减仓
+                    double positionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
+                    if (isConsecutiveUp && currentCash >= positionChangeAmount) {
+                        // 加仓
+                        double sharesToBuy = positionChangeAmount / currentNav;
+                        currentCash -= positionChangeAmount;
+                        currentHoldings += sharesToBuy;
+                        action = "BUY";
+                        upPositionChanges++;
+                    } else if (isConsecutiveDown && currentHoldingsValue >= positionChangeAmount) {
+                        // 减仓
+                        double sharesToSell = positionChangeAmount / currentNav;
+                        if (sharesToSell <= currentHoldings) {
+                            currentCash += positionChangeAmount;
+                            currentHoldings -= sharesToSell;
+                            action = "SELL";
+                            downPositionChanges++;
+                        }
+                    }
+                }
+            }
+            
+            // 规则B：单日涨跌幅绝对值5%
+            if (Math.abs(indexChange) >= request.getSingleDayThreshold()) {
+                double positionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
+                if (indexChange > 0 && currentCash >= positionChangeAmount) {
+                    // 涨幅超过阈值，加仓
+                    double sharesToBuy = positionChangeAmount / currentNav;
+                    currentCash -= positionChangeAmount;
+                    currentHoldings += sharesToBuy;
+                    action = "BUY";
+                    upPositionChanges++;
+                } else if (indexChange < 0 && currentHoldingsValue >= positionChangeAmount) {
+                    // 跌幅超过阈值，减仓
+                    double sharesToSell = positionChangeAmount / currentNav;
+                    if (sharesToSell <= currentHoldings) {
+                        currentCash += positionChangeAmount;
+                        currentHoldings -= sharesToSell;
+                        action = "SELL";
+                        downPositionChanges++;
+                    }
+                }
+            }
+            
+            // 规则C：连续2天累计涨跌幅绝对值4%
+            if (currentIndex >= 1) { // 至少有2天数据
+                double cumulativeChange = 0;
+                for (int i = Math.max(0, currentIndex - 1); i <= currentIndex; i++) {
+                    LocalDate checkDate = sortedDates.get(i);
+                    IndexData checkIndexData = indexDataMap.get(checkDate);
+                    if (checkIndexData != null) {
+                        cumulativeChange += checkIndexData.getDailyReturn() != null ? 
+                            checkIndexData.getDailyReturn().doubleValue() : 0.0;
+                    }
+                }
+                
+                if (Math.abs(cumulativeChange) >= request.getConsecutive2DaysThreshold()) {
+                    double positionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
+                    if (cumulativeChange > 0 && currentCash >= positionChangeAmount) {
+                        // 累计上涨超过阈值，加仓
+                        double sharesToBuy = positionChangeAmount / currentNav;
+                        currentCash -= positionChangeAmount;
+                        currentHoldings += sharesToBuy;
+                        action = "BUY";
+                        upPositionChanges++;
+                    } else if (cumulativeChange < 0 && currentHoldingsValue >= positionChangeAmount) {
+                        // 累计下跌超过阈值，减仓
+                        double sharesToSell = positionChangeAmount / currentNav;
+                        if (sharesToSell <= currentHoldings) {
+                            currentCash += positionChangeAmount;
+                            currentHoldings -= sharesToSell;
+                            action = "SELL";
+                            downPositionChanges++;
+                        }
+                    }
+                }
+            }
+            
+            // 规则D：连续3天累计涨跌幅绝对值5%
+            if (currentIndex >= 2) { // 至少有3天数据
+                double cumulativeChange = 0;
+                for (int i = Math.max(0, currentIndex - 2); i <= currentIndex; i++) {
+                    LocalDate checkDate = sortedDates.get(i);
+                    IndexData checkIndexData = indexDataMap.get(checkDate);
+                    if (checkIndexData != null) {
+                        cumulativeChange += checkIndexData.getDailyReturn() != null ? 
+                            checkIndexData.getDailyReturn().doubleValue() : 0.0;
+                    }
+                }
+                
+                if (Math.abs(cumulativeChange) >= request.getConsecutive3DaysThreshold()) {
+                    double positionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
+                    if (cumulativeChange > 0 && currentCash >= positionChangeAmount) {
+                        // 累计上涨超过阈值，加仓
+                        double sharesToBuy = positionChangeAmount / currentNav;
+                        currentCash -= positionChangeAmount;
+                        currentHoldings += sharesToBuy;
+                        action = "BUY";
+                        upPositionChanges++;
+                    } else if (cumulativeChange < 0 && currentHoldingsValue >= positionChangeAmount) {
+                        // 累计下跌超过阈值，减仓
+                        double sharesToSell = positionChangeAmount / currentNav;
+                        if (sharesToSell <= currentHoldings) {
+                            currentCash += positionChangeAmount;
+                            currentHoldings -= sharesToSell;
+                            action = "SELL";
+                            downPositionChanges++;
+                        }
+                    }
+                }
+            }
+            
+            // 规则E：连续4天累计涨跌幅绝对值5%
+            if (currentIndex >= 3) { // 至少有4天数据
+                double cumulativeChange = 0;
+                for (int i = Math.max(0, currentIndex - 3); i <= currentIndex; i++) {
+                    LocalDate checkDate = sortedDates.get(i);
+                    IndexData checkIndexData = indexDataMap.get(checkDate);
+                    if (checkIndexData != null) {
+                        cumulativeChange += checkIndexData.getDailyReturn() != null ? 
+                            checkIndexData.getDailyReturn().doubleValue() : 0.0;
+                    }
+                }
+                
+                if (Math.abs(cumulativeChange) >= request.getConsecutive4DaysThreshold()) {
+                    double positionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
+                    if (cumulativeChange > 0 && currentCash >= positionChangeAmount) {
+                        // 累计上涨超过阈值，加仓
+                        double sharesToBuy = positionChangeAmount / currentNav;
+                        currentCash -= positionChangeAmount;
+                        currentHoldings += sharesToBuy;
+                        action = "BUY";
+                        upPositionChanges++;
+                    } else if (cumulativeChange < 0 && currentHoldingsValue >= positionChangeAmount) {
+                        // 累计下跌超过阈值，减仓
+                        double sharesToSell = positionChangeAmount / currentNav;
+                        if (sharesToSell <= currentHoldings) {
+                            currentCash += positionChangeAmount;
+                            currentHoldings -= sharesToSell;
+                            action = "SELL";
+                            downPositionChanges++;
+                        }
+                    }
+                }
+            }
+            
+            // 重新计算总资产
+            currentTotalAssets = currentCash + currentHoldings * currentNav;
+            
+            // 记录当日交易详情
             dailyDetails.add(new BacktestResponse.DailyDetail(
-                currentDate.toString(),
-                previousChange,
-                currentNav.getNav(),
-                capital,
-                holdings,
-                totalAsset,
+                date.toString(),
+                indexChange,
+                currentNav,
+                currentCash,
+                currentHoldings,
+                currentTotalAssets,
                 action
             ));
         }
         
-        // 构建响应
+        // 计算最终结果
+        LocalDate lastDate = sortedDates.get(sortedDates.size() - 1);
+        FundNav lastFundNav = fundDataMap.get(lastDate);
+        if (lastFundNav == null) {
+            throw new RuntimeException("最后一天没有基金净值数据");
+        }
+        
+        double finalNav = lastFundNav.getUnitNav().doubleValue();
+        double finalCash = currentCash;
+        double finalHoldings = currentHoldings;
+        double finalHoldingsValue = finalHoldings * finalNav;
+        double finalTotalAssets = finalCash + finalHoldingsValue;
+        
+        // 计算收益率
+        double returnRate = (finalTotalAssets - initialTotalAssets) / initialTotalAssets;
+        
+        // 计算最大回撤
+        double maxDrawdown = (maxTotalAssets > 0) ? (maxTotalAssets - minTotalAssets) / maxTotalAssets : 0;
+        
+        // 创建响应对象
         BacktestResponse response = new BacktestResponse();
-        response.setInitialCapital(request.getInitialCapital());
-        response.setInitialHoldings(request.getInitialHoldings());
-        response.setFinalCapital(capital);
-        response.setFinalHoldings(holdings);
+        response.setInitialCapital(initialCapital);
+        response.setInitialHoldings(initialHoldingsValue);
+        response.setFinalCapital(finalCash);
+        response.setFinalHoldings(finalHoldings);
         response.setFinalNav(finalNav);
-        response.setFinalHoldingsValue(holdings * finalNav);
-        response.setTotalAssets(capital + holdings * finalNav);
-        response.setReturnRate(((capital + holdings * finalNav) / (request.getInitialCapital() + request.getInitialHoldings()) - 1) * 100);
+        response.setFinalHoldingsValue(finalHoldingsValue);
+        response.setTotalAssets(finalTotalAssets);
+        response.setReturnRate(returnRate);
         response.setUpPositionChanges(upPositionChanges);
         response.setDownPositionChanges(downPositionChanges);
-        response.setMaxDrawdown(maxDrawdown * 100);
+        response.setMaxDrawdown(maxDrawdown);
         response.setPeakHoldings(peakHoldings);
         response.setTradingDays(sortedDates.size());
         response.setDailyDetails(dailyDetails);
@@ -206,42 +411,32 @@ public class FundBacktestService {
     }
 
     /**
-     * 生成模拟指数数据（实际应从API获取）
+     * 生成模拟指数数据（用于测试，实际应从数据库获取）
      */
     private List<IndexData> generateMockIndexData(LocalDate startDate, LocalDate endDate) {
-        List<IndexData> dataList = new ArrayList<>();
-        Random random = new Random(42);
-        
+        List<IndexData> indexDataList = new ArrayList<>();
         LocalDate currentDate = startDate;
+        
+        Random random = new Random();
+        double currentValue = 3000.0; // 初始指数值
+        
         while (!currentDate.isAfter(endDate)) {
-            if (currentDate.getDayOfWeek().getValue() <= 5) {
-                double changePercent = random.nextGaussian() * 1.5;
-                dataList.add(new IndexData(currentDate, changePercent));
-            }
+            // 生成随机涨跌幅 (-3% 到 +3%)
+            double changePercent = (random.nextDouble() - 0.5) * 0.06; // -3% to +3%
+            double changeValue = currentValue * changePercent;
+            double newValue = currentValue + changeValue;
+            
+            IndexData indexData = new IndexData();
+            indexData.setTradeDate(currentDate);
+            indexData.setClosePrice(BigDecimal.valueOf(newValue).setScale(2, RoundingMode.HALF_UP));
+            indexData.setDailyReturn(BigDecimal.valueOf(changePercent * 100).setScale(2, RoundingMode.HALF_UP));
+            
+            indexDataList.add(indexData);
+            
+            currentValue = newValue;
             currentDate = currentDate.plusDays(1);
         }
         
-        return dataList;
-    }
-
-    /**
-     * 指数数据内部类
-     */
-    static class IndexData {
-        private LocalDate date;
-        private double changePercent;
-        
-        public IndexData(LocalDate date, double changePercent) {
-            this.date = date;
-            this.changePercent = changePercent;
-        }
-        
-        public LocalDate getDate() {
-            return date;
-        }
-        
-        public double getChangePercent() {
-            return changePercent;
-        }
+        return indexDataList;
     }
 }
