@@ -67,6 +67,22 @@
             font-size: 14px;
             transition: all 0.3s;
         }
+        
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background-color: white;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
 
         .form-group input:focus,
         .form-group textarea:focus,
@@ -228,40 +244,6 @@
             font-family: 'Courier New', monospace;
         }
         
-        /* 下拉列表样式 */
-        .fund-dropdown {
-            position: relative;
-        }
-        
-        .fund-dropdown-list {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: white;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            max-height: 200px;
-            overflow-y: auto;
-            z-index: 1000;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            display: none;
-        }
-        
-        .fund-dropdown-item {
-            padding: 10px 12px;
-            cursor: pointer;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        
-        .fund-dropdown-item:hover {
-            background-color: #e3f2fd;
-        }
-        
-        .fund-dropdown-item:last-child {
-            border-bottom: none;
-        }
-        
         @media (max-width: 768px) {
             .form-group input,
             .form-group textarea,
@@ -310,10 +292,9 @@
                 <h3>📥 基金数据抓取</h3>
                 <div class="form-group">
                     <label>基金代码*</label>
-                    <div class="fund-dropdown">
-                        <input type="text" id="fundCode" placeholder="例如: 006195" value="006195">
-                        <div class="fund-dropdown-list" id="fundCodeDropdown"></div>
-                    </div>
+                    <select id="fundCode" class="form-control">
+                        <option value="">请选择基金代码</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>基金名称*</label>
@@ -337,10 +318,9 @@
                 <h3>🔍 基金监控检查</h3>
                 <div class="form-group">
                     <label>基金代码*</label>
-                    <div class="fund-dropdown">
-                        <input type="text" id="checkFundCode" placeholder="例如: 006195" value="006195">
-                        <div class="fund-dropdown-list" id="checkFundCodeDropdown"></div>
-                    </div>
+                    <select id="checkFundCode" class="form-control">
+                        <option value="">请选择基金代码</option>
+                    </select>
                 </div>
                 <button class="btn btn-success" onclick="checkFund()">执行监控检查</button>
                 <div class="result" id="checkResult"></div>
@@ -351,10 +331,9 @@
                 <h3>📊 查询基金净值</h3>
                 <div class="form-group">
                     <label>基金代码*</label>
-                    <div class="fund-dropdown">
-                        <input type="text" id="queryFundCode" placeholder="例如: 006195" value="006195">
-                        <div class="fund-dropdown-list" id="queryFundCodeDropdown"></div>
-                    </div>
+                    <select id="queryFundCode" class="form-control">
+                        <option value="">请选择基金代码</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>查询天数</label>
@@ -370,10 +349,9 @@
                 <h3>📋 监控基金管理</h3>
                 <div class="form-group">
                     <label>基金代码*</label>
-                    <div class="fund-dropdown">
-                        <input type="text" id="monitorFundCode" placeholder="例如: 006195">
-                        <div class="fund-dropdown-list" id="monitorFundCodeDropdown"></div>
-                    </div>
+                    <select id="monitorFundCode" class="form-control">
+                        <option value="">请选择基金代码</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label>基金名称*</label>
@@ -398,6 +376,17 @@
             initializeQueryFundCodeAutocomplete();
             initializeMonitorFundCodeAutocomplete();
             loadMonitorFunds(); // 页面加载时自动加载监控基金列表
+            
+            // 设置默认日期为最近5年
+            const today = new Date();
+            const fiveYearsAgo = new Date();
+            fiveYearsAgo.setFullYear(today.getFullYear() - 5);
+            
+            const startDateStr = fiveYearsAgo.toISOString().split('T')[0];
+            const endDateStr = today.toISOString().split('T')[0];
+            
+            document.getElementById('startDate').value = startDateStr;
+            document.getElementById('endDate').value = endDateStr;
         });
         
         // 加载公共header
@@ -426,125 +415,230 @@
             }, 3000);
         }
         
-        // 基金代码自动补全初始化
+        // 基金代码下拉框初始化
         function initializeFundCodeAutocomplete() {
-            const input = document.getElementById('fundCode');
-            const dropdown = document.getElementById('fundCodeDropdown');
+            const select = document.getElementById('fundCode');
             
-            input.addEventListener('input', function() {
-                const value = this.value.trim();
-                if (value.length >= 4) {
-                    // 这里可以调用API获取基金名称建议
-                    // 暂时使用示例数据
-                    showFundSuggestions(dropdown, value);
-                } else {
-                    dropdown.style.display = 'none';
-                }
-            });
-            
-            // 点击外部隐藏下拉列表
-            document.addEventListener('click', function(e) {
-                if (!input.contains(e.target) && !dropdown.contains(e.target)) {
-                    dropdown.style.display = 'none';
-                }
-            });
-        }
-        
-        // 显示基金建议
-        function showFundSuggestions(dropdown, searchTerm) {
-            // 示例基金代码和名称
-            const suggestions = [
-                {code: '006195', name: '国金量化多因子'},
-                {code: '000001', name: '华夏成长混合'},
-                {code: '161725', name: '招商中证白酒指数'},
-                {code: '001186', name: '华夏沪深300ETF联接A'},
-                {code: '110022', name: '易方达消费行业'}
-            ];
-            
-            const filtered = suggestions.filter(item => 
-                item.code.includes(searchTerm) || item.name.includes(searchTerm)
-            );
-            
-            if (filtered.length > 0) {
-                dropdown.innerHTML = '';
-                filtered.forEach(item => {
-                    const div = document.createElement('div');
-                    div.className = 'fund-dropdown-item';
-                    div.textContent = `${item.code} - ${item.name}`;
-                    div.addEventListener('click', () => {
-                        document.getElementById('fundCode').value = item.code;
-                        document.getElementById('fundName').value = item.name;
-                        dropdown.style.display = 'none';
+            // 从数据库获取基金列表并填充下拉框
+            fetch(`${API_BASE}/monitor-funds`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const fundList = data.data || [];
+                        
+                        // 清空现有选项（除了默认选项）
+                        select.innerHTML = '<option value="">请选择基金代码</option>';
+                        
+                        // 添加基金选项
+                        fundList.forEach(fund => {
+                            const option = document.createElement('option');
+                            option.value = fund.fundCode;
+                            option.textContent = `${fund.fundCode} - ${fund.fundName}`;
+                            select.appendChild(option);
+                        });
+                        
+                        // 监听基金代码选择变化，自动获取基金名称
+                        select.addEventListener('change', function() {
+                            const fundCodeValue = this.value.trim();
+                            if (fundCodeValue) {
+                                // 首先检查是否在基金列表中
+                                const foundFund = fundList.find(fund => fund.fundCode === fundCodeValue);
+                                if (foundFund) {
+                                    document.getElementById('fundName').value = foundFund.fundName;
+                                } else {
+                                    // 如果不在列表中，尝试从API获取基金名称
+                                    fetch(`${API_BASE}/fund-name?fundCode=${fundCodeValue}`)
+                                        .then(response => response.json())
+                                        .then(data => {
+                                            if (data.success) {
+                                                document.getElementById('fundName').value = data.fundName;
+                                            }
+                                        })
+                                        .catch(error => {
+                                            console.error('获取基金名称失败:', error);
+                                        });
+                                }
+                            }
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('获取基金列表失败:', error);
+                    // 如果获取失败，使用示例数据
+                    const defaultSuggestions = [
+                        {code: '006195', name: '国金量化多因子'},
+                        {code: '000001', name: '华夏成长混合'},
+                        {code: '161725', name: '招商中证白酒指数'},
+                        {code: '001186', name: '华夏沪深300ETF联接A'},
+                        {code: '110022', name: '易方达消费行业'}
+                    ];
+                    
+                    // 清空现有选项（除了默认选项）
+                    select.innerHTML = '<option value="">请选择基金代码</option>';
+                    
+                    // 添加默认选项
+                    defaultSuggestions.forEach(fund => {
+                        const option = document.createElement('option');
+                        option.value = fund.code;
+                        option.textContent = `${fund.code} - ${fund.name}`;
+                        select.appendChild(option);
                     });
-                    dropdown.appendChild(div);
+                    
+                    // 监听基金代码选择变化，自动获取基金名称
+                    select.addEventListener('change', function() {
+                        const fundCodeValue = this.value.trim();
+                        if (fundCodeValue) {
+                            // 首先检查是否在基金列表中
+                            const foundFund = defaultSuggestions.find(fund => fund.code === fundCodeValue);
+                            if (foundFund) {
+                                document.getElementById('fundName').value = foundFund.name;
+                            }
+                        }
+                    });
                 });
-                dropdown.style.display = 'block';
-            } else {
-                dropdown.style.display = 'none';
-            }
         }
         
-        // 初始化检查基金代码自动补全
+
+        
+        // 初始化检查基金代码下拉框
         function initializeCheckFundCodeAutocomplete() {
-            const input = document.getElementById('checkFundCode');
-            const dropdown = document.getElementById('checkFundCodeDropdown');
+            const select = document.getElementById('checkFundCode');
             
-            input.addEventListener('input', function() {
-                const value = this.value.trim();
-                if (value.length >= 4) {
-                    showFundSuggestions(dropdown, value);
-                } else {
-                    dropdown.style.display = 'none';
-                }
-            });
-            
-            document.addEventListener('click', function(e) {
-                if (!input.contains(e.target) && !dropdown.contains(e.target)) {
-                    dropdown.style.display = 'none';
-                }
-            });
+            // 从数据库获取基金列表并填充下拉框
+            fetch(`${API_BASE}/monitor-funds`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const fundList = data.data || [];
+                        
+                        // 清空现有选项（除了默认选项）
+                        select.innerHTML = '<option value="">请选择基金代码</option>';
+                        
+                        // 添加基金选项
+                        fundList.forEach(fund => {
+                            const option = document.createElement('option');
+                            option.value = fund.fundCode;
+                            option.textContent = `${fund.fundCode} - ${fund.fundName}`;
+                            select.appendChild(option);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('获取基金列表失败:', error);
+                    // 如果获取失败，使用示例数据
+                    const defaultSuggestions = [
+                        {code: '006195', name: '国金量化多因子'},
+                        {code: '000001', name: '华夏成长混合'},
+                        {code: '161725', name: '招商中证白酒指数'},
+                        {code: '001186', name: '华夏沪深300ETF联接A'},
+                        {code: '110022', name: '易方达消费行业'}
+                    ];
+                    
+                    // 清空现有选项（除了默认选项）
+                    select.innerHTML = '<option value="">请选择基金代码</option>';
+                    
+                    // 添加默认选项
+                    defaultSuggestions.forEach(fund => {
+                        const option = document.createElement('option');
+                        option.value = fund.code;
+                        option.textContent = `${fund.code} - ${fund.name}`;
+                        select.appendChild(option);
+                    });
+                });
         }
         
-        // 初始化查询基金代码自动补全
+        // 初始化查询基金代码下拉框
         function initializeQueryFundCodeAutocomplete() {
-            const input = document.getElementById('queryFundCode');
-            const dropdown = document.getElementById('queryFundCodeDropdown');
+            const select = document.getElementById('queryFundCode');
             
-            input.addEventListener('input', function() {
-                const value = this.value.trim();
-                if (value.length >= 4) {
-                    showFundSuggestions(dropdown, value);
-                } else {
-                    dropdown.style.display = 'none';
-                }
-            });
-            
-            document.addEventListener('click', function(e) {
-                if (!input.contains(e.target) && !dropdown.contains(e.target)) {
-                    dropdown.style.display = 'none';
-                }
-            });
+            // 从数据库获取基金列表并填充下拉框
+            fetch(`${API_BASE}/monitor-funds`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const fundList = data.data || [];
+                        
+                        // 清空现有选项（除了默认选项）
+                        select.innerHTML = '<option value="">请选择基金代码</option>';
+                        
+                        // 添加基金选项
+                        fundList.forEach(fund => {
+                            const option = document.createElement('option');
+                            option.value = fund.fundCode;
+                            option.textContent = `${fund.fundCode} - ${fund.fundName}`;
+                            select.appendChild(option);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('获取基金列表失败:', error);
+                    // 如果获取失败，使用示例数据
+                    const defaultSuggestions = [
+                        {code: '006195', name: '国金量化多因子'},
+                        {code: '000001', name: '华夏成长混合'},
+                        {code: '161725', name: '招商中证白酒指数'},
+                        {code: '001186', name: '华夏沪深300ETF联接A'},
+                        {code: '110022', name: '易方达消费行业'}
+                    ];
+                    
+                    // 清空现有选项（除了默认选项）
+                    select.innerHTML = '<option value="">请选择基金代码</option>';
+                    
+                    // 添加默认选项
+                    defaultSuggestions.forEach(fund => {
+                        const option = document.createElement('option');
+                        option.value = fund.code;
+                        option.textContent = `${fund.code} - ${fund.name}`;
+                        select.appendChild(option);
+                    });
+                });
         }
         
-        // 初始化监控基金代码自动补全
+        // 初始化监控基金代码下拉框
         function initializeMonitorFundCodeAutocomplete() {
-            const input = document.getElementById('monitorFundCode');
-            const dropdown = document.getElementById('monitorFundCodeDropdown');
+            const select = document.getElementById('monitorFundCode');
             
-            input.addEventListener('input', function() {
-                const value = this.value.trim();
-                if (value.length >= 4) {
-                    showFundSuggestions(dropdown, value);
-                } else {
-                    dropdown.style.display = 'none';
-                }
-            });
-            
-            document.addEventListener('click', function(e) {
-                if (!input.contains(e.target) && !dropdown.contains(e.target)) {
-                    dropdown.style.display = 'none';
-                }
-            });
+            // 从数据库获取基金列表并填充下拉框
+            fetch(`${API_BASE}/monitor-funds`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const fundList = data.data || [];
+                        
+                        // 清空现有选项（除了默认选项）
+                        select.innerHTML = '<option value="">请选择基金代码</option>';
+                        
+                        // 添加基金选项
+                        fundList.forEach(fund => {
+                            const option = document.createElement('option');
+                            option.value = fund.fundCode;
+                            option.textContent = `${fund.fundCode} - ${fund.fundName}`;
+                            select.appendChild(option);
+                        });
+                    }
+                })
+                .catch(error => {
+                    console.error('获取基金列表失败:', error);
+                    // 如果获取失败，使用示例数据
+                    const defaultSuggestions = [
+                        {code: '006195', name: '国金量化多因子'},
+                        {code: '000001', name: '华夏成长混合'},
+                        {code: '161725', name: '招商中证白酒指数'},
+                        {code: '001186', name: '华夏沪深300ETF联接A'},
+                        {code: '110022', name: '易方达消费行业'}
+                    ];
+                    
+                    // 清空现有选项（除了默认选项）
+                    select.innerHTML = '<option value="">请选择基金代码</option>';
+                    
+                    // 添加默认选项
+                    defaultSuggestions.forEach(fund => {
+                        const option = document.createElement('option');
+                        option.value = fund.code;
+                        option.textContent = `${fund.code} - ${fund.name}`;
+                        select.appendChild(option);
+                    });
+                });
         }
         
         // 手工触发所有监控基金预警
@@ -577,8 +671,22 @@
         function crawlFundData() {
             const fundCode = document.getElementById('fundCode').value.trim();
             const fundName = document.getElementById('fundName').value.trim();
-            const startDate = document.getElementById('startDate').value;
-            const endDate = document.getElementById('endDate').value;
+            let startDate = document.getElementById('startDate').value;
+            let endDate = document.getElementById('endDate').value;
+            
+            // 如果没有提供日期，则默认为最近5年
+            if (!startDate || !endDate) {
+                const today = new Date();
+                const fiveYearsAgo = new Date();
+                fiveYearsAgo.setFullYear(today.getFullYear() - 5);
+                
+                endDate = endDate || today.toISOString().split('T')[0];
+                startDate = startDate || fiveYearsAgo.toISOString().split('T')[0];
+                
+                // 更新页面上的日期输入框
+                document.getElementById('startDate').value = startDate;
+                document.getElementById('endDate').value = endDate;
+            }
             
             if (!fundCode || !fundName) {
                 showMessage('crawlResult', '请填写基金代码和基金名称', false);
@@ -588,8 +696,8 @@
             const params = new URLSearchParams({
                 fundCode: fundCode,
                 fundName: fundName,
-                startDate: startDate || '',
-                endDate: endDate || ''
+                startDate: startDate,
+                endDate: endDate
             });
             
             fetch(`${API_BASE}/crawl?${params}`, {
