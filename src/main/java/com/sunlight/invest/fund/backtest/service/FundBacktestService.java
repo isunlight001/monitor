@@ -194,7 +194,14 @@ public class FundBacktestService {
                 
                 if (isConsecutiveUp || isConsecutiveDown) {
                     // 连续上涨减仓，连续下跌加仓
-                    double positionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
+                    double positionChangeAmount;
+                    if ("amount".equals(request.getBacktestMode())) {
+                        // 金额模式
+                        positionChangeAmount = isConsecutiveUp ? request.getDownPositionAmount() : request.getUpPositionAmount();
+                    } else {
+                        // 百分比模式
+                        positionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
+                    }
                     if (isConsecutiveUp && currentHoldingsValue >= positionChangeAmount) {
                         // 连续上涨，减仓
                         double sharesToSell = positionChangeAmount / currentNav;
@@ -221,7 +228,14 @@ public class FundBacktestService {
                 currentFundNav.getDailyReturn().doubleValue() : 0.0;
                 
             if (Math.abs(fundChange) >= request.getSingleDayThreshold()) {
-                double positionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
+                double positionChangeAmount;
+                if ("amount".equals(request.getBacktestMode())) {
+                    // 金额模式
+                    positionChangeAmount = fundChange < 0 ? request.getUpPositionAmount() : request.getDownPositionAmount();
+                } else {
+                    // 百分比模式
+                    positionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
+                }
                 if (fundChange < 0 && currentCash >= positionChangeAmount) {
                     // 跌幅超过阈值，加仓（连续下跌加仓）
                     double sharesToBuy = positionChangeAmount / currentNav;
@@ -254,7 +268,14 @@ public class FundBacktestService {
                 }
                 
                 if (Math.abs(cumulativeChange) >= request.getConsecutive2DaysThreshold()) {
-                    double positionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
+                    double positionChangeAmount;
+                    if ("amount".equals(request.getBacktestMode())) {
+                        // 金额模式
+                        positionChangeAmount = cumulativeChange < 0 ? request.getUpPositionAmount() : request.getDownPositionAmount();
+                    } else {
+                        // 百分比模式
+                        positionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
+                    }
                     if (cumulativeChange < 0 && currentCash >= positionChangeAmount) {
                         // 累计下跌超过阈值，加仓
                         double sharesToBuy = positionChangeAmount / currentNav;
@@ -288,7 +309,14 @@ public class FundBacktestService {
                 }
                 
                 if (Math.abs(cumulativeChange) >= request.getConsecutive3DaysThreshold()) {
-                    double positionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
+                    double positionChangeAmount;
+                    if ("amount".equals(request.getBacktestMode())) {
+                        // 金额模式
+                        positionChangeAmount = cumulativeChange < 0 ? request.getUpPositionAmount() : request.getDownPositionAmount();
+                    } else {
+                        // 百分比模式
+                        positionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
+                    }
                     if (cumulativeChange < 0 && currentCash >= positionChangeAmount) {
                         // 累计下跌超过阈值，加仓
                         double sharesToBuy = positionChangeAmount / currentNav;
@@ -322,7 +350,14 @@ public class FundBacktestService {
                 }
                 
                 if (Math.abs(cumulativeChange) >= request.getConsecutive4DaysThreshold()) {
-                    double positionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
+                    double positionChangeAmount;
+                    if ("amount".equals(request.getBacktestMode())) {
+                        // 金额模式
+                        positionChangeAmount = cumulativeChange < 0 ? request.getUpPositionAmount() : request.getDownPositionAmount();
+                    } else {
+                        // 百分比模式
+                        positionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
+                    }
                     if (cumulativeChange < 0 && currentCash >= positionChangeAmount) {
                         // 累计下跌超过阈值，加仓
                         double sharesToBuy = positionChangeAmount / currentNav;

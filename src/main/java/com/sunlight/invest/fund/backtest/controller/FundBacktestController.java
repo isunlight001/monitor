@@ -39,11 +39,18 @@ public class FundBacktestController {
     @PostMapping("/run")
     public Map<String, Object> runBacktest(@RequestBody BacktestRequest request) {
         logger.info("========== 接收到回测请求 ==========");
-        logger.info("请求参数: 基金代码={}, 初始资金={}, 初始持仓={}, 回测月数={}", 
-            request.getFundCode(), request.getInitialCapital(), request.getInitialHoldings(), request.getBacktestMonths());
-        logger.info("策略参数: 涨幅阈值={}%, 跌幅阈值={}%, 加仓={}, 减仓={}",
-            request.getUpThreshold(), request.getDownThreshold(), 
-            request.getUpPositionChange(), request.getDownPositionChange());
+        logger.info("请求参数: 基金代码={}, 初始资金={}, 初始持仓={}, 回测月数={}, 回测模式={}", 
+            request.getFundCode(), request.getInitialCapital(), request.getInitialHoldings(), request.getBacktestMonths(), request.getBacktestMode());
+        
+        if ("amount".equals(request.getBacktestMode())) {
+            logger.info("金额模式策略参数: 涨幅阈值={}%, 跌幅阈值={}%, 加仓金额={}, 减仓金额={}",
+                request.getUpThreshold(), request.getDownThreshold(), 
+                request.getUpPositionAmount(), request.getDownPositionAmount());
+        } else {
+            logger.info("百分比模式策略参数: 涨幅阈值={}%, 跌幅阈值={}%, 加仓比例={}, 减仓比例={}",
+                request.getUpThreshold(), request.getDownThreshold(), 
+                request.getUpPositionChange(), request.getDownPositionChange());
+        }
         
         Map<String, Object> result = new HashMap<>();
         try {

@@ -87,6 +87,21 @@ public class BacktestRequest {
      */
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate endDate;
+    
+    /**
+     * 回测模式：amount（金额模式）或 percentage（百分比模式）
+     */
+    private String backtestMode = "amount";
+    
+    /**
+     * 加仓金额（元）- 金额模式使用
+     */
+    private double upPositionAmount = 5000.0;
+    
+    /**
+     * 减仓金额（元）- 金额模式使用
+     */
+    private double downPositionAmount = 5000.0;
 
     // Getters and Setters
     public String getFundCode() {
@@ -207,5 +222,29 @@ public class BacktestRequest {
 
     public void setEndDate(LocalDate endDate) {
         this.endDate = endDate;
+    }
+    
+    public String getBacktestMode() {
+        return backtestMode;
+    }
+    
+    public void setBacktestMode(String backtestMode) {
+        this.backtestMode = backtestMode;
+    }
+    
+    public double getUpPositionAmount() {
+        return upPositionAmount;
+    }
+    
+    public void setUpPositionAmount(double upPositionAmount) {
+        this.upPositionAmount = upPositionAmount;
+    }
+    
+    public double getDownPositionAmount() {
+        return downPositionAmount;
+    }
+    
+    public void setDownPositionAmount(double downPositionAmount) {
+        this.downPositionAmount = downPositionAmount;
     }
 }
