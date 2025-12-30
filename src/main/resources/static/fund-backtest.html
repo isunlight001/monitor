@@ -436,7 +436,7 @@
                                 <thead>
                                     <tr>
                                         <th>日期</th>
-                                        <th>基金涨跌%</th>
+                                        <th>基金净值涨跌%</th>
                                         <th>基金净值</th>
                                         <th>现金</th>
                                         <th>持仓份额</th>
@@ -742,10 +742,13 @@
                 } else if (item.action === 'SELL') {
                     actionClass = 'action-sell';
                 }
+                
+                // 使用从数据库直接获取的基金净值涨跌幅（完全依赖后端数据库数据，不做任何前端计算）
+                const navChangeRate = item.navChangeRate || item.indexChange || 0;
 
                 row.innerHTML = `
                     <td>${item.date}</td>
-                    <td>${formatPercentage(item.indexChange)}</td>
+                    <td class="${navChangeRate >= 0 ? 'action-sell' : 'action-buy'}">${navChangeRate.toFixed(4)}</td>
                     <td>${item.nav.toFixed(4)}</td>
                     <td>${formatCurrency(item.capital)}</td>
                     <td>${(item.holdings * item.nav).toFixed(2)}</td>
@@ -766,6 +769,8 @@
         function formatPercentage(value) {
             return (value * 100).toFixed(2) + '%';
         }
+        
+
 
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', function() {
