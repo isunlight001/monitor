@@ -203,6 +203,7 @@ public class BacktestResponse {
         private double holdings;
         private double totalAssets;
         private String action;
+        private double positionChangeAmount;
         
         public DailyDetail(String date, double indexChange, double nav, double capital, 
                           double holdings, double totalAssets, String action) {
@@ -213,6 +214,19 @@ public class BacktestResponse {
             this.holdings = holdings;
             this.totalAssets = totalAssets;
             this.action = action;
+            this.positionChangeAmount = 0; // 默认值
+        }
+        
+        public DailyDetail(String date, double indexChange, double nav, double capital, 
+                          double holdings, double totalAssets, String action, double positionChangeAmount) {
+            this.date = date;
+            this.indexChange = indexChange;
+            this.nav = nav;
+            this.capital = capital;
+            this.holdings = holdings;
+            this.totalAssets = totalAssets;
+            this.action = action;
+            this.positionChangeAmount = positionChangeAmount;
         }
 
         // Getters and Setters
@@ -270,6 +284,14 @@ public class BacktestResponse {
 
         public void setAction(String action) {
             this.action = action;
+        }
+        
+        public double getPositionChangeAmount() {
+            return positionChangeAmount;
+        }
+        
+        public void setPositionChangeAmount(double positionChangeAmount) {
+            this.positionChangeAmount = positionChangeAmount;
         }
     }
 }

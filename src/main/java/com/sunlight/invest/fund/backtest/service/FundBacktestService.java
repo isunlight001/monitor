@@ -165,6 +165,7 @@ public class FundBacktestService {
             
             // 触发规则判断
             String action = "HOLD"; // 默认持有
+            double positionChangeAmount = 0; // 默认为0
             
             // 获取最近几天的数据用于规则判断
             int currentIndex = sortedDates.indexOf(date);
@@ -194,29 +195,31 @@ public class FundBacktestService {
                 
                 if (isConsecutiveUp || isConsecutiveDown) {
                     // 连续上涨减仓，连续下跌加仓
-                    double positionChangeAmount;
+                    double tempPositionChangeAmount;
                     if ("amount".equals(request.getBacktestMode())) {
                         // 金额模式
-                        positionChangeAmount = isConsecutiveUp ? request.getDownPositionAmount() : request.getUpPositionAmount();
+                        tempPositionChangeAmount = isConsecutiveUp ? request.getDownPositionAmount() : request.getUpPositionAmount();
                     } else {
                         // 百分比模式
-                        positionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
+                        tempPositionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
                     }
-                    if (isConsecutiveUp && currentHoldingsValue >= positionChangeAmount) {
+                    if (isConsecutiveUp && currentHoldingsValue >= tempPositionChangeAmount) {
                         // 连续上涨，减仓
-                        double sharesToSell = positionChangeAmount / currentNav;
+                        double sharesToSell = tempPositionChangeAmount / currentNav;
                         if (sharesToSell <= currentHoldings) {
-                            currentCash += positionChangeAmount;
+                            currentCash += tempPositionChangeAmount;
                             currentHoldings -= sharesToSell;
                             action = "SELL";
+                            positionChangeAmount = tempPositionChangeAmount; // 记录实际操作金额
                             downPositionChanges++;
                         }
-                    } else if (isConsecutiveDown && currentCash >= positionChangeAmount) {
+                    } else if (isConsecutiveDown && currentCash >= tempPositionChangeAmount) {
                         // 连续下跌，加仓
-                        double sharesToBuy = positionChangeAmount / currentNav;
-                        currentCash -= positionChangeAmount;
+                        double sharesToBuy = tempPositionChangeAmount / currentNav;
+                        currentCash -= tempPositionChangeAmount;
                         currentHoldings += sharesToBuy;
                         action = "BUY";
+                        positionChangeAmount = tempPositionChangeAmount; // 记录实际操作金额
                         upPositionChanges++;
                     }
                 }
@@ -228,28 +231,30 @@ public class FundBacktestService {
                 currentFundNav.getDailyReturn().doubleValue() : 0.0;
                 
             if (Math.abs(fundChange) >= request.getSingleDayThreshold()) {
-                double positionChangeAmount;
+                double tempPositionChangeAmount;
                 if ("amount".equals(request.getBacktestMode())) {
                     // 金额模式
-                    positionChangeAmount = fundChange < 0 ? request.getUpPositionAmount() : request.getDownPositionAmount();
+                    tempPositionChangeAmount = fundChange < 0 ? request.getUpPositionAmount() : request.getDownPositionAmount();
                 } else {
                     // 百分比模式
-                    positionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
+                    tempPositionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
                 }
-                if (fundChange < 0 && currentCash >= positionChangeAmount) {
+                if (fundChange < 0 && currentCash >= tempPositionChangeAmount) {
                     // 跌幅超过阈值，加仓（连续下跌加仓）
-                    double sharesToBuy = positionChangeAmount / currentNav;
-                    currentCash -= positionChangeAmount;
+                    double sharesToBuy = tempPositionChangeAmount / currentNav;
+                    currentCash -= tempPositionChangeAmount;
                     currentHoldings += sharesToBuy;
                     action = "BUY";
+                    positionChangeAmount = tempPositionChangeAmount; // 记录实际操作金额
                     upPositionChanges++;
-                } else if (fundChange > 0 && currentHoldingsValue >= positionChangeAmount) {
+                } else if (fundChange > 0 && currentHoldingsValue >= tempPositionChangeAmount) {
                     // 涨幅超过阈值，减仓（连续上涨减仓）
-                    double sharesToSell = positionChangeAmount / currentNav;
+                    double sharesToSell = tempPositionChangeAmount / currentNav;
                     if (sharesToSell <= currentHoldings) {
-                        currentCash += positionChangeAmount;
+                        currentCash += tempPositionChangeAmount;
                         currentHoldings -= sharesToSell;
                         action = "SELL";
+                        positionChangeAmount = tempPositionChangeAmount; // 记录实际操作金额
                         downPositionChanges++;
                     }
                 }
@@ -268,28 +273,30 @@ public class FundBacktestService {
                 }
                 
                 if (Math.abs(cumulativeChange) >= request.getConsecutive2DaysThreshold()) {
-                    double positionChangeAmount;
+                    double tempPositionChangeAmount;
                     if ("amount".equals(request.getBacktestMode())) {
                         // 金额模式
-                        positionChangeAmount = cumulativeChange < 0 ? request.getUpPositionAmount() : request.getDownPositionAmount();
+                        tempPositionChangeAmount = cumulativeChange < 0 ? request.getUpPositionAmount() : request.getDownPositionAmount();
                     } else {
                         // 百分比模式
-                        positionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
+                        tempPositionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
                     }
-                    if (cumulativeChange < 0 && currentCash >= positionChangeAmount) {
+                    if (cumulativeChange < 0 && currentCash >= tempPositionChangeAmount) {
                         // 累计下跌超过阈值，加仓
-                        double sharesToBuy = positionChangeAmount / currentNav;
-                        currentCash -= positionChangeAmount;
+                        double sharesToBuy = tempPositionChangeAmount / currentNav;
+                        currentCash -= tempPositionChangeAmount;
                         currentHoldings += sharesToBuy;
                         action = "BUY";
+                        positionChangeAmount = tempPositionChangeAmount; // 记录实际操作金额
                         upPositionChanges++;
-                    } else if (cumulativeChange > 0 && currentHoldingsValue >= positionChangeAmount) {
+                    } else if (cumulativeChange > 0 && currentHoldingsValue >= tempPositionChangeAmount) {
                         // 累计上涨超过阈值，减仓
-                        double sharesToSell = positionChangeAmount / currentNav;
+                        double sharesToSell = tempPositionChangeAmount / currentNav;
                         if (sharesToSell <= currentHoldings) {
-                            currentCash += positionChangeAmount;
+                            currentCash += tempPositionChangeAmount;
                             currentHoldings -= sharesToSell;
                             action = "SELL";
+                            positionChangeAmount = tempPositionChangeAmount; // 记录实际操作金额
                             downPositionChanges++;
                         }
                     }
@@ -309,28 +316,30 @@ public class FundBacktestService {
                 }
                 
                 if (Math.abs(cumulativeChange) >= request.getConsecutive3DaysThreshold()) {
-                    double positionChangeAmount;
+                    double tempPositionChangeAmount;
                     if ("amount".equals(request.getBacktestMode())) {
                         // 金额模式
-                        positionChangeAmount = cumulativeChange < 0 ? request.getUpPositionAmount() : request.getDownPositionAmount();
+                        tempPositionChangeAmount = cumulativeChange < 0 ? request.getUpPositionAmount() : request.getDownPositionAmount();
                     } else {
                         // 百分比模式
-                        positionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
+                        tempPositionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
                     }
-                    if (cumulativeChange < 0 && currentCash >= positionChangeAmount) {
+                    if (cumulativeChange < 0 && currentCash >= tempPositionChangeAmount) {
                         // 累计下跌超过阈值，加仓
-                        double sharesToBuy = positionChangeAmount / currentNav;
-                        currentCash -= positionChangeAmount;
+                        double sharesToBuy = tempPositionChangeAmount / currentNav;
+                        currentCash -= tempPositionChangeAmount;
                         currentHoldings += sharesToBuy;
                         action = "BUY";
+                        positionChangeAmount = tempPositionChangeAmount; // 记录实际操作金额
                         upPositionChanges++;
-                    } else if (cumulativeChange > 0 && currentHoldingsValue >= positionChangeAmount) {
+                    } else if (cumulativeChange > 0 && currentHoldingsValue >= tempPositionChangeAmount) {
                         // 累计上涨超过阈值，减仓
-                        double sharesToSell = positionChangeAmount / currentNav;
+                        double sharesToSell = tempPositionChangeAmount / currentNav;
                         if (sharesToSell <= currentHoldings) {
-                            currentCash += positionChangeAmount;
+                            currentCash += tempPositionChangeAmount;
                             currentHoldings -= sharesToSell;
                             action = "SELL";
+                            positionChangeAmount = tempPositionChangeAmount; // 记录实际操作金额
                             downPositionChanges++;
                         }
                     }
@@ -350,28 +359,30 @@ public class FundBacktestService {
                 }
                 
                 if (Math.abs(cumulativeChange) >= request.getConsecutive4DaysThreshold()) {
-                    double positionChangeAmount;
+                    double tempPositionChangeAmount;
                     if ("amount".equals(request.getBacktestMode())) {
                         // 金额模式
-                        positionChangeAmount = cumulativeChange < 0 ? request.getUpPositionAmount() : request.getDownPositionAmount();
+                        tempPositionChangeAmount = cumulativeChange < 0 ? request.getUpPositionAmount() : request.getDownPositionAmount();
                     } else {
                         // 百分比模式
-                        positionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
+                        tempPositionChangeAmount = currentTotalAssets * (request.getUpPositionChange() / 100.0);
                     }
-                    if (cumulativeChange < 0 && currentCash >= positionChangeAmount) {
+                    if (cumulativeChange < 0 && currentCash >= tempPositionChangeAmount) {
                         // 累计下跌超过阈值，加仓
-                        double sharesToBuy = positionChangeAmount / currentNav;
-                        currentCash -= positionChangeAmount;
+                        double sharesToBuy = tempPositionChangeAmount / currentNav;
+                        currentCash -= tempPositionChangeAmount;
                         currentHoldings += sharesToBuy;
                         action = "BUY";
+                        positionChangeAmount = tempPositionChangeAmount; // 记录实际操作金额
                         upPositionChanges++;
-                    } else if (cumulativeChange > 0 && currentHoldingsValue >= positionChangeAmount) {
+                    } else if (cumulativeChange > 0 && currentHoldingsValue >= tempPositionChangeAmount) {
                         // 累计上涨超过阈值，减仓
-                        double sharesToSell = positionChangeAmount / currentNav;
+                        double sharesToSell = tempPositionChangeAmount / currentNav;
                         if (sharesToSell <= currentHoldings) {
-                            currentCash += positionChangeAmount;
+                            currentCash += tempPositionChangeAmount;
                             currentHoldings -= sharesToSell;
                             action = "SELL";
+                            positionChangeAmount = tempPositionChangeAmount; // 记录实际操作金额
                             downPositionChanges++;
                         }
                     }
@@ -389,7 +400,8 @@ public class FundBacktestService {
                 currentCash,
                 currentHoldings,
                 currentTotalAssets,
-                action
+                action,
+                positionChangeAmount // 添加加减仓金额
             ));
         }
         

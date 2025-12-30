@@ -463,6 +463,7 @@
                                         <th>现金</th>
                                         <th>持仓份额</th>
                                         <th>总资产</th>
+                                        <th>加减仓金额</th>
                                         <th>操作</th>
                                     </tr>
                                 </thead>
@@ -818,6 +819,7 @@
                     <td>${formatCurrency(item.capital)}</td>
                     <td>${(item.holdings * item.nav).toFixed(2)}</td>
                     <td>${formatCurrency(item.totalAssets)}</td>
+                    <td>${formatCurrency(item.positionChangeAmount || 0)}</td>
                     <td class="${actionClass}">${item.action === 'BUY' ? '加仓' : item.action === 'SELL' ? '减仓' : '持有'}</td>
                 `;
                 
