@@ -62,6 +62,21 @@
     margin-top: 20px;
 }
 
+/* 页脚样式 */
+.footer {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-align: center;
+    padding: 30px 0;
+    margin-top: 50px;
+}
+
+.footer-content p {
+    margin: 5px 0;
+    font-size: 14px;
+    opacity: 0.9;
+}
+
 .nav-link {
     padding: 12px 25px;
     border-radius: 8px;

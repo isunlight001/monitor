@@ -387,6 +387,9 @@
             
             document.getElementById('startDate').value = startDateStr;
             document.getElementById('endDate').value = endDateStr;
+            
+            // 加载公共footer
+            loadFooter();
         });
         
         // 加载公共header
@@ -400,6 +403,18 @@
                 })
                 .catch(error => {
                     console.error('加载公共header失败:', error);
+                });
+        }
+        
+        // 加载公共footer
+        function loadFooter() {
+            fetch('components/footer.html')
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('footer-placeholder').innerHTML = html;
+                })
+                .catch(error => {
+                    console.error('加载公共footer失败:', error);
                 });
         }
         
@@ -1023,6 +1038,10 @@
             });
         }
     </script>
+    
+    <!-- 引入公共footer -->
+    <div id="footer-placeholder"></div>
+    
     <!-- 引入公共认证脚本 -->
     <script src="js/auth.js"></script>
 </body>
