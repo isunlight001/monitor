@@ -329,8 +329,35 @@
                 </div>
                 
                 <div class="form-group">
-                    <label>减仓比例 (%)</label>
-                    <input type="number" id="downPositionChange" value="10" step="1" min="0">
+                    <label>回测模式</label>
+                    <select id="backtestMode" class="form-control">
+                        <option value="amount">按金额加减仓</option>
+                        <option value="percentage">按百分比加减仓</option>
+                    </select>
+                </div>
+                
+                <div id="amountModeGroup">
+                    <div class="form-group">
+                        <label>加仓金额 (元)</label>
+                        <input type="number" id="upPositionAmount" value="5000" step="100" min="0">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>减仓金额 (元)</label>
+                        <input type="number" id="downPositionAmount" value="5000" step="100" min="0">
+                    </div>
+                </div>
+                
+                <div id="percentageModeGroup" style="display: none;">
+                    <div class="form-group">
+                        <label>加仓比例 (%)</label>
+                        <input type="number" id="upPositionChange" value="10" step="1" min="0" max="100">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>减仓比例 (%)</label>
+                        <input type="number" id="downPositionChange" value="10" step="1" min="0" max="100">
+                    </div>
                 </div>
                 
                 <!--
@@ -512,6 +539,20 @@
         function bindEvents() {
             document.getElementById('runBtn').addEventListener('click', runBacktest);
             document.getElementById('resetBtn').addEventListener('click', resetForm);
+            document.getElementById('backtestMode').addEventListener('change', toggleBacktestMode);
+        }
+        
+        // 切换回测模式
+        function toggleBacktestMode() {
+            const mode = document.getElementById('backtestMode').value;
+            
+            if (mode === 'amount') {
+                document.getElementById('amountModeGroup').style.display = 'block';
+                document.getElementById('percentageModeGroup').style.display = 'none';
+            } else if (mode === 'percentage') {
+                document.getElementById('amountModeGroup').style.display = 'none';
+                document.getElementById('percentageModeGroup').style.display = 'block';
+            }
         }
 
         // 重置表单
@@ -520,11 +561,17 @@
             document.getElementById('initialHoldings').value = '50';
             document.getElementById('upPositionChange').value = '10';
             document.getElementById('downPositionChange').value = '10';
+            document.getElementById('upPositionAmount').value = '5000';
+            document.getElementById('downPositionAmount').value = '5000';
+            document.getElementById('backtestMode').value = 'amount'; // 默认按金额模式
             // document.getElementById('upThreshold').value = '2';
             // document.getElementById('downThreshold').value = '0.5';
             document.getElementById('backtestMonths').value = '12';
             
             initializeDates();
+            
+            // 重置模式显示
+            toggleBacktestMode();
         }
 
         // 加载基金代码下拉列表
@@ -552,13 +599,14 @@
 
         // 运行回测
         async function runBacktest() {
+            const mode = document.getElementById('backtestMode').value;
+            
             // 获取参数
             const params = {
                 fundCode: document.getElementById('fundCode').value,
                 initialCapital: parseFloat(document.getElementById('initialCapital').value),
                 initialHoldings: parseFloat(document.getElementById('initialHoldings').value),
-                upPositionChange: parseFloat(document.getElementById('upPositionChange').value),
-                downPositionChange: parseFloat(document.getElementById('downPositionChange').value),
+                backtestMode: mode, // 添加回测模式参数
                 // upThreshold: parseFloat(document.getElementById('upThreshold').value),
                 // downThreshold: parseFloat(document.getElementById('downThreshold').value),
                 upThreshold: 0, // 设置为0，因为不再使用
@@ -572,6 +620,15 @@
                 endDate: document.getElementById('endDate').value,
                 backtestMonths: parseInt(document.getElementById('backtestMonths').value)
             };
+            
+            // 根据模式添加相应的参数
+            if (mode === 'amount') {
+                params.upPositionAmount = parseFloat(document.getElementById('upPositionAmount').value);
+                params.downPositionAmount = parseFloat(document.getElementById('downPositionAmount').value);
+            } else if (mode === 'percentage') {
+                params.upPositionChange = parseFloat(document.getElementById('upPositionChange').value);
+                params.downPositionChange = parseFloat(document.getElementById('downPositionChange').value);
+            }
 
             // 验证参数
             if (!params.fundCode) {
@@ -581,6 +638,19 @@
             if (!params.startDate || !params.endDate) {
                 showError('请选择回测日期范围');
                 return;
+            }
+            
+            // 验证模式特定参数
+            if (mode === 'amount') {
+                if (isNaN(params.upPositionAmount) || isNaN(params.downPositionAmount)) {
+                    showError('请输入有效的加仓和减仓金额');
+                    return;
+                }
+            } else if (mode === 'percentage') {
+                if (isNaN(params.upPositionChange) || isNaN(params.downPositionChange)) {
+                    showError('请输入有效的加仓和减仓比例');
+                    return;
+                }
             }
 
             // 显示加载状态
@@ -778,6 +848,9 @@
             initializeDates();
             bindEvents();
             loadFundCodes(); // 加载基金编码下拉列表
+            
+            // 初始化回测模式显示（默认按金额模式）
+            toggleBacktestMode();
         });
     </script>
     <!-- 引入公共认证脚本 -->
