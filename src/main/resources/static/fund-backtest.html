@@ -49,6 +49,13 @@
             gap: 20px;
             margin-top: 20px;
         }
+        
+        /* 当显示三个结果区域时的布局 */
+        .three-panel-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
         .panel {
             background: #f8f9fa;
             border-radius: 10px;
@@ -182,6 +189,7 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
+            table-layout: auto;
         }
         
         .detail-table th,
@@ -196,6 +204,7 @@
             font-weight: bold;
             position: sticky;
             top: 0;
+            z-index: 10;
         }
         
         .action-buy {
@@ -370,45 +379,58 @@
                 </div>
             </div>
             
-            <!-- 右侧结果面板 -->
-            <div class="panel">
-                <div class="panel-title">📊 回测结果分析</div>
-                
-                <div id="loadingArea" class="loading" style="display: none;">
-                    正在执行回测，请稍候...
+            <!-- 右侧结果面板 - 分成三个独立区域 -->
+            
+            <div class="three-panel-layout">
+                <!-- 回测结果分析区域 -->
+                <div class="panel">
+                    <div class="panel-title">📊 回测结果分析</div>
+                    
+                    <div id="loadingArea" class="loading" style="display: none;">
+                        正在执行回测，请稍候...
+                    </div>
+                    
+                    <div id="errorArea" style="display: none;"></div>
+                    
+                    <div id="resultArea" class="result-area" style="display: none;">
+                        <!-- 概览卡片 -->
+                        <div class="summary-cards">
+                            <div class="summary-card">
+                                <div class="label">总资产</div>
+                                <div class="value" id="totalAssets">-</div>
+                            </div>
+                            <div class="summary-card success">
+                                <div class="label">总收益率</div>
+                                <div class="value" id="returnRate">-</div>
+                            </div>
+                            <div class="summary-card warning">
+                                <div class="label">最大回撤</div>
+                                <div class="value" id="maxDrawdown">-</div>
+                            </div>
+                            <div class="summary-card info">
+                                <div class="label">交易日数</div>
+                                <div class="value" id="tradingDays">-</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
-                <div id="errorArea" style="display: none;"></div>
+                <!-- 资金曲线图区域 -->
+                <div class="panel">
+                    <div class="panel-title">📈 资金曲线图</div>
+                    
+                    <div id="chartArea" style="display: none;">
+                        <div class="chart-container">
+                            <canvas id="assetChart"></canvas>
+                        </div>
+                    </div>
+                </div>
                 
-                <div id="resultArea" class="result-area" style="display: none;">
-                    <!-- 概览卡片 -->
-                    <div class="summary-cards">
-                        <div class="summary-card">
-                            <div class="label">总资产</div>
-                            <div class="value" id="totalAssets">-</div>
-                        </div>
-                        <div class="summary-card success">
-                            <div class="label">总收益率</div>
-                            <div class="value" id="returnRate">-</div>
-                        </div>
-                        <div class="summary-card warning">
-                            <div class="label">最大回撤</div>
-                            <div class="value" id="maxDrawdown">-</div>
-                        </div>
-                        <div class="summary-card info">
-                            <div class="label">交易日数</div>
-                            <div class="value" id="tradingDays">-</div>
-                        </div>
-                    </div>
+                <!-- 详细交易记录区域 -->
+                <div class="panel">
+                    <div class="panel-title">📝 详细交易记录</div>
                     
-                    <!-- 资金曲线图 -->
-                    <div class="chart-container">
-                        <canvas id="assetChart"></canvas>
-                    </div>
-                    
-                    <!-- 详细数据表 -->
-                    <div class="detail-section">
-                        <h3>📈 详细交易记录</h3>
+                    <div id="detailArea">
                         <div class="detail-table-wrapper">
                             <table class="detail-table" id="detailTable">
                                 <thead>
@@ -611,18 +633,21 @@
             document.getElementById('maxDrawdown').textContent = formatPercentage(data.maxDrawdown);
             document.getElementById('tradingDays').textContent = data.tradingDays;
 
-            // 渲染资金曲线图
-            renderAssetChart(data.dailyDetails);
-
-            // 渲染详细数据表
-            renderDetailTable(data.dailyDetails);
-
             // 显示结果区域
             document.getElementById('resultArea').style.display = 'block';
+            
+            // 渲染资金曲线图
+            renderAssetChart(data.dailyDetails);
+            
+            // 渲染详细数据表
+            renderDetailTable(data.dailyDetails);
         }
 
         // 渲染资金曲线图
         function renderAssetChart(dailyDetails) {
+            // 显示图表区域
+            document.getElementById('chartArea').style.display = 'block';
+            
             const ctx = document.getElementById('assetChart').getContext('2d');
             
             // 销毁之前的图表实例（如果存在）
