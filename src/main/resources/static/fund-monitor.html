@@ -349,9 +349,7 @@
                 <h3>📋 监控基金管理</h3>
                 <div class="form-group">
                     <label>基金代码*</label>
-                    <select id="monitorFundCode" class="form-control">
-                        <option value="">请选择基金代码</option>
-                    </select>
+                    <input type="text" id="monitorFundCode" class="form-control" placeholder="请输入基金代码">
                 </div>
                 <div class="form-group">
                     <label>基金名称*</label>
@@ -374,7 +372,6 @@
             initializeFundCodeAutocomplete();
             initializeCheckFundCodeAutocomplete();
             initializeQueryFundCodeAutocomplete();
-            initializeMonitorFundCodeAutocomplete();
             loadMonitorFunds(); // 页面加载时自动加载监控基金列表
             
             // 设置默认日期为最近5年
@@ -609,52 +606,7 @@
                 });
         }
         
-        // 初始化监控基金代码下拉框
-        function initializeMonitorFundCodeAutocomplete() {
-            const select = document.getElementById('monitorFundCode');
-            
-            // 从数据库获取基金列表并填充下拉框
-            fetch(`${API_BASE}/monitor-funds`)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        const fundList = data.data || [];
-                        
-                        // 清空现有选项（除了默认选项）
-                        select.innerHTML = '<option value="">请选择基金代码</option>';
-                        
-                        // 添加基金选项
-                        fundList.forEach(fund => {
-                            const option = document.createElement('option');
-                            option.value = fund.fundCode;
-                            option.textContent = `${fund.fundCode} - ${fund.fundName}`;
-                            select.appendChild(option);
-                        });
-                    }
-                })
-                .catch(error => {
-                    console.error('获取基金列表失败:', error);
-                    // 如果获取失败，使用示例数据
-                    const defaultSuggestions = [
-                        {code: '006195', name: '国金量化多因子'},
-                        {code: '000001', name: '华夏成长混合'},
-                        {code: '161725', name: '招商中证白酒指数'},
-                        {code: '001186', name: '华夏沪深300ETF联接A'},
-                        {code: '110022', name: '易方达消费行业'}
-                    ];
-                    
-                    // 清空现有选项（除了默认选项）
-                    select.innerHTML = '<option value="">请选择基金代码</option>';
-                    
-                    // 添加默认选项
-                    defaultSuggestions.forEach(fund => {
-                        const option = document.createElement('option');
-                        option.value = fund.code;
-                        option.textContent = `${fund.code} - ${fund.name}`;
-                        select.appendChild(option);
-                    });
-                });
-        }
+        // 监控基金代码选择不需要初始化，因为使用对话框
         
         // 手工触发所有监控基金预警
         function triggerAllMonitorFunds() {
