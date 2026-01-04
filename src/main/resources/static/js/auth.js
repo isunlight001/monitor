@@ -7,17 +7,27 @@ async function checkLoginStatus() {
         const result = await response.json();
         
         if (result.success) {
-            // 显示用户信息
-            document.getElementById('userInfo').style.display = 'flex';
-            document.getElementById('currentUserName').textContent = result.data.username;
+            // 显示用户信息（如果页面中有相关元素）
+            const userInfoElement = document.getElementById('userInfo');
+            const currentUserNameElement = document.getElementById('currentUserName');
+            
+            if (userInfoElement) {
+                userInfoElement.style.display = 'flex';
+            }
+            
+            if (currentUserNameElement) {
+                currentUserNameElement.textContent = result.data.username;
+            }
         } else {
-            // 未登录，跳转到登录页面
-            window.location.href = 'login.html';
+            // 未登录，跳转到登录页面，并携带返回URL
+            const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+            window.location.href = `login.html?returnUrl=${returnUrl}`;
         }
     } catch (error) {
         console.error('检查登录状态失败:', error);
-        // 跳转到登录页面
-        window.location.href = 'login.html';
+        // 跳转到登录页面，并携带返回URL
+        const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+        window.location.href = `login.html?returnUrl=${returnUrl}`;
     }
 }
 

@@ -125,5 +125,19 @@ ADD INDEX idx_user_id (user_id);
 -- FOREIGN KEY (user_id) REFERENCES `user`(id) 
 -- ON DELETE SET NULL ON UPDATE CASCADE;
 
+-- 博客表
+CREATE TABLE IF NOT EXISTS `blog` (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(255) NOT NULL COMMENT '标题',
+    content TEXT COMMENT '内容',
+    author VARCHAR(100) COMMENT '作者',
+    summary VARCHAR(500) COMMENT '摘要',
+    category VARCHAR(100) COMMENT '分类',
+    tags VARCHAR(255) COMMENT '标签',
+    published TINYINT(1) DEFAULT 0 COMMENT '是否发布',
+    create_time DATETIME COMMENT '创建时间',
+    update_time DATETIME COMMENT '更新时间'
+) COMMENT '博客表';
+
 -- 为基金监控表添加备注字段
 ALTER TABLE `fund_monitor` ADD COLUMN remark VARCHAR(200) COMMENT '基金备注';

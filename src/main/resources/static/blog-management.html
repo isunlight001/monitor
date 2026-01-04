@@ -232,15 +232,22 @@
         const API_BASE = '/api/blog';
 
         // 页面加载完成后检查登录状态并加载博客
-        document.addEventListener('DOMContentLoaded', function() {
-            checkLoginStatus();
-            loadAllBlogs();
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                await checkLoginStatus();
+                loadAllBlogs();
+            } catch (error) {
+                console.error('页面初始化失败:', error);
+            }
         });
 
         // 加载所有博客（包括未发布的）
         async function loadAllBlogs() {
             try {
                 const response = await fetch(`${API_BASE}/all`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 const result = await response.json();
 
                 const blogListElement = document.getElementById('blogList');

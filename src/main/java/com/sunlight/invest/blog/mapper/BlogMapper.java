@@ -32,6 +32,45 @@ public interface BlogMapper {
     void createTable();
 
     /**
+     * 检查列是否存在
+     */
+    @Select("SELECT COUNT(*) FROM information_schema.COLUMNS " +
+            "WHERE TABLE_SCHEMA = (SELECT DATABASE()) " +
+            "AND TABLE_NAME = 'blog' " +
+            "AND COLUMN_NAME = #{columnName}")
+    int checkColumnExists(@Param("columnName") String columnName);
+
+    /**
+     * 添加分类列
+     */
+    @Update("ALTER TABLE blog ADD COLUMN category VARCHAR(100) COMMENT '分类'")
+    void addCategoryColumn();
+
+    /**
+     * 添加标签列
+     */
+    @Update("ALTER TABLE blog ADD COLUMN tags VARCHAR(255) COMMENT '标签'")
+    void addTagsColumn();
+
+    /**
+     * 添加摘要列
+     */
+    @Update("ALTER TABLE blog ADD COLUMN summary VARCHAR(500) COMMENT '摘要'")
+    void addSummaryColumn();
+
+    /**
+     * 添加发布时间列
+     */
+    @Update("ALTER TABLE blog ADD COLUMN create_time DATETIME COMMENT '创建时间'")
+    void addCreateTimeColumn();
+
+    /**
+     * 添加更新时间列
+     */
+    @Update("ALTER TABLE blog ADD COLUMN update_time DATETIME COMMENT '更新时间'")
+    void addUpdateTimeColumn();
+
+    /**
      * 插入博客记录
      *
      * @param blog 博客对象

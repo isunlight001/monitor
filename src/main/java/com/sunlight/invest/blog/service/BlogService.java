@@ -32,11 +32,53 @@ public class BlogService {
     public void init() {
         try {
             blogMapper.createTable();
+            updateTableStructure();
             log.info("博客表初始化完成");
         } catch (Exception e) {
             log.error("博客表初始化失败", e);
         }
     }
+
+    /**
+     * 更新表结构，确保包含所有必需的列
+     */
+    private void updateTableStructure() {
+        try {
+            // 检查并添加category列
+            if (blogMapper.checkColumnExists("category") == 0) {
+                blogMapper.addCategoryColumn();
+                log.info("博客表添加category列成功");
+            }
+            
+            // 检查并添加tags列
+            if (blogMapper.checkColumnExists("tags") == 0) {
+                blogMapper.addTagsColumn();
+                log.info("博客表添加tags列成功");
+            }
+            
+            // 检查并添加summary列
+            if (blogMapper.checkColumnExists("summary") == 0) {
+                blogMapper.addSummaryColumn();
+                log.info("博客表添加summary列成功");
+            }
+            
+            // 检查并添加create_time列
+            if (blogMapper.checkColumnExists("create_time") == 0) {
+                blogMapper.addCreateTimeColumn();
+                log.info("博客表添加create_time列成功");
+            }
+            
+            // 检查并添加update_time列
+            if (blogMapper.checkColumnExists("update_time") == 0) {
+                blogMapper.addUpdateTimeColumn();
+                log.info("博客表添加update_time列成功");
+            }
+            
+        } catch (Exception e) {
+            log.error("更新博客表结构失败", e);
+        }
+    }
+
 
     /**
      * 创建博客
