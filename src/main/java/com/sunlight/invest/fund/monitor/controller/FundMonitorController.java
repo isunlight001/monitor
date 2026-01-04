@@ -241,7 +241,7 @@ public class FundMonitorController {
     @PutMapping("/monitor-fund/{id}")
     public Map<String, Object> updateMonitorFund(
             @PathVariable Long id,
-            @RequestParam String fundName,
+            @RequestParam(required = false) String fundName,
             @RequestParam(required = false) String remark) {
 
         Map<String, Object> result = new HashMap<>();
@@ -254,8 +254,14 @@ public class FundMonitorController {
                 return result;
             }
 
-            monitorFund.setFundName(fundName);
-            monitorFund.setRemark(remark);
+            // 只在参数存在时才更新相应字段
+            if (fundName != null) {
+                monitorFund.setFundName(fundName);
+            }
+            if (remark != null) {
+                monitorFund.setRemark(remark);
+            }
+            
             int count = monitorFundMapper.update(monitorFund);
 
             result.put("success", true);
