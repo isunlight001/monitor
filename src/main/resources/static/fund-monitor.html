@@ -897,7 +897,6 @@
                         <tr>
                             <th>基金代码</th>
                             <th>基金名称</th>
-                            <th>基金备注</th>
                             <th>状态</th>
                             <th>最新净值</th>
                             <th>最新涨跌幅</th>
@@ -919,13 +918,11 @@
                                   (latestReturn !== '--' && parseFloat(latestReturn) < 0 ? 'negative' : '');
                 
                 const navDate = fund.navDate || '--';
-                const remark = fund.remark || '--';
                 
                 tableHtml += `
                     <tr>
                         <td>${fund.fundCode}</td>
                         <td>${fund.fundName}</td>
-                        <td>${remark}</td>
                         <td class="${statusClass}">${statusText}</td>
                         <td>${latestNav}</td>
                         <td class="${returnClass}">${latestReturn}%</td>
@@ -934,6 +931,7 @@
                             <button class="btn btn-info" onclick="toggleFundStatus(${fund.id}, ${!isEnabled})">
                                 ${isEnabled ? '禁用' : '启用'}
                             </button>
+                            <button class="btn btn-primary" onclick="editFund(${fund.id}, '${fund.fundCode}', '${fund.fundName}', '${fund.remark || ''}')">编辑</button>
                             <button class="btn btn-danger" onclick="deleteMonitorFund(${fund.id})">删除</button>
                         </td>
                     </tr>
@@ -997,6 +995,101 @@
             .catch(error => {
                 console.error('Error:', error);
                 showMessage('monitorResult', '删除失败: ' + error.message, false);
+            });
+        }
+        
+        // 编辑基金
+        function editFund(fundId, fundCode, fundName, currentRemark) {
+            // 创建对话框覆盖层
+            const overlay = document.createElement('div');
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0';
+            overlay.style.left = '0';
+            overlay.style.width = '100%';
+            overlay.style.height = '100%';
+            overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            overlay.style.zIndex = '9998';
+            overlay.style.display = 'flex';
+            overlay.style.justifyContent = 'center';
+            overlay.style.alignItems = 'center';
+            
+            // 创建对话框容器
+            const dialog = document.createElement('div');
+            dialog.style.backgroundColor = 'white';
+            dialog.style.borderRadius = '8px';
+            dialog.style.width = '500px';
+            dialog.style.maxWidth = '90%';
+            dialog.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.3)';
+            dialog.style.zIndex = '9999';
+            
+            // 创建对话框内容
+            const content = `
+                <div style="padding: 20px;">
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #555;">基金代码</label>
+                        <input type="text" id="editFundCode" value="" class="form-control" readonly style="width: 100%; padding: 8px; border: 1px solid #e0e0e0; border-radius: 4px;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #555;">基金名称</label>
+                        <input type="text" id="editFundName" value="" class="form-control" readonly style="width: 100%; padding: 8px; border: 1px solid #e0e0e0; border-radius: 4px;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label style="display: block; margin-bottom: 8px; font-weight: 500; color: #555;">基金备注</label>
+                        <input type="text" id="editFundRemark" value="" class="form-control" placeholder="请输入基金备注" style="width: 100%; padding: 8px; border: 1px solid #e0e0e0; border-radius: 4px;">
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="btn btn-primary" onclick="updateFundRemark(${fundId})" style="margin-right: 10px; padding: 8px 20px; border: none; border-radius: 4px; cursor: pointer;">保存</button>
+                        <button class="btn btn-secondary" onclick="closeEditDialog()" style="padding: 8px 20px; border: none; border-radius: 4px; cursor: pointer; background-color: #6c757d; color: white;">取消</button>
+                    </div>
+                </div>
+            `;
+            
+            dialog.innerHTML = content;
+            
+            // 设置输入框的值（在DOM创建后设置，避免特殊字符问题）
+            setTimeout(() => {
+                document.getElementById('editFundCode').value = fundCode;
+                document.getElementById('editFundName').value = fundName;
+                document.getElementById('editFundRemark').value = currentRemark || '';
+            }, 0);
+            
+            overlay.appendChild(dialog);
+            document.body.appendChild(overlay);
+        }
+        
+        // 关闭编辑对话框
+        function closeEditDialog() {
+            const existingOverlay = document.querySelector('div[style*="position: fixed"][style*="rgba(0, 0, 0, 0.5)"]');
+            if (existingOverlay) {
+                document.body.removeChild(existingOverlay);
+            }
+        }
+        
+        // 更新基金备注
+        function updateFundRemark(fundId) {
+            const newRemark = document.getElementById('editFundRemark').value.trim();
+            
+            const params = new URLSearchParams({
+                fundName: document.getElementById('editFundName').value,
+                remark: newRemark
+            });
+            
+            fetch(`${API_BASE}/monitor-fund/${fundId}?${params}`, {
+                method: 'PUT'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('monitorResult', data.message, true);
+                    closeEditDialog();
+                    loadMonitorFunds(); // 重新加载列表
+                } else {
+                    showMessage('monitorResult', data.message, false);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showMessage('monitorResult', '更新失败: ' + error.message, false);
             });
         }
     </script>

@@ -231,6 +231,45 @@ public class FundMonitorController {
     }
 
     /**
+     * 更新监控基金
+     *
+     * @param id 基金ID
+     * @param fundName 基金名称
+     * @param remark 基金备注
+     * @return 响应结果
+     */
+    @PutMapping("/monitor-fund/{id}")
+    public Map<String, Object> updateMonitorFund(
+            @PathVariable Long id,
+            @RequestParam String fundName,
+            @RequestParam(required = false) String remark) {
+
+        Map<String, Object> result = new HashMap<>();
+
+        try {
+            MonitorFund monitorFund = monitorFundMapper.selectById(id);
+            if (monitorFund == null) {
+                result.put("success", false);
+                result.put("message", "基金不存在");
+                return result;
+            }
+
+            monitorFund.setFundName(fundName);
+            monitorFund.setRemark(remark);
+            int count = monitorFundMapper.update(monitorFund);
+
+            result.put("success", true);
+            result.put("message", "更新成功");
+            result.put("count", count);
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("message", "更新失败: " + e.getMessage());
+        }
+
+        return result;
+    }
+    
+    /**
      * 查询所有监控基金
      *
      * @return 监控基金列表
