@@ -47,7 +47,7 @@ src/main/java/com/sunlight/invest/
 │   └── monitor/
 │       ├── entity/
 │       │   ├── FundNav.java          # 基金净值实体类
-│       │   └── MonitorFund.java      # 监控基金实体类
+│       │   └── MonitorFund.java      # 监控基金实体类（包含备注字段）
 │       ├── mapper/
 │       │   ├── FundNavMapper.java    # 基金净值Mapper
 │       │   └── MonitorFundMapper.java # 监控基金Mapper
@@ -115,6 +115,8 @@ src/main/resources/
 - **邮件预警**: 异常波动时自动发送邮件通知
 - **数据存储**: MySQL数据库持久化存储
 - **监控管理**: 支持通过Web界面动态添加、删除和管理监控基金列表
+- **基金备注**: 支持为每个监控基金添加备注信息，方便分类和管理
+- **编辑功能**: 支持在线编辑基金备注信息
 - **容器化部署**: 支持Docker和docker-compose一键部署
 
 #### API接口
@@ -122,9 +124,10 @@ src/main/resources/
 - `POST /api/fund/monitor/update` - 增量更新基金数据
 - `POST /api/fund/monitor/check` - 执行监控检查
 - `GET /api/fund/monitor/nav` - 查询基金净值
-- `POST /api/fund/monitor/monitor-fund` - 添加监控基金
+- `POST /api/fund/monitor/monitor-fund` - 添加监控基金（支持备注字段）
 - `GET /api/fund/monitor/monitor-funds` - 查询所有监控基金
 - `PUT /api/fund/monitor/monitor-fund/{id}/status` - 更新监控基金状态
+- `PUT /api/fund/monitor/monitor-fund/{id}` - 更新监控基金信息（包括备注）
 - `DELETE /api/fund/monitor/monitor-fund/{id}` - 删除监控基金
 
 #### 定时任务
@@ -332,11 +335,16 @@ CREATE TABLE IF NOT EXISTS `fund_monitor` (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     fund_code VARCHAR(20) NOT NULL COMMENT '基金代码',
     fund_name VARCHAR(100) NOT NULL COMMENT '基金名称',
+    remark VARCHAR(200) COMMENT '基金备注',
     enabled TINYINT(1) DEFAULT 1 COMMENT '是否启用监控 (1:启用, 0:禁用)',
     create_time DATETIME COMMENT '创建时间',
     update_time DATETIME COMMENT '更新时间',
     UNIQUE KEY uk_fund_code (fund_code)
 ) COMMENT '基金监控表';
+
+-- 为基金监控表添加备注字段
+ALTER TABLE `fund_monitor` ADD COLUMN remark VARCHAR(200) COMMENT '基金备注';
+```
 ```
 
 ### 告警记录表 (alarm_record)
