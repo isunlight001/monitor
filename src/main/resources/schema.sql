@@ -19,7 +19,6 @@ CREATE TABLE IF NOT EXISTS `fund_monitor` (
     enabled TINYINT(1) DEFAULT 1 COMMENT '是否启用监控 (1:启用, 0:禁用)',
     create_time DATETIME COMMENT '创建时间',
     update_time DATETIME COMMENT '更新时间',
-    remark VARCHAR(2000) COMMENT '基金备注',
     UNIQUE KEY uk_fund_code (fund_code)
 ) COMMENT '基金监控表';
 
@@ -125,3 +124,6 @@ ADD INDEX idx_user_id (user_id);
 -- ADD CONSTRAINT fk_email_recipient_user 
 -- FOREIGN KEY (user_id) REFERENCES `user`(id) 
 -- ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- 为基金监控表添加备注字段
+ALTER TABLE `fund_monitor` ADD COLUMN remark VARCHAR(200) COMMENT '基金备注';
