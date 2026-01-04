@@ -41,6 +41,11 @@ FLUSH PRIVILEGES;
 ### 3. 初始化表结构
 项目启动时会自动执行 `schema.sql` 文件创建表结构。
 
+**注意**: 如果是从旧版本升级，请确保执行以下SQL语句添加备注字段：
+```sql
+ALTER TABLE `fund_monitor` ADD COLUMN remark VARCHAR(200) COMMENT '基金备注';
+```
+
 ## 应用配置
 
 ### 1. 修改配置文件
