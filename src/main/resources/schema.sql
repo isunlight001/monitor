@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS `fund_monitor` (
     enabled TINYINT(1) DEFAULT 1 COMMENT '是否启用监控 (1:启用, 0:禁用)',
     create_time DATETIME COMMENT '创建时间',
     update_time DATETIME COMMENT '更新时间',
+    remark VARCHAR(2000) COMMENT '基金备注',
     UNIQUE KEY uk_fund_code (fund_code)
 ) COMMENT '基金监控表';
 

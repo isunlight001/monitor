@@ -355,6 +355,10 @@
                     <label>基金名称*</label>
                     <input type="text" id="monitorFundName" placeholder="例如: 国金量化多因子">
                 </div>
+                <div class="form-group">
+                    <label>基金备注</label>
+                    <input type="text" id="monitorFundRemark" placeholder="例如: 高风险基金">
+                </div>
                 <button class="btn btn-primary" onclick="addMonitorFund()">添加监控基金</button>
                 <button class="btn btn-info" onclick="loadMonitorFunds()">刷新监控列表</button>
                 <div class="result" id="monitorResult"></div>
@@ -823,6 +827,7 @@
         function addMonitorFund() {
             const fundCode = document.getElementById('monitorFundCode').value.trim();
             const fundName = document.getElementById('monitorFundName').value.trim();
+            const fundRemark = document.getElementById('monitorFundRemark').value.trim();
             
             if (!fundCode || !fundName) {
                 showMessage('monitorResult', '请填写基金代码和基金名称', false);
@@ -831,7 +836,8 @@
             
             const params = new URLSearchParams({
                 fundCode: fundCode,
-                fundName: fundName
+                fundName: fundName,
+                remark: fundRemark
             });
             
             fetch(`${API_BASE}/monitor-fund?${params}`, {
@@ -845,6 +851,7 @@
                     // 清空输入框
                     document.getElementById('monitorFundCode').value = '';
                     document.getElementById('monitorFundName').value = '';
+                    document.getElementById('monitorFundRemark').value = '';
                     // 重新加载监控基金列表
                     loadMonitorFunds();
                 } else {
@@ -890,6 +897,7 @@
                         <tr>
                             <th>基金代码</th>
                             <th>基金名称</th>
+                            <th>基金备注</th>
                             <th>状态</th>
                             <th>最新净值</th>
                             <th>最新涨跌幅</th>
@@ -911,11 +919,13 @@
                                   (latestReturn !== '--' && parseFloat(latestReturn) < 0 ? 'negative' : '');
                 
                 const navDate = fund.navDate || '--';
+                const remark = fund.remark || '--';
                 
                 tableHtml += `
                     <tr>
                         <td>${fund.fundCode}</td>
                         <td>${fund.fundName}</td>
+                        <td>${remark}</td>
                         <td class="${statusClass}">${statusText}</td>
                         <td>${latestNav}</td>
                         <td class="${returnClass}">${latestReturn}%</td>

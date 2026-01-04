@@ -34,6 +34,11 @@ public class MonitorFund {
     private Boolean enabled;
     
     /**
+     * 基金备注
+     */
+    private String remark;
+    
+    /**
      * 创建时间
      */
     private LocalDateTime createTime;
@@ -49,6 +54,13 @@ public class MonitorFund {
     public MonitorFund(String fundCode, String fundName) {
         this.fundCode = fundCode;
         this.fundName = fundName;
+        this.enabled = true;
+    }
+
+    public MonitorFund(String fundCode, String fundName, String remark) {
+        this.fundCode = fundCode;
+        this.fundName = fundName;
+        this.remark = remark;
         this.enabled = true;
     }
 
@@ -85,6 +97,14 @@ public class MonitorFund {
         this.enabled = enabled;
     }
 
+    public String getRemark() {
+        return remark;
+    }
+
+    public void setRemark(String remark) {
+        this.remark = remark;
+    }
+
     public LocalDateTime getCreateTime() {
         return createTime;
     }
@@ -108,6 +128,7 @@ public class MonitorFund {
                 ", fundCode='" + fundCode + '\'' +
                 ", fundName='" + fundName + '\'' +
                 ", enabled=" + enabled +
+                ", remark='" + remark + '\'' +
                 ", createTime=" + createTime +
                 ", updateTime=" + updateTime +
                 '}';

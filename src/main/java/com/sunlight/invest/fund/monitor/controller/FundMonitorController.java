@@ -195,12 +195,14 @@ public class FundMonitorController {
      *
      * @param fundCode 基金代码
      * @param fundName 基金名称
+     * @param remark 基金备注
      * @return 响应结果
      */
     @PostMapping("/monitor-fund")
     public Map<String, Object> addMonitorFund(
             @RequestParam String fundCode,
-            @RequestParam String fundName) {
+            @RequestParam String fundName,
+            @RequestParam(required = false) String remark) {
 
         Map<String, Object> result = new HashMap<>();
 
@@ -214,7 +216,7 @@ public class FundMonitorController {
             }
 
             // 添加到监控列表
-            MonitorFund monitorFund = new MonitorFund(fundCode, fundName);
+            MonitorFund monitorFund = new MonitorFund(fundCode, fundName, remark);
             int count = monitorFundMapper.insert(monitorFund);
 
             result.put("success", true);
@@ -392,6 +394,7 @@ public class FundMonitorController {
                 fundData.put("id", fund.getId());
                 fundData.put("fundCode", fund.getFundCode());
                 fundData.put("fundName", fund.getFundName());
+                fundData.put("remark", fund.getRemark());
                 fundData.put("enabled", fund.getEnabled());
                 fundData.put("createTime", fund.getCreateTime());
                 fundData.put("updateTime", fund.getUpdateTime());
