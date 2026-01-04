@@ -25,27 +25,80 @@
 
         .login-container {
             width: 100%;
-            max-width: 400px;
+            max-width: 1200px;
             background: white;
             border-radius: 15px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             overflow: hidden;
+            display: flex;
+        }
+
+        .login-left {
+            flex: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .login-left h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .login-left p {
+            font-size: 16px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .blog-preview {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .blog-preview h3 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .blog-preview h3 i {
+            margin-right: 10px;
+        }
+
+        .blog-preview-item {
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .blog-preview-item:last-child {
+            border-bottom: none;
+        }
+
+        .login-right {
+            flex: 1;
+            padding: 50px;
         }
 
         .login-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
             text-align: center;
+            margin-bottom: 30px;
         }
 
         .login-header h1 {
             font-size: 28px;
+            color: #333;
             margin-bottom: 10px;
         }
 
         .login-body {
-            padding: 30px;
+            padding: 0;
         }
 
         .form-group {
@@ -55,12 +108,14 @@
         .form-group label {
             font-weight: 500;
             margin-bottom: 5px;
+            color: #333;
         }
 
         .form-control {
             height: 45px;
             border-radius: 8px;
             padding: 10px 15px;
+            border: 1px solid #ddd;
         }
 
         .btn-login {
@@ -71,6 +126,7 @@
             border-radius: 8px;
             font-weight: 500;
             transition: all 0.3s;
+            width: 100%;
         }
 
         .btn-login:hover {
@@ -102,132 +158,201 @@
             display: block;
         }
 
-        .json-formatter-link {
+        .blog-link {
             text-align: center;
             margin-top: 20px;
             padding-top: 20px;
             border-top: 1px solid #eee;
         }
 
-        .json-formatter-link a {
+        .blog-link a {
             color: #667eea;
             text-decoration: none;
             font-weight: 500;
             transition: color 0.3s;
         }
 
-        .json-formatter-link a:hover {
+        .blog-link a:hover {
             color: #764ba2;
             text-decoration: underline;
+        }
+        
+        @media (max-width: 992px) {
+            .login-container {
+                flex-direction: column;
+            }
+            
+            .login-left {
+                padding: 30px;
+            }
+            
+            .login-right {
+                padding: 30px;
+            }
         }
     </style>
 </head>
 <body>
-<div class="login-container">
-    <div class="login-header">
-        <h1>🔐 用户登录</h1>
-        <p>基金监控系统</p>
-    </div>
+    <div class="login-container">
+        <div class="login-left">
+            <h2>📈 基金监控系统</h2>
+            <p>专业、实时、智能的基金数据分析平台，助您把握投资机会</p>
+            
+            <div class="blog-preview">
+                <h3><i class="bi bi-journal-text"></i> 最新博客</h3>
+                <div id="blogPreviewList">
+                    <div class="blog-preview-item">
+                        <strong>市场分析：2025年投资展望</strong>
+                        <div class="text-muted small">分享投资心得，记录市场感悟</div>
+                    </div>
+                    <div class="blog-preview-item">
+                        <strong>基金选择策略指南</strong>
+                        <div class="text-muted small">如何挑选优质基金</div>
+                    </div>
+                    <div class="blog-preview-item">
+                        <strong>风险管理与资产配置</strong>
+                        <div class="text-muted small">构建稳健投资组合</div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    <div class="login-body">
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="username">用户名</label>
-                <input type="text" class="form-control" id="username" placeholder="请输入用户名" required>
+        <div class="login-right">
+            <div class="login-header">
+                <h1>🔐 用户登录</h1>
+                <p>基金监控系统</p>
             </div>
 
-            <div class="form-group">
-                <label for="password">密码</label>
-                <input type="password" class="form-control" id="password" placeholder="请输入密码" required>
+            <div class="login-body">
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="username">用户名</label>
+                        <input type="text" class="form-control" id="username" placeholder="请输入用户名" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">密码</label>
+                        <input type="password" class="form-control" id="password" placeholder="请输入密码" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-login">登录</button>
+                </form>
+
+                <div class="result" id="loginResult"></div>
+                
+                <div class="blog-link">
+                    <a href="blog.html">📝 查看投资博客</a>
+                </div>
+                <div class="blog-link">
+                    <a href="json-formatter.html" target="_blank">🔧 使用JSON格式化工具</a>
+                </div>
             </div>
-
-            <button type="submit" class="btn btn-login w-100">登录</button>
-        </form>
-
-        <div class="result" id="loginResult"></div>
-        
-        <div class="json-formatter-link">
-            <a href="json-formatter.html" target="_blank">🔧 使用JSON格式化工具</a>
         </div>
     </div>
-</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    // API基础路径
-    const API_BASE = '/api/users';
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // API基础路径
+        const API_BASE = '/api/users';
 
-    // 页面加载完成后检查登录状态
-    document.addEventListener('DOMContentLoaded', function() {
-        checkLoginStatus();
-    });
+        // 页面加载完成后检查登录状态
+        document.addEventListener('DOMContentLoaded', function() {
+            checkLoginStatus();
+            loadBlogPreviews();
+        });
 
-    // 检查登录状态
-    async function checkLoginStatus() {
-        try {
-            const response = await fetch(`${API_BASE}/status`);
-            const result = await response.json();
+        // 检查登录状态
+        async function checkLoginStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/status`);
+                const result = await response.json();
 
-            if (result.success) {
-                // 已登录，跳转到主页
-                window.location.href = 'index.html';
-            }
-        } catch (error) {
-            console.log('检查登录状态失败:', error);
-        }
-    }
-
-    // 表单提交处理
-    document.getElementById('loginForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-
-        if (!username || !password) {
-            showResult('loginResult', false, '请填写用户名和密码');
-            return;
-        }
-
-        try {
-            const response = await fetch(`${API_BASE}/login`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    username: username,
-                    password: password
-                })
-            });
-
-            const result = await response.json();
-
-            if (response.ok && result.success) {
-                showResult('loginResult', true, '登录成功');
-                // 延迟跳转到主页
-                setTimeout(() => {
+                if (result.success) {
+                    // 已登录，跳转到主页
                     window.location.href = 'index.html';
-                }, 1000);
-            } else {
-                showResult('loginResult', false, result.message || '登录失败');
+                }
+            } catch (error) {
+                console.log('检查登录状态失败:', error);
             }
-        } catch (error) {
-            showResult('loginResult', false, '登录失败: ' + error.message);
         }
-    });
 
-    // 显示结果
-    function showResult(elementId, isSuccess, message) {
-        const element = document.getElementById(elementId);
-        element.textContent = message;
-        element.className = 'result ' + (isSuccess ? 'success' : 'error') + ' show';
+        // 加载博客预览
+        async function loadBlogPreviews() {
+            try {
+                const response = await fetch('/api/blog/published');
+                const result = await response.json();
 
-        // 3秒后自动隐藏
-        setTimeout(() => {
-            element.classList.remove('show');
-        }, 3000);
-    }
-</script>
+                const blogPreviewList = document.getElementById('blogPreviewList');
+
+                if (result.success && result.data && result.data.length > 0) {
+                    let html = '';
+                    result.data.slice(0, 3).forEach(blog => {
+                        html += `
+                            <div class="blog-preview-item">
+                                <strong>${blog.title}</strong>
+                                <div class="text-muted small">${blog.summary || blog.content.substring(0, 50) + '...'}</div>
+                            </div>
+                        `;
+                    });
+                    blogPreviewList.innerHTML = html;
+                }
+            } catch (error) {
+                console.log('加载博客预览失败:', error);
+                // 保持默认的博客预览内容
+            }
+        }
+
+        // 表单提交处理
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (!username || !password) {
+                showResult('loginResult', false, '请填写用户名和密码');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.success) {
+                    showResult('loginResult', true, '登录成功');
+                    // 延迟跳转到主页
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1000);
+                } else {
+                    showResult('loginResult', false, result.message || '登录失败');
+                }
+            } catch (error) {
+                showResult('loginResult', false, '登录失败: ' + error.message);
+            }
+        });
+
+        // 显示结果
+        function showResult(elementId, isSuccess, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.className = 'result ' + (isSuccess ? 'success' : 'error') + ' show';
+
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                element.classList.remove('show');
+            }, 3000);
+        }
+    </script>
 </body>
 </html>
