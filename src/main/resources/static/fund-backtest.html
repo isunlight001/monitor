@@ -703,9 +703,8 @@
             document.getElementById('maxDrawdown').textContent = formatPercentage(data.maxDrawdown);
             document.getElementById('tradingDays').textContent = data.tradingDays;
 
-            // 计算不做T买卖的总收益（初始持仓部分的收益）
-            const noTradingReturn = calculateNoTradingReturn(data);
-            document.getElementById('noTradingReturn').textContent = formatCurrency(noTradingReturn);
+            // 显示不做T买卖的总收益（从后端获取）
+            document.getElementById('noTradingReturn').textContent = formatCurrency(data.noTradingReturn);
 
             // 显示结果区域
             document.getElementById('resultArea').style.display = 'block';
@@ -845,34 +844,6 @@
             return (value * 100).toFixed(2) + '%';
         }
         
-        // 计算不做T买卖的总收益
-        function calculateNoTradingReturn(data) {
-            if (!data.dailyDetails || data.dailyDetails.length === 0) {
-                return 0;
-            }
-            
-            // 获取初始持仓份额和初始净值
-            const initialHoldingsValue = data.initialCapital * (data.initialHoldings / 100);
-            const initialNav = data.dailyDetails[0].nav;
-            const initialHoldings = initialHoldingsValue / initialNav;
-            
-            // 获取最后一天的净值
-            const lastDay = data.dailyDetails[data.dailyDetails.length - 1];
-            const finalHoldingsValue = initialHoldings * lastDay.nav;
-            
-            // 计算初始现金部分的价值（未投资部分）
-            const initialCash = data.initialCapital - initialHoldingsValue;
-            
-            // 计算不做任何交易的总资产
-            const noTradingTotalAssets = initialCash + finalHoldingsValue;
-            
-            // 计算收益
-            const noTradingReturn = noTradingTotalAssets - data.initialCapital;
-            
-            return noTradingReturn;
-        }
-        
-
 
         // 页面加载完成后初始化
         document.addEventListener('DOMContentLoaded', function() {

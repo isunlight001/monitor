@@ -75,6 +75,11 @@ public class BacktestResponse {
     private int tradingDays;
     
     /**
+     * 不做T买卖的总收益
+     */
+    private double noTradingReturn;
+    
+    /**
      * 每日明细
      */
     private List<DailyDetail> dailyDetails;
@@ -182,6 +187,14 @@ public class BacktestResponse {
 
     public void setTradingDays(int tradingDays) {
         this.tradingDays = tradingDays;
+    }
+
+    public double getNoTradingReturn() {
+        return noTradingReturn;
+    }
+
+    public void setNoTradingReturn(double noTradingReturn) {
+        this.noTradingReturn = noTradingReturn;
     }
 
     public List<DailyDetail> getDailyDetails() {

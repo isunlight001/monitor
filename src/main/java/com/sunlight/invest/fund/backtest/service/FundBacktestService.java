@@ -449,6 +449,9 @@ public class FundBacktestService {
         // 计算最大回撤
         double maxDrawdown = (maxTotalAssets > 0) ? (maxTotalAssets - minTotalAssets) / maxTotalAssets : 0;
 
+        // 计算不做T买卖的总收益（初始持仓部分的收益）
+        double noTradingReturn = calculateNoTradingReturn(initialCapital, initialHoldingsValue, initialNav, finalNav, sortedDates, fundDataMap);
+        
         // 创建响应对象
         BacktestResponse response = new BacktestResponse();
         response.setInitialCapital(initialCapital);
@@ -464,11 +467,32 @@ public class FundBacktestService {
         response.setMaxDrawdown(maxDrawdown);
         response.setPeakHoldings(peakHoldings);
         response.setTradingDays(sortedDates.size());
+        response.setNoTradingReturn(noTradingReturn);
         response.setDailyDetails(dailyDetails);
 
         return response;
     }
-
+    
+    /**
+     * 计算不做T买卖的总收益资产
+     * 公式：初始基金份额 * 测试结束日期的净值 + 净现金
+     */
+    private double calculateNoTradingReturn(double initialCapital, double initialHoldingsValue, 
+                                         double initialNav, double finalNav,
+                                         List<LocalDate> sortedDates, 
+                                         Map<LocalDate, FundNav> fundDataMap) {
+        // 计算初始持仓份额
+        double initialHoldings = initialHoldingsValue / initialNav;
+        
+        // 初始现金 = 初始资金 - 初始持仓市值
+        double initialCash = initialCapital - initialHoldingsValue;
+        
+        // 不做T买卖总收益资产 = 初始持仓份额 * 最终净值 + 净现金
+        double noTradingTotalAssets = initialHoldings * finalNav + initialCash;
+        
+        return noTradingTotalAssets;
+    }
+    
     /**
      * 生成模拟指数数据（用于测试，实际应从数据库获取）
      */
