@@ -42,6 +42,8 @@ import java.util.Map;
 public class FundMonitorService {
 
     private static final Logger log = LoggerFactory.getLogger(FundMonitorService.class);
+    //丢给AI计算的天数
+    private static final int CAL_DAYS = 90;
 
     @Autowired
     private FundNavMapper fundNavMapper;
@@ -771,7 +773,7 @@ public class FundMonitorService {
                 
                 // 为每个基金添加AI智能分析报告
                 try {
-                    List<FundNav> fundNavList = fundNavMapper.selectRecentDays(fundCode, 60);
+                    List<FundNav> fundNavList = fundNavMapper.selectRecentDays(fundCode, CAL_DAYS);
                     String aiAnalysis = generateFundAIAnalysis(fundNavList, fundCode, fundName);
                     
                     htmlBuilder.append("<div class='ai-analysis'>");
@@ -842,7 +844,7 @@ public class FundMonitorService {
         // 添加数据（最多取最近30天的数据）
         int count = 0;
         for (FundNav nav : fundNavList) {
-            if (count >= 60) break;
+            if (count >= CAL_DAYS) break;
             prompt.append(nav.getNavDate().toString()).append("、")
                   .append(nav.getUnitNav().toString()).append("、")
                   .append(nav.getDailyReturn() != null ? nav.getDailyReturn().toString() : "0").append("\n");
