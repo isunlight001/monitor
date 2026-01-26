@@ -5,13 +5,15 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/fund?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false
     username: fund
-    password: Root@123456  # 使用简单明文密码便于调试
+    password: G+tQBN49PxiwvS0Qe/ttymjddMiuz3vjtKB9iyFIGZEqqwgRgYNvLEAhiNjpCwx8CM0tOrveJp9MT5M7/R6nMw==  # Druid加密后的密文密码
     driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource
     druid:
       initial-size: 5
       min-idle: 5
       max-active: 20
+      # 配置解密
+      connection-properties: config.decrypt=true;config.decrypt.key=MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAM5lY1KodLMVseSh6rIGalVRyHFg+le66m9lkslKxQBFbZfVG7Y2xk738cC6okDQelU9iU0A/XHbdXhvnAJknhECAwEAAQ==
       stat-view-servlet:
         enabled: true
         url-pattern: /druid/*
@@ -24,6 +26,8 @@ spring:
           slow-sql-millis: 1000
           merge-sql: true
         wall:
+          enabled: true
+        config:
           enabled: true
   h2:
     console:
